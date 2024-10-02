@@ -1,0 +1,234 @@
+@charset "UTF-8";
+
+*,
+*::before,
+*::after{
+	box-sizing: inherit;
+}
+html{
+	box-sizing: border-box;
+	appearance: none;
+}
+body{
+	background: linear-gradient(135deg, #e2d1c3 0%, #fdfcfb 100%), #e2d1c3;
+	background-attachment: fixed;
+	height: 100vh;
+	scrollbar-width: none;
+	-webkit-overflow-scrolling: touch;
+	overscroll-behavior: none;
+}
+.survey{
+	width: 95%;
+	width: calc(100% - 2em);
+	max-width: 720px;
+	margin: 1em auto;
+	padding: 1em 1.2em;
+	line-height: 2;
+	scroll-behavior: smooth;
+}
+.survey header{
+	position: sticky;
+	top: 0;
+	padding: .8em 0;
+	letter-spacing: 2px;
+	background: inherit;
+	border-bottom: 1px dashed #aaa;
+}
+.survey header .title{
+	margin: .6em;
+	font-size: 1.5em;
+}
+.survey header .notice{
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: .3em auto;
+	padding: .4em 1em;
+	max-width: 480px;
+	letter-spacing: 1px;
+	color: #222;
+	background: #f9edbe;
+	border: 1px solid #f0c36d;
+	border-radius: .6em;
+	font-size: small;
+	cursor: pointer;
+}
+.survey header .notice[title]::after{
+	content: attr(title);
+}
+.survey .intro{
+	padding: .6em 0;
+	font-size: smaller;
+	letter-spacing: .5px;
+	color: #222;
+	border-bottom: 1px dashed #aaa;
+	text-align: justify;
+}
+.survey > ul{
+	padding: 0 0 0 1em;
+	letter-spacing: 1px;
+}
+	.survey li[data-question]::before{
+		display: block;
+		content: attr(data-question);
+		margin: 3.5em 0 .6em 0;
+		color: #444;
+	}
+	.survey li[data-question][data-required]::before{
+		content: attr(data-question) " *";
+	}
+
+.survey .sortable{
+	display: inline-block;
+	padding: 0 0 0 2em;
+	border: 1px solid rosybrown;
+	border-radius: .6em;
+}
+	.survey .sortable li{
+		padding: .2em 0;
+		line-height: 2;
+		cursor: row-resize;
+	}
+	.survey .sortable li:nth-child(odd){
+		background: rgba(204,204,204,.2);
+	}
+	.survey .sortable li:nth-child(even){
+		background: rgba(255,255,255,.2);
+	}
+	.survey .sortable li:nth-child(1){
+		border-radius: 0 .6em 0 0;
+	}
+	.survey .sortable li:not(:last-child){
+		border-bottom: 1px dashed #ccc;
+	}
+	.survey .sortable li::after{
+		font-family: "Font Awesome 5 Pro";
+		font-weight: 300;
+		content: "\f07d";
+		color: #555;
+		margin: 0 2em;
+	}
+	.survey .sortable li:hover::after{
+		color: #000;
+	}
+	.survey .sortable li.dragging{
+		background: #d6bbbb;
+	}
+
+.survey .hj_stars{
+	max-width: 720px;
+	line-height: 1.5;
+	margin: 0;
+	background: rgba(255,255,255,.8);
+	border: 1px solid rosybrown;
+	border-radius: .6em;
+}
+.survey label{
+	white-space: nowrap;
+}
+.survey input[type="text"], 
+.survey input[type="email"], 
+.survey textarea{
+	width: 98%;
+	max-width: 720px;
+	border: 1px solid rosybrown;
+	background: rgba(255,255,255,.5);
+	box-shadow: inset 0 1px 3px #ddd;
+	border-radius: 1em;
+	margin: 0 auto;
+	padding: .5em 1em;
+	line-height: 1.6;
+	letter-spacing: 1px;
+	color: rosybrown;
+	caret-color: rosybrown;
+	outline: none;
+}
+.survey textarea{
+	width: 100%;
+	resize: none;
+}
+	.survey input::placeholder, 
+	.survey textarea::placeholder{
+		font-style: italic;
+	}
+
+.survey [data-checkboxes] label{
+	padding: 1em;
+	cursor: pointer;
+}
+.survey .btns_action{
+	display: flex;
+	justify-content: space-evenly;
+	list-style: none;
+	padding: 0;
+	text-align: center;
+}
+.survey .btns_action li{
+	display: inline-flex;
+	letter-spacing: 2px;
+	margin: .4em auto;
+	padding: .8em 1em;
+	border-radius: .6em;
+	color: #fff;
+	background-color: #666;
+	background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+	background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+	background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+	cursor: pointer;
+	transition: filter .2s linear;
+}
+.survey .btns_action li[data-active]{
+	background-color: #F16D6E;
+}
+.survey .btns_action li[data-active]:hover{
+	filter: brightness(1.2);
+}
+.survey [data-fal]::before{
+	font-family: "Font Awesome 5 Pro";
+	font-weight: 300;
+	content: attr(data-fal);
+	margin-right: .4em;
+}
+.survey [data-fab]::before{
+	font-family: "Font Awesome 5 Pro";
+	font-weight: 300;
+	content: attr(data-fab);
+	margin-right: .4em;
+}
+.survey .reminder{
+	font-size: x-small;
+	color: #888;
+}
+.survey .reminder[title]::after{
+	content: attr(title);
+	height: 100%;
+	vertical-align: middle;
+}
+.survey [data-unlock]{
+	display: none;
+}
+.survey .dragging{
+	transition: all .2s ease-in;
+	background: rgba(255,255,255,.8);
+}
+
+@media screen and (max-width: 767px){
+	body::-webkit-scrollbar{
+		display: none;
+		width: 0;
+		background: transparent;
+	}
+	
+	/* Android Keyboard Overlay Fix */
+	.survey{
+		margin-bottom: 10em;
+	}
+	.survey header .title{
+		font-size: 1.2em;
+	}
+	.survey .sortable li, 
+	.survey input::placeholder, 
+	.survey textarea::placeholder{
+		font-size: smaller;
+	}
+}

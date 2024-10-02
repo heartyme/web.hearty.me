@@ -1,0 +1,9 @@
+#
+# Robots.txt file for web.hearty.me
+# Hearty Journal is a wholly owned subsidiary of Hearty Creative Inc.
+#
+# For questions, please contact https://mailhide.io/e/k7jWFOBo .
+# http://go.nien.co/2EuAjQV
+
+User-agent: *
+Disallow: /

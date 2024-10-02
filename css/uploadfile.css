@@ -1,0 +1,97 @@
+.ajax-file-upload-statusbar{
+    border: 1px solid #0ba1b5;
+    width: 95%;
+    margin: 5px;
+    border-radius: 4px;
+    padding: 5px
+}
+.ajax-file-upload-filename{
+    width: 100%;
+    height: auto;
+    margin: 0 5px 5px 10px;
+    color: #807579
+}
+.ajax-file-upload-progress{
+    margin: 0 10px 5px;
+    position: relative;
+    width: 250px;
+    border: 1px solid #ddd;
+    padding: 1px;
+    border-radius: 3px;
+    display: inline-block
+}
+.ajax-file-upload-bar{
+    background-color: #0ba1b5;
+    width: 0;
+    height: 20px;
+    border-radius: 3px;
+    color: #FFF
+}
+.ajax-file-upload-percent{
+    position: absolute;
+    display: inline-block;
+    top: 3px;
+    left: 48%
+}
+.ajax-file-upload-red{
+    box-shadow: inset 0 39px 0 -24px #e67a73;
+    background-color: #e4685d;
+    border-radius: 4px;
+    display: inline-block;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 400;
+    padding: 4px 15px;
+    text-decoration: none;
+    text-shadow: 0 1px 0 #b23e35;
+    cursor: pointer;
+    vertical-align: top;
+    margin-right: 5px
+}
+.ajax-file-upload-green{
+    background-color: #77b55a;
+    border-radius: 4px;
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 400;
+    padding: 4px 15px;
+    text-decoration: none;
+    cursor: pointer;
+    text-shadow: 0 1px 0 #5b8a3c;
+    vertical-align: top;
+    margin-right: 5px
+}
+.ajax-file-upload{
+    font-size: 16px;
+    font-weight: 700;
+    padding: 15px 20px;
+    cursor: pointer;
+    line-height: 20px;
+    height: 25px;
+    margin: 0 10px 10px 0;
+    display: inline-block;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    color: #888;
+    text-decoration: none;
+    border-radius: 3px;
+    padding: 6px 10px 4px 10px;
+    color: #fff;
+    background: #ec6c00;
+    border: none;
+    vertical-align: middle
+}
+.ajax-file-upload:hover{
+    background: #ff69b4
+}
+.ajax-upload-dragdrop{
+    border: 2px dotted #A5A5C7;
+    width: 95%;
+    color: #DADCE3;
+    text-align: left;
+    vertical-align: middle;
+    padding: 10px 10px 0
+}
