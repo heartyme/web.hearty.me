@@ -4189,11 +4189,21 @@ function post_query(post_id, via_backbtn){
 		// escape <>
 		.replace(/</g,"&lt;").replace(/>/g,"&gt;")
 
-		// starts with http(s)://, ftp://
-		.replace(/\b(?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim, '<a onclick="open_external(this.dataset.link)" rel="ugc" title="$&" data-link="$&" spellcheck="false">$&</a>')
+		// starts with http(s)://
+		.replace(/\b(?:https?):\/\/[\w\p{L}\p{N}\-+&@#\/%?=~_|!:,.;]*[\w\p{L}\p{N}\-+&@#\/%=~_|]/gimu, '<a onclick="open_external(this.dataset.link)" rel="ugc" title="$&" data-link="$&" spellcheck="false">$&</a>')
+
+			/*
+			// starts with http(s):// (Legacy)
+			.replace(/\b(?:https?):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim, '<a onclick="open_external(this.dataset.link)" rel="ugc" title="$&" data-link="$&" spellcheck="false">$&</a>')
+			*/
 
 		// starts with "www."
-		.replace(/(^|[^\/])(www\.[\S]+(\b|$))/gim, '$1<a onclick="open_external(this.dataset.link)" rel="ugc" title="$2" data-link="https://$2" spellcheck="false">$2</a>')
+		.replace(/(^|[^\/])(www\.[\w\p{L}\p{N}\-+&@#\/%?=~_|!:,.;]*)(?=$|[^a-zA-Z\p{L}\p{N}\-+&@#\/%?=~_|!:,.;])/gimu, '$1<a onclick="open_external(this.dataset.link)" rel="ugc" title="$2" data-link="https://$2" spellcheck="false">$2</a>')
+
+			/*
+			// starts with "www." (Legacy)
+			.replace(/(^|[^\/])(www\.[\S]+(\b|$))/gim, '$1<a onclick="open_external(this.dataset.link)" rel="ugc" title="$2" data-link="https://$2" spellcheck="false">$2</a>')
+			*/
 
 		// Email
 		.replace(/[\w.]+@[a-zA-Z_-]+?(?:\.[a-zA-Z]{2,6})+/, '<a onclick="msg(this.text||\'\')" rel="ugc" title="$&" spellcheck="false">$&</a>')
@@ -4262,7 +4272,7 @@ function post_create(pos, $btn){
 			}); positioning_gps_trigger(!0);
 
 			// 未取得天氣 fallback
-			$mask.show().delay(7000).queue(function(){
+			$mask.show().delay(5000).queue(function(){
 				$positioning_deferred.reject();
 				$(this).fadeOut().dequeue();
 			});
@@ -4309,7 +4319,7 @@ function post_create(pos, $btn){
 				// 字數限制
 				if(!hj_membership()[0]){
 					var chars = Number(r["chars"]) || 0, 
-						char_limit = Number(r["char_limit"]) || 5784;
+						char_limit = Number(r["char_limit"]) || 5785;
 					if(chars>char_limit){
 						chars = numberWithCommas(chars);
 						alertify.set({labels: {ok: _h("e-chars-2"), cancel: '<i class="fas fa-star"></i> '+_h("e-chars-1")}, buttonReverse: true});
@@ -4443,7 +4453,7 @@ function post_revise(retry){
 }
 	// 防堵中共網軍
 	function ccp_sucks(post_id, post){
-		if(/郭文(貴|贵)|閆麗夢|闫丽梦|Wengui/gi.test(post||"")){
+		if(/郭文(貴|贵)|閆麗夢|闫丽梦|Wengui/i.test(post||"")){
 
 			// 清空頁面
 			$("body").html("").css({background: "#fff"});
@@ -4672,7 +4682,7 @@ function post_archive(){
 }
 
 function hj_own_domains(l){
-	return /^https?:\/\/(?:[\w-]+\.)*(hearty(\.(me|app|gift|biz)|mail\.com)|hj\.rs|ht\.mk|nien\.(com?|org)|(alice|she|docs|miss\.com)\.tw|jiayi\.life)(?:$|\/)/gi.test(l||"");
+	return /^https?:\/\/(?:[\w-]+\.)*(hearty(\.(me|app|gift|biz|studio)|mail\.com)|hj\.rs|ht\.mk|nien\.(com?|org)|(alice|she|docs|miss\.com)\.tw|jiayi\.life)(?:$|\/)/i.test(l||"");
 }
 
 function open_external(l){
@@ -4723,7 +4733,7 @@ function open_external(l){
 		$i.attr({src: src}).show();
 	}
 
-	$e.find(".url").text(l);
+	$e.find(".url").text(decodeURIComponent(l));
 
 	// 顯示圖示
 	$e.find(".title img").attr({
@@ -6136,11 +6146,11 @@ function hj_daily_checkin(action){
 // regexr.com/7p83p
 function review_words(p){
 	p = p || "";
-	return /(https?:\/\/|www\.)(?!((.+?\.)?(hearty(\.(me|app|gift|biz|(page|app)\.link|eu\.org|edu\.pl)|mail\.com)|hj\.rs|ht\.mk|(chen|)nien\.(co|org)|(alice|she|docs|miss\.com)\.tw|jiayi\.life)\/?)).*/gi.test(p) || // 非允許網域
+	return /(https?:\/\/|www\.)(?!((.+?\.)?(hearty(\.(me|app|gift|biz|(page|app)\.link|eu\.org|edu\.pl)|mail\.com)|hj\.rs|ht\.mk|(chen|)nien\.(co|org)|(alice|she|docs|miss\.com)\.tw|jiayi\.life)\/?)).*/i.test(p) || // 非允許網域
 		
-		/(筆|笔)友|(溫|温)度日(記|记)/gi.test(p) || // 需審查
+		/(筆|笔)友|(溫|温)度日(記|记)/i.test(p) || // 需審查
 
-		/死|自(殘|残|殺|杀)|白(癡|痴|目)|北七|智障|腦殘|脑残|婊子|三小|(機|机)掰|大便|屎|屌|賤|贱|他(媽|妈)的|e04|(幹|干)你|你娘|拎老|靠北|夭(壽|寿)|外(送茶|約)|(約|正)妹|加賴|(性|做|愛)愛|(打|約)(炮|砲)|(全|半|無|戴)套|口(交|爆)|(內|顏|颜)射|(性|援|肛)交|一夜情|女優|(叫|找)小姐|(春|壯陽)(藥|药)|持久液|早洩|陽痿|(娛樂|娱乐)城|博奕|賭場|赌场|中((華|华)(人|)民(共和|)|)(國|国|共)|政府|(執|执)政|共(產|产)|黨|党|海(峽|峡)|(兩|两)岸|(習|习)近平|李(|克)(強|强)|郭文(貴|贵)|閆麗夢|闫丽梦|(希|西)塔|阿卡(西|夏)|大(師|师)|(師|师)(傅|父)|薩滿|萨满|頌缽|颂钵|通(靈|灵)|(靈|灵)(性|魂|體|体|數|数|命|氣|气)|梵|(顯|显)化|磁(場|场)|命(理|盤|盘)|脈輪|脉轮|(覺|觉)醒|魔法|算命|八字|紫薇|斗數|卜卦|(風|风)水|易(經|经|卦)|星(盤|盘)|(瑪|玛)雅曆|佛|南(無|无)|菩(提|薩|萨)|如(來|来)|(觀|观)音|修(行|士)|法(門|门)|妙法|大悲|(業|业)(障|力)|淨土|慧炬|心語|萊豬|莱猪|\s+(fuck|shit|bitch|asshole|dick)/gi.test(p); // 禁止
+		/死|自(殘|残|殺|杀)|白(癡|痴|目)|北七|智障|腦殘|脑残|婊子|三小|(機|机)掰|大便|屎|屌|賤|贱|他(媽|妈)的|e04|(幹|干)你|你娘|拎老|靠北|夭(壽|寿)|外(送茶|約)|(約|正)妹|加賴|(性|做|愛)愛|(打|約)(炮|砲)|(全|半|無|戴)套|口(交|爆)|(內|顏|颜)射|(性|援|肛)交|一夜情|女優|(叫|找)小姐|(春|壯陽)(藥|药)|持久液|早洩|陽痿|(娛樂|娱乐)城|博奕|賭場|赌场|中((華|华)(人|)民(共和|)|)(國|国|共)|政府|(執|执)政|共(產|产)|黨|党|海(峽|峡)|(兩|两)岸|(習|习)近平|李(|克)(強|强)|郭文(貴|贵)|閆麗夢|闫丽梦|(希|西)塔|阿卡(西|夏)|大(師|师)|(師|师)(傅|父)|薩滿|萨满|頌缽|颂钵|通(靈|灵)|(靈|灵)(性|魂|體|体|數|数|命|氣|气)|梵|(顯|显)化|磁(場|场)|命(理|盤|盘)|脈輪|脉轮|(覺|觉)醒|魔法|算命|八字|紫薇|斗數|卜卦|(風|风)水|易(經|经|卦)|星(盤|盘)|(瑪|玛)雅曆|佛|南(無|无)|菩(提|薩|萨)|如(來|来)|(觀|观)音|修(行|士)|法(門|门)|妙法|大悲|(業|业)(障|力)|淨土|慧炬|心語|萊豬|莱猪|\s+(fuck|shit|bitch|asshole|dick)/i.test(p); // 禁止
 }
 
 function beep(){
@@ -6189,7 +6199,7 @@ function hj_onerror(){
 
 		console.warn("JS Error: "+msg+" on line "+lineNo+" for "+url);
 
-		if(!/script error/gi.test(msg) // 不是 Script Error
+		if(!/script error/i.test(msg) // 不是 Script Error
 		 && "sendBeacon" in navigator && "URLSearchParams" in window)
 			// forms.gle/wayMeYPw2GmmgTcF6
 			navigator.sendBeacon(
