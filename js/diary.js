@@ -1138,7 +1138,7 @@ function catalog_search_toggle(o){
 		case "toggle":
 			var $c = $(".catalog"), 
 				$b = $c.find(".btn_search");
-			$c.find(".diaries").slideUp("fast", function(){
+			$c.find(".diaries").slideUp(50, function(){
 				$(this).html($("<div>", {class: "catalog_loading"})).slideDown("slow");
 			});
 
@@ -5083,6 +5083,10 @@ function hj_notice_pc(on){
 
 function hj_upgrade_toggle(on){
 	popup_toggle(on, "upgrade");
+
+	// 手機上，收起選單
+	if($(".btn_catalog").is(":visible")) nav_toggle($(".catalog"), false);
+
 	ga_evt_push("view_promotion");
 }
 function pricing(on){
@@ -5409,20 +5413,19 @@ function hj_purchase(d){
 		currency: "TWD"
 	});
 }
-	function hj_purchase_alt(d){
+	// 2025 方案 (綁卡實名制後)
+	function hj_purchase2(d){
 		if(d==null) return false;
 
-		// 台灣全方案
-		// 藍新 (信用卡單筆/訂閱 | ATM | 超商)
-		if(d["cc"]=="TW"){ // || d["recurring"]==1
+		if(
+			(d["recurring"]==0 && d["cc"]=="TW") || // 台灣儲值 (信用卡 | ATM | 超商)
+			(d["recurring"]==1 && d["cc"]!="TW") // 海外訂閱 (僅信用卡)
+		){
 			hj_href("shop/np.buy?"+$.param(d));
 		}
-		// 國外全方案
-		// TapPay (信用卡單筆/訂閱 | AP | GP | 支付寶)
-		else{
+		else{ // 海外儲值 (信用卡 | AP | GP | 支付寶) + 台灣訂閱 (僅信用卡 + 實名認證)
 			hj_href("shop/tp.buy?"+$.param(d));
 		}
-
 
 		var pkg_id = d["pkg"], 
 			pkg = pkg_info(pkg_id);
