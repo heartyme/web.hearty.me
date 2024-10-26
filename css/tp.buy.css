@@ -120,6 +120,9 @@ section{
 	border-radius: .5em;
 	box-shadow: rgba(0,0,0,.1) 1px 1px 1em 1px;
 }
+small{
+	color: #555;
+}
 
 ul{
 	list-style: circle;
@@ -195,37 +198,92 @@ main{
 .methods .direct_pay{
 	display: flex;
 	flex-flow: column wrap;
-	gap: .4em;
+	gap: 1em;
 }
 
+.direct_pay .mobile{
+	display: flex;
+	flex-flow: row wrap;
+	line-height: 2;
+	gap: .4em;
+}
 .direct_pay form{
 	display: flex;
 	flex-flow: row nowrap;
-	align-item: center;
+	align-content: center;
 	justify-content: center;
 	gap: 1em;
 }
-#dpay{
-	width: 100%;
-	margin: 0 auto;
-	outline: 0;
+
+#dpay, 
+#phone_no, 
+#phone_cc{
 	appearance: none;
-	tap-highlight-color: rgba(255,255,255,0);
-	line-height: 1.5em;
+	outline: 0;
 	padding: .6em 1em;
-	font-size: 1em;
 	border: 1px solid rgba(34,36,38,.15);
 	color: rgba(0,0,0,.87);
 	border-radius: .5em;
+	background: rgba(255,255,255,.3);
 	box-shadow: 0 0 0 0 transparent inset;
 	transition: color .1s ease, border-color .1s ease;
+	tap-highlight-color: rgba(255,255,255,0);
 }
+	#phone_no:invalid, 
+	#phone_cc:invalid{
+		border: 1px solid red;
+	}
+	#dpay{
+		margin: 0 auto;
+		width: 100%;
+		font-size: 1em;
+		line-height: 1.5em;
+	}
+	#phone_no{
+		flex: 1;
+		font-size: smaller;
+		letter-spacing: 1.2px;
+	}
+	#phone_cc{
+		font-size: x-small;
+		max-width: 20vw;
+
+		/* 顯示靠右文字 */
+		text-align: left;
+		direction: rtl;
+	}
+
 #dpay_btn{
 	width: 120px;
 }
 .agree{
 	margin: 1em 0 3em 0;
 }
+
+/* 暫存測試卡號  */
+.demo{
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: space-around;
+	gap: 1em;
+
+	margin: .2em auto;
+	padding: .4em 1em;
+	letter-spacing: .5px;
+	font-size: small;
+	color: #555;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	background: #eee;
+}
+	.demo.hidden{
+		display: none;
+	}
+	.demo a[title]::after{
+		content: attr(title);
+		font-size: xx-small;
+		margin: 0 .4em;
+	}
 
 .methods .mobile_pay{
 	position: relative;
