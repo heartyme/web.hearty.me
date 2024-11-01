@@ -136,10 +136,10 @@ function browser_check(check){
 			alertify.set({labels: {ok: '<i class="fas fa-question-circle"></i> '+_h("i-cookie-1"), cancel: _h("i-no-0")}, buttonReverse: !1});
 			alertify.confirm('<i class="fab fa-chrome"></i> '+_h("i-cookie-0"), function(e){
 				if(e){
-					var u = "support.google.com/chrome/answer/95647";
+					var u = "bit.ly/3wYJCWN"; // Chrome cookie
 					switch(check_browser()){
 						case "Safari":
-							u = "support.apple.com/"+(check_OS("iOS") ? "HT201265" : "guide/safari/sfri11471");
+							u = "apple.co/2"+(check_OS("iOS") ? "sjnDZh" : "HEqQb9");
 						break;
 
 						case "Firefox":
@@ -319,12 +319,13 @@ function signin(para){
 
 // 註冊
 function signup(){
-	// 防呆機制 (避免 ID 誤填為 Email)
 	var $a = $("#account"), 
-		account = $a.val().toLowerCase()
-			.replace(/((g(|oogle)|y(|7)|hot|fox|live|zoho|proton|rocket)mail|outlook|msn|live|passport|aol|ya(hoo|ndex)|qq|1(26|63)|icloud|mac|me)(com([a-z]{2}|)|[a-z]{2})/gi, "")
-			.replace(/[^a-z0-9]/gi, "");
+		// 移除 @及隨後字串，避免 ID 誤填為 Email
+		account = $a.val().split('@')[0].toLowerCase().replace(/[^a-z0-9]/gi, "");
 		$a.val(account);
+
+	// 防呆機制 (避免 ID 誤填為 Email)
+	// .replace(/((g(|oogle)|y(|7)|hot|fox|live|zoho|proton|rocket)mail|outlook|msn|live|passport|aol|ya(hoo|ndex)|qq|1(26|63)|icloud|mac|me)(com([a-z]{2}|)|[a-z]{2})/gi, "")
 
 	var $f = $(".authform"), 
 		$s = $("#status"), 
@@ -579,12 +580,14 @@ function box(toggle){
 		$p = $("#password"), 
 		$sup = $(".signup"), 
 		$sin = $(".signin"), 
-		$res = $(".reset");
+		$res = $(".reset"), 
+		$tog_sup = $(".toggle_signup"), 
+		$tog_sin = $(".toggle_signin");
 
 	switch(toggle){
 		case "signup":
-			$(".toggle_signup").css({color: "#fff", background: "#555"});
-			$(".toggle_signin").css({color: "#222", background: "transparent"});
+			$tog_sup.css({color: "#fff", background: "#555"});
+			$tog_sin.css({color: "#222", background: "transparent"});
 
 			toast(_h("i-box-3"));
 		    $a.add($p).attr({onkeypress: "press_enter(event,'signup')"});
@@ -594,8 +597,8 @@ function box(toggle){
 		break;
 
 		case "signin":
-			$(".toggle_signin").css({color: "#fff", background: "#555"});
-			$(".toggle_signup").css({color: "#222", background: "transparent"});
+			$tog_sin.css({color: "#fff", background: "#555"});
+			$tog_sup.css({color: "#222", background: "transparent"});
 
 			toast(_h("i-box-4"));
 		    $a.add($p).attr({onkeypress: "press_enter(event,'signin')"});
@@ -631,13 +634,15 @@ function box(toggle){
 	}
 
 	var title = _h("i-box-"+(toggle=="signup" ? 6 : 7)), 
+		maxlength = toggle== "signup" ? 20 : 64, 
 		reg = toggle=="signup" ? "/[^a-z0-9]/g" : "/[^a-z0-9-_.@]/g", 
 		oninput = "this.value=(this.value||'').toLowerCase().replace("+reg+",'')";
 
 	$a.focus().attr({title: title, 
-			placeholder: title, 
-			oninput: oninput
-		}).parent("td").attr("data-tooltip", title);
+		placeholder: title, 
+		maxlength: maxlength, 
+		oninput: oninput
+	}).parent("td").attr("data-tooltip", title);
 }
 	function toast(t){
 		return $("#status").text(t||"").show();
@@ -853,5 +858,5 @@ function account_notice(){
 
 function hj_intro(){
 	// go.hearty.me/hjintro
-	open_url("//"+(is_touch_device()?"get":"try")+".hearty.me/?utm_source=website&utm_medium=footer&utm_campaign=home");
+	open_url("//"+(is_touch_device()?"get":"try")+".hearty.me/?utm_source=web&utm_medium=footer&utm_campaign=home");
 }
