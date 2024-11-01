@@ -14,19 +14,6 @@ function account_init(){
 	else if(!!getUrlPara("pc")){
 		password_editing();
 	}
-	else if(l==1){
-		account_linenotify();
-	}
-	else if(l==2){
-		msg('<i class="fas fa-check-circle"></i> '+_h("a-line_set-4"), '<i class="fas fa-mug"></i> '+_h("a-ok-0"), function(){
-			if(is_touch_device()){
-				location.href = "//"+(/iOS|Android/i.test(check_hjapp())?"hearty.me/wv?o=":"")+"line.me/R/ti/p/@linenotify";
-			}
-			else{
-				hj_preview(false, "line://ti/p/@linenotify");
-			}
-		});
-	}
 	else if(v==1){
 		nav_account(1, true);
 		voucher_redeem();
@@ -42,7 +29,7 @@ function account_init(){
 	if((getUrlPara("utm_campaign")||"").indexOf("award")>-1) $(".chat_btn").remove();
 
 	birthday_init();
-	initialize_uploader();
+	uploader_init();
 	account_area_calc();
 	account_usage();
 	language_editing();
@@ -55,7 +42,6 @@ function account_init(){
 	$(".chat_btn").on("click", function(){
 		hj_href("d?f=1");
 	});
-	$("a[data-linenotify]").on("click", account_linenotify);
 	$("a[data-fonts]").on("click", font_info);
 
 	$(".hj_preview").on("click", function(){
@@ -283,50 +269,59 @@ function password_editing(txt){
 }
 
 // 大頭貼上傳
-function initialize_uploader(){
+function uploader_init(){
 	var uploadObj = $("#mulitplefileuploader").uploadFile({
 		url: location.origin+"/update", 
 		dragDrop: true, 
 		fileName: "myfile", 
-		allowedTypes: "jpg,jpeg,png,bmp", 
+		allowedTypes: "jpg,jpeg,png,gif,bmp,webp,avif,heic,heif", 
 		returnType: "json", 
 		showDelete: false, 
 		formData: {category: 0, privacy: 9}, 
 		onSuccess: function(files, data, xhr){
-			var img = "//i.hearty.app/u/"+data["basenames"][0];
-			$("#profile_image img").attr({src: img});
-			$(".profile_image div").css({"background-image": 'url("'+img+'")'});
+			if(data["status"]==1){ // 1: 成功; 0: 錯誤
+				var img = "//i.hearty.app/u/"+data["basenames"][0];
+				$("#profile_image img").attr({src: img});
+				$(".profile_image div").css({"background-image": 'url("'+img+'")'});
 
-			picture_rotate();
-			alertify.success('<i class="far fa-address-card"></i> '+_h("a-avatar-3"));
+				picture_rotate();
+				alertify.success('<i class="far fa-address-card"></i> '+_h("a-avatar-3"));
 
-			/* Prefetch Image from CDNs
-			["", "?o=1"].forEach(function(v){
-				$("<img>", {src: img+v});
-			});
-			*/
+				/* Prefetch Image from CDNs
+				["", "?o=1"].forEach(function(v){
+					$("<img>", {src: img+v});
+				});
+				*/
 
-			ga_evt_push("Avatar", {
-				event_category: "Profile Update", 
-				event_label: "Avatar"
-			});
+				ga_evt_push("Avatar", {
+					event_category: "Profile Update", 
+					event_label: "Avatar"
+				});
+			}
+			else{
+				msg('<i class="far fa-times"></i> '+_h("a-avatar_err-"+(data["err"]||0)));
+			}
 		}, 
 		onError: function(files,status,errMsg,pd){
-			msg("Error: "+JSON.stringify(errMsg));
+			msg('<i class="far fa-info-circle"></i> '+_h("a-avatar_err-0")+"<br><small>"+JSON.stringify(status)+"："+JSON.stringify(errMsg)+"</small>");
 		}
 	});
 }
 
 /* blob */
 function uploader_handle(f){
+	hj_loading();
+
 	var $i = $("#profile_image img"), 
 		[file] = f, 
 		p1 = uploader_createImageFromFile($i.get(0), file), 
 		p2 = uploader_getFileBase64Encode(file);
 
-	Promise.all([p1, p2]).then(function(result){
-		var [img, b64] = result;
-		$i.attr("src", b64);
+	Promise.all([p1, p2]).then(function(r){
+		var [img, b64] = r;
+		$i.attr({src: b64});
+
+		hj_loading(false);
 	});
 }
 	function uploader_createImageFromFile(img, file){
@@ -362,7 +357,7 @@ function hj_picture(ask){
 	var $f = $(".ajax-upload-dragdrop input[type='file']").on("change", function(){
 			hj_picture_onselect(this.files);
 		}).attr({
-			accept: "image/jpeg,image/png,image/gif,image/bmp" 
+			accept: "image/jpeg,image/png,image/gif,image/bmp,image/webp,image/avif,image/heic,image/heif" 
 		});
 	if($f.length>0) $f.get(0).click();
 }
@@ -370,7 +365,7 @@ function hj_picture(ask){
 		if(!f || !f[0]) return;
 
 		var ext = (f[0]["name"]||"").toLowerCase().split(".").slice(-1).toString() || "jpg";
-		if(["jpg", "jpeg", "png", "gif", "bmp"].indexOf(ext)>=0){
+		if(["jpg", "jpeg", "png", "gif", "bmp", "webp", "avif", "heic", "heif"].indexOf(ext)>=0){
 			uploader_handle(f); // blob preview
 		}
 		else{
@@ -1120,7 +1115,7 @@ function voucher_redeem(voucher){
 				});
 			}
 			// 外部合作專案
-			else if(/gift/gi.test(voucher)){
+			else if(/gift/i.test(voucher)){
 				msg('<i class="far fa-gift-card"></i> '+_h("a-coupon_ok-0", {$coupon: voucher})+' <i class="far fa-check-circle"></i><br>'+_h("a-coupon_ok-1"), '<i class="fas fa-thumbs-up"></i> '+_h("a-ok-0"), function(){
 					hj_href("d");
 				});
@@ -1145,10 +1140,7 @@ function voucher_redeem(voucher){
 					data: {
 						voucher: voucher
 					}, 
-					async: true, 
-					xhrFields: {
-						withCredentials: true
-					}
+					async: true
 				}).then(function(r){
 					switch(r["Status"]){
 						case 0:
@@ -1219,28 +1211,4 @@ function hj_preview(o, url){
 		$b.css({"overflow-y": "auto", "touch-action": "auto"});
 		$i.off("load").addClass("loading");
 	}
-}
-
-function account_linenotify(){
-	// https://lin.ee/m2CroSg
-	hj_update({
-		action: "account_linenotify"
-	}).then(function(r){
-		var binded = r["Status"]==1;
-		alertify.set({labels: {ok: '<i class="fas fa-hand-point-right"></i> '+(binded ? _h("a-line_set-3") : _h("a-line_set-2")), cancel: _h("a-back")}, buttonReverse: false});
-		alertify.confirm('<i class="far fa-info-circle"></i> '+(
-			binded ? _h("a-line_set-1", {$date: date_format(r["Values"]["created"], true)}) : (_h("a-line_set-0")+'<br><img src="//i.hearty.app/BfMM4x9.png">')), function(e){
-			if(e){
-				if(is_touch_device()){
-					// 該頁將偵測是否為 app，並相應處理
-					open_url("//hearty.app/ln");
-				}
-				else{
-					hj_preview(true, "line://ti/p/@uiv1093y").delay(30).queue(function(){
-						$(this).attr({src: "//go.hearty.me/ln"}).dequeue();
-					});
-				}
-			}
-		});
-	});
 }

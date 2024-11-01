@@ -499,7 +499,7 @@ function editor_enable(on){
 			hj_getScript_gh({
 				path: "js/jquery.uploadfile.min.js", 
 				// commit: "main"
-			}, image_uploader_initialize);
+			}, image_uploader_init);
 
 			$e.data({editor_loaded: true});
 			$(".editor_toolbelt .kit.save").on("mouseover", save_btn);
@@ -1849,7 +1849,6 @@ function sticker__editor_initialize(bundle_id, asset_id, sticker){
 				angle += e.da; // format: deg
 
 				$i.css({
-					"-webkit-transform": "rotate("+angle+"deg)", 
 					"transform": "rotate("+angle+"deg)"
 				});
 
@@ -1877,7 +1876,6 @@ function sticker__editor_initialize(bundle_id, asset_id, sticker){
 		*/
 
 		$i.css({
-			"-webkit-transform": "rotate("+angle+"deg)", 
 			"transform": "rotate("+angle+"deg)"
 		});
 	}
@@ -5373,7 +5371,7 @@ function price_selector(pkg_id){
 }
 
 // 僅台灣儲值用藍新，其他用 TP
-function hj_purchase(d){
+function hj_purchase2(d){
 	if(d==null) return false;
 
 	// 台灣儲值
@@ -5414,7 +5412,7 @@ function hj_purchase(d){
 	});
 }
 	// 2025 方案 (綁卡實名制後)
-	function hj_purchase2(d){
+	function hj_purchase(d){
 		if(d==null) return false;
 
 		if(
@@ -5512,7 +5510,7 @@ function post_picture(ask){
 	var $f = $(".ajax-upload-dragdrop input[type='file']").on("change", function(){
 			post_picture_onselect(this.files);
 		}).attr({
-			accept: "image/jpeg,image/png,image/bmp" 
+			accept: "image/jpeg,image/png,image/gif,image/bmp,image/webp,image/avif,image/heic,image/heif"
 		});
 	if($f.length>0) $f.get(0).click();
 }
@@ -5521,7 +5519,7 @@ function post_picture(ask){
 		if(!f || !f[0]) return;
 
 		var ext = (f[0]["name"]||"").toLowerCase().split(".").slice(-1).toString() || "jpg";
-		if(["jpg", "jpeg", "png", "gif", "bmp"].indexOf(ext)<0){
+		if(["jpg", "jpeg", "png", "gif", "bmp", "webp", "avif", "heic", "heif"].indexOf(ext)<0){
 			alertify.set({labels: {ok: _h("e-no-1"), cancel: '<i class="fas fa-chevron-square-up"></i> '+_h("e-picture-3")}, buttonReverse: true});
 			alertify.confirm('<i class="fal fa-image-polaroid"></i> '+_h("e-picture-5", {$ext: ext.toUpperCase()}), function(e){
 				if(!e) post_picture();
@@ -5563,7 +5561,7 @@ function post_picture_remove(){
 	});
 }
 
-function image_uploader_initialize(){
+function image_uploader_init(){
 	var $e = $(".bk-page #editor_editable"), 
 		$u = $(".img_uploader");
 
@@ -5571,7 +5569,7 @@ function image_uploader_initialize(){
 		url: location.origin+"/update", 
 		dragDrop: true, 
 		fileName: "myfile", 
-		allowedTypes: "jpg,jpeg,png,bmp", 
+		allowedTypes: "jpg,jpeg,png,gif,bmp,webp,avif,heic,heif", 
 		returnType: "json", 
 		showDone: false, 
 		showDelete: false, 
@@ -5588,64 +5586,82 @@ function image_uploader_initialize(){
 			saved(false);
 		}, 
 		onSuccess: function(files, g, xhr){
-			var gallery_id = g["gallery_id"]||1, 
-				i = "//hearty.me/i/"+gallery_id+"?r=0", 
-				$p = $(".bk-page .pictures"), 
-				$i = $("<figure>", {
-						"data-gallery_id": gallery_id, 
-						html: $("<div>")
-					}).css({
-						"background-image": "url('"+i+"')"
-					}).data({
-						cssgram: 0, 
-						rotated: 0
-					});
+			if(g["status"]==1){ // 1: 成功; 0: 錯誤
+				var gallery_id = g["gallery_id"]||1, 
+					i = "//hearty.me/i/"+gallery_id+"?r=0", 
+					$p = $(".bk-page .pictures"), 
+					$i = $("<figure>", {
+							"data-gallery_id": gallery_id, 
+							html: $("<div>")
+						}).css({
+							"background-image": "url('"+i+"')"
+						}).data({
+							cssgram: 0, 
+							rotated: 0
+						});
 
-			if($p.hasClass("slick-initialized")){
-				$p.slick("slickAdd", $i).slick("slickGoTo", -1);
+				if($p.hasClass("slick-initialized")){
+					$p.slick("slickAdd", $i).slick("slickGoTo", -1);
+				}
+				else{
+					$i.appendTo($p);
+					post_picture_init(true);
+					if($p.hasClass("slick-initialized")) $p.slick("slickGoTo", -1);
+				}
+
+				$('meta[property="og:image"]').attr({content: i});
+
+				alertify.success('<i class="far fa-image"></i> '+_h("e-picture-6"));
+				post_revise();
+
+				var evt = "Image Added";
+				ga_evt_push(evt, {
+					event_category: "Posts", 
+					event_label: evt
+				});
+				// $u.find(".ajax-file-upload-statusbar").remove();
 			}
 			else{
-				$i.appendTo($p);
-				post_picture_init(true);
-				if($p.hasClass("slick-initialized")) $p.slick("slickGoTo", -1);
+				msg('<i class="far fa-times"></i> '+_h("e-picture_err-"+(g["err"]||0)));
 			}
-
-			$('meta[property="og:image"]').attr({content: i});
-			$(".bk-page .frame").removeClass("uploading");
-
-			alertify.success('<i class="far fa-image"></i> '+_h("e-picture-7"));
-			post_revise();
-
-			var evt = "Image Added";
-			ga_evt_push(evt, {
-				event_category: "Posts", 
-				event_label: evt
-			});
-			// $u.find(".ajax-file-upload-statusbar").remove();
+			hj_uploader_preview(false);
 		}, 
 		onError: function(files,status,errMsg,pd){
-			msg('<i class="fal fa-info-circle"></i> '+_h("e-picture-6")+"<br><small>"+JSON.stringify(status)+"："+JSON.stringify(errMsg)+"</small>");
+			msg('<i class="far fa-info-circle"></i> '+_h("e-picture_err-0")+"<br><small>"+JSON.stringify(status)+"："+JSON.stringify(errMsg)+"</small>");
+			hj_uploader_preview(false);
 		}
 	});
 }
 
 	// Blob Preview 
 	function hj_uploader_preview(f){
-		hj_video("reset");
+		var $f = $(".bk-page .frame");
 
-		var $i = $(".image-zoom img"), 
-			[file] = f, 
-			p1 = hj_uploader_createImageFromFile($i.get(0), file), 
-			p2 = hj_uploader_getFileBase64Encode(file);
-
-		Promise.all([p1, p2]).then(function(r){
-			var [img, b64] = r;
-
-			$(".bk-page .frame").addClass("uploading").find(".pictures").css({
-				"background-image": "url('"+b64+"')"
+		// 移除預覽
+		if(!f){
+			$f.removeClass("uploading").find(".pictures").css({
+				"background-image": ""
 			});
-			$i.attr({src: b64});
-		});
+		}
+		// 預覽
+		else{
+			hj_video("reset");
+			$f.addClass("uploading");
+
+			var $i = $(".image-zoom img"), 
+				[file] = f, 
+				p1 = hj_uploader_createImageFromFile($i.get(0), file), 
+				p2 = hj_uploader_getFileBase64Encode(file);
+
+			Promise.all([p1, p2]).then(function(r){
+				var [img, b64] = r;
+
+				$f.find(".pictures").css({
+					"background-image": "url('"+b64+"')"
+				});
+				$i.attr({src: b64});
+			});
+		}
 	}
 	function hj_uploader_createImageFromFile(img, file){
 		return new Promise(function(resolve, reject){
@@ -6052,7 +6068,7 @@ function post_picture_download($a){
 	}).on("click", function(e){
 		e.stopPropagation();
 	}).get(0).click();
-	alertify.success('<i class="far fa-arrow-alt-to-bottom"></i> '+_h("e-picture-8"));
+	alertify.success('<i class="far fa-arrow-alt-to-bottom"></i> '+_h("e-picture-7"));
 }
 
 // 每日簽到
