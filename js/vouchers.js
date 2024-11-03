@@ -135,10 +135,7 @@ function bd_update(d){
 		crossDomain: true, 
 		dataType: "json", 
 		data: d, 
-		async: true, 
-		xhrFields: {
-			withCredentials: true
-		}
+		async: true
 	});
 }
 
@@ -793,6 +790,13 @@ function hj_tinymce_init(){
 				href: url, 
 				"data-voucher-link": url
 			});
+
+			// [data-voucher-url] 為模版專用參數，自動取代網址連結網址
+			$t.find("[data-voucher-url]").attr({
+				href: url, 
+				"data-voucher-url": url
+			});
+
 			$t.find("[data-voucher-email]").attr({
 				"data-voucher-email": email
 			});
