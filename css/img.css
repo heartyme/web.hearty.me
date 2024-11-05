@@ -14,7 +14,6 @@ html{
 html, 
 body{
 	scroll-behavior: smooth;
-	scrollbar-width: none;
 }
 body{
 	margin: 0;
@@ -23,11 +22,6 @@ body{
 	background-repeat: repeat;
 	background-position: center center;
 }
-	body::-webkit-scrollbar{
-		display: none;
-		width: 0;
-		background: transparent;
-	}
 
 a:link, 
 a:visited, 
@@ -39,6 +33,9 @@ a:active{
 }
 .img{
 	position: relative;
+
+	/* iOS App中，需預留下滑空間，以觸發瀑布流第二頁 */
+	padding-bottom: 1.2em;
 }
 .img_container{
 	display: flex;
@@ -233,8 +230,8 @@ a:active{
 	height: 2.5em;
 	right: .8em;
 	bottom: .8em;
-	bottom: constant(safe-area-inset-bottom, .8em);
-	bottom: env(safe-area-inset-bottom, .8em);
+	margin-bottom: constant(safe-area-inset-bottom, 0);
+	margin-bottom: env(safe-area-inset-bottom, 0);
 	background: rgba(255,255,255,.6);
 	border: 1px solid #555;
 	border-radius: 50%;
