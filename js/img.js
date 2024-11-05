@@ -61,14 +61,18 @@ $(function(){
 	document.title = _h("I-title")+" | 💝 Hearty Journal 溫度日記";
 });
 
+let msnry;
 function imagesLoadedAndLayout(el){
-	var msnry = new Masonry(".img_wall", {
-		itemSelector: ".img_wall .img-loaded", 
-		columnWidth: 24, 
-		gutter: 20, 
-		percentPosition: true, 
-		transitionDuration: "0.8s"
-	});
+	if(!msnry){
+		msnry = new Masonry(".img_wall", {
+			itemSelector: ".img_wall .img-loaded", 
+			columnWidth: 24, 
+			gutter: 20, 
+			percentPosition: true, 
+			transitionDuration: "0.3s"
+			// resize: false
+		});
+	}
 
 	return new Promise((resolve) => {
 		imagesLoaded(el).on("progress", (imgLoad, e) => {
