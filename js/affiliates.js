@@ -17,7 +17,7 @@ try{
 }
 catch(e){}
 
-
+/*
 // CPS
 try{
 	(function(){
@@ -39,3 +39,4 @@ try{
 	})();
 }
 catch(e){}
+*/

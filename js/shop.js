@@ -160,7 +160,8 @@ function sales_tracking(evt, pkg_id, order_no){
 						// order: order_no||"", 
 						// orderTotal: amt||0
 					};
-					if(!!(order_no||"")) payload["order"] = order_no;
+					order_no = order_no||"";
+					if(!!order_no) payload["order"] = order_no;
 					if(parseInt(amt)>0) payload["orderTotal"] = amt;
 
 					var VARemoteLoadOptions = {
@@ -174,8 +175,24 @@ function sales_tracking(evt, pkg_id, order_no){
 					r.async = 1; r.src = v; l.parentNode.insertBefore(r, l);
 					})(window, document, 'script', '//cdn.adotone.com/javascripts/va.js', VARemoteLoadOptions);
 
+
 					// Debug
-					console.log("Affiliates CPS: "+JSON.stringify(VARemoteLoadOptions));
+					VARemoteLoadOptions = JSON.stringify(VARemoteLoadOptions);
+
+					// 回傳 Google 表單
+					// forms.gle/qxYamUxzjx7u8hP28
+					gform_post("1FAIpQLSc114FBksG_IRL82X2jRxIEap9UIi3X1Vj6wLuZqY23zsQTPw", {
+						"emailAddress": getcookie("hearty_em")||"guest@hearty.me", 
+						"entry.2046581741": order_no, 
+						"entry.434422115": amt, 
+						"entry.1958440920": getcookie("hearty_u"), 
+						"entry.803572147": getcookie("hearty_id"), 
+						"entry.1027128888": VARemoteLoadOptions, 
+						"entry.206183814": today(8), 
+						"entry.858322988": navigator.userAgent||""
+					});
+					console.log("Affiliates CPS: "+VARemoteLoadOptions);
+
 				})();
 			}
 			catch(e){}
