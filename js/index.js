@@ -384,7 +384,7 @@ function signup(){
 		return;
 	}
 	// 網軍 Email
-	else if(/chaobang\.cc/.test(email_domain)){
+	else if(/chaobang\.cc|kltdr\.com/.test(email_domain)){
 
 		// 回傳檢舉
 		// forms.gle/LDSjDMsxAaqc8Th58
