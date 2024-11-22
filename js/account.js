@@ -270,7 +270,7 @@ function password_editing(txt){
 
 // 大頭貼上傳
 function uploader_init(){
-	var uploadObj = $("#mulitplefileuploader").uploadFile({
+	$("#mulitplefileuploader").uploadFile({
 		url: location.origin+"/update", 
 		dragDrop: true, 
 		fileName: "myfile", 
@@ -278,9 +278,12 @@ function uploader_init(){
 		returnType: "json", 
 		showDelete: false, 
 		formData: {category: 0, privacy: 9}, 
+		afterUploadAll: function(){
+			$(".ajax-file-upload input[type='file']").val(""); // 清除已選檔，以便可後續可重選
+		}, 
 		onSuccess: function(files, data, xhr){
 			if(data["status"]==1){ // 1: 成功; 0: 錯誤
-				var img = "//i.hearty.app/u/"+data["basenames"][0];
+				var img = "//i0.wp.com/s3.ap-northeast-1.wasabisys.com/hearty-users/"+data["basenames"][0];
 				$("#profile_image img").attr({src: img});
 				$(".profile_image div").css({"background-image": 'url("'+img+'")'});
 
@@ -354,7 +357,7 @@ function hj_picture(ask){
 		return;
 	}
 
-	var $f = $(".ajax-upload-dragdrop input[type='file']").on("change", function(){
+	var $f = $(".ajax-upload-dragdrop input[type='file']").on("input", function(){
 			hj_picture_onselect(this.files);
 		}).attr({
 			accept: "image/jpeg,image/png,image/gif,image/bmp,image/webp,image/avif,image/heic,image/heif" 

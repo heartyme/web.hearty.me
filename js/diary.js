@@ -5507,7 +5507,7 @@ function post_picture(ask){
 		return;
 	}
 
-	var $f = $(".ajax-upload-dragdrop input[type='file']").on("change", function(){
+	var $f = $(".ajax-upload-dragdrop input[type='file']").on("input", function(){
 			post_picture_onselect(this.files);
 		}).attr({
 			accept: "image/jpeg,image/png,image/gif,image/bmp,image/webp,image/avif,image/heic,image/heif"
@@ -5584,6 +5584,9 @@ function image_uploader_init(){
 		}, 
 		onSubmit: function(files){
 			saved(false);
+		}, 
+		afterUploadAll: function(){
+			$(".ajax-file-upload input[type='file']").val(""); // 清除已選檔，以便可後續可重選
 		}, 
 		onSuccess: function(files, g, xhr){
 			if(g["status"]==1){ // 1: 成功; 0: 錯誤
