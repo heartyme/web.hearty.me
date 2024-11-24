@@ -212,6 +212,9 @@ body{
 		transform: rotate(270deg);
 	}
 
+#profile_uploader{
+	display: none;
+}
 
 	.user_profile{
 		padding: .8em 0;
@@ -265,10 +268,6 @@ body{
 
 .user_profile{
 	text-align: center;
-}
-.ajax-upload-dragdrop, 
-.ajax-file-upload-statusbar{
-	display: none;
 }
 input[type=radio].radio{
 	position: absolute;

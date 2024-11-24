@@ -270,43 +270,52 @@ function password_editing(txt){
 
 // 大頭貼上傳
 function uploader_init(){
-	$("#mulitplefileuploader").uploadFile({
-		url: location.origin+"/update", 
-		dragDrop: true, 
-		fileName: "myfile", 
-		allowedTypes: "jpg,jpeg,png,gif,bmp,webp,avif,heic,heif", 
-		returnType: "json", 
-		showDelete: false, 
-		formData: {category: 0, privacy: 9}, 
-		afterUploadAll: function(){
-			$(".ajax-file-upload input[type='file']").val(""); // 清除已選檔，以便可後續可重選
-		}, 
-		onSuccess: function(files, data, xhr){
-			if(data["status"]==1){ // 1: 成功; 0: 錯誤
-				var img = "//i0.wp.com/s3.ap-northeast-1.wasabisys.com/hearty-users/"+data["basenames"][0];
-				$("#profile_image img").attr({src: img});
-				$(".profile_image div").css({"background-image": 'url("'+img+'")'});
+	$("#profile_uploader").on("input", function(evt){
+		let file = evt.target.files[0];
+		if(file){
+			let d = new FormData();
+			d.append("myfile", file);
+			d.append("category", 0);
+			d.append("privacy", 9);
 
-				picture_rotate();
-				alertify.success('<i class="far fa-address-card"></i> '+_h("a-avatar-3"));
+			$.ajax({
+				url: "/update", 
+				type: "POST", 
+				data: d, 
+				dataType: "json", 
+				contentType: false, // 需為 false
+				processData: false, // 需為 false
+				complete: function(){
+					$("#profile_uploader").val(""); // 清除已選檔，以便可後續可重選
+				}, 
+				success: function(r){
+					if(r["status"]==1){ // 1: 成功; 0: 錯誤
+						var img = "//i0.wp.com/s3.ap-northeast-1.wasabisys.com/hearty-users/"+r["basenames"][0];
+						$("#profile_image img").attr({src: img});
+						$(".profile_image div").css({"background-image": 'url("'+img+'")'});
 
-				/* Prefetch Image from CDNs
-				["", "?o=1"].forEach(function(v){
-					$("<img>", {src: img+v});
-				});
-				*/
+						picture_rotate();
+						alertify.success('<i class="far fa-address-card"></i> '+_h("a-avatar-3"));
 
-				ga_evt_push("Avatar", {
-					event_category: "Profile Update", 
-					event_label: "Avatar"
-				});
-			}
-			else{
-				msg('<i class="far fa-times"></i> '+_h("a-avatar_err-"+(data["err"]||0)));
-			}
-		}, 
-		onError: function(files,status,errMsg,pd){
-			msg('<i class="far fa-info-circle"></i> '+_h("a-avatar_err-0")+"<br><small>"+JSON.stringify(status)+"："+JSON.stringify(errMsg)+"</small>");
+						/* Prefetch Image from CDNs
+						["", "?o=1"].forEach(function(v){
+							$("<img>", {src: img+v});
+						});
+						*/
+
+						ga_evt_push("Avatar", {
+							event_category: "Profile Update", 
+							event_label: "Avatar"
+						});
+					}
+					else{
+						msg('<i class="far fa-times"></i> '+_h("a-avatar_err-"+(data["err"]||0)));
+					}
+				}, 
+				error: function (xhr, status, err){
+					msg('<i class="far fa-info-circle"></i> '+_h("a-avatar_err-0")+"<br><small>"+JSON.stringify(status)+"："+JSON.stringify(err)+"</small>");
+				}
+			});
 		}
 	});
 }
@@ -356,19 +365,13 @@ function hj_picture(ask){
 		});
 		return;
 	}
-
-	var $f = $(".ajax-upload-dragdrop input[type='file']").on("input", function(){
-			hj_picture_onselect(this.files);
-		}).attr({
-			accept: "image/jpeg,image/png,image/gif,image/bmp,image/webp,image/avif,image/heic,image/heif" 
-		});
-	if($f.length>0) $f.get(0).click();
+	$("#profile_uploader").get(0).click();
 }
 	function hj_picture_onselect(f){
 		if(!f || !f[0]) return;
 
-		var ext = (f[0]["name"]||"").toLowerCase().split(".").slice(-1).toString() || "jpg";
-		if(["jpg", "jpeg", "png", "gif", "bmp", "webp", "avif", "heic", "heif"].indexOf(ext)>=0){
+		let ext = (f[0]["name"]||"").toLowerCase().split(".").slice(-1).toString() || "jpg";
+		if(/jpg|jpeg|png|gif|bmp|webp|avif|heic|heif/i.test(ext)){
 			uploader_handle(f); // blob preview
 		}
 		else{
@@ -926,9 +929,9 @@ function export_txt(txt){
 					}
 
 					$("<form>", {
-						method: "post", 
+						method: "POST", 
 						target: "_self", 
-						action: location.origin+"/update", 
+						action: "/update", 
 						enctype: "application/x-www-form-urlencoded", 
 						html: $("<input>", {
 							type: "hidden", 
@@ -1137,8 +1140,8 @@ function voucher_redeem(voucher){
 			}
 			else{
 				$.ajax({
-					url: location.origin+"/gift/"+voucher, 
-					type: "post", 
+					url: "/gift/"+voucher, 
+					type: "POST", 
 					dataType: "json", 
 					data: {
 						voucher: voucher
