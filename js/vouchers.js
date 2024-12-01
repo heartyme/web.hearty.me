@@ -130,8 +130,8 @@ function bd_loading(on){
 
 function bd_update(d){
 	return $.ajax({
-		url: location.origin+"/bd/update.php", 
-		type: "post", 
+		url: "/bd/update.php", 
+		type: "POST", 
 		crossDomain: true, 
 		dataType: "json", 
 		data: d, 
@@ -252,16 +252,15 @@ function count_vouchers(get_months){ // get_months = 回溯月份數
 				$t.append($tb);
 
 				msg('<h3><i class="fal fa-chart-bar"></i> 我近期取得的序號張數<h3>'+$t.get(0).outerHTML);
-				bd_loading(false);
 			break;
 
 			default:
 				msg();
-				bd_loading(false);
 			break;
 		}
 	}).fail(function(){
 		msg();
+	}).always(function(){
 		bd_loading(false);
 	});
 }
@@ -373,11 +372,10 @@ function check_eml(eml, $e){
 			dataType: "json", 
 			timeout: 2000
 		}).then(function(r){
-			bd_loading(false);
-
 			// eg. test@mailinator.com
 			if((r["status"]||0)==429){ // Rate limit exceeded
-				console.warn("usercheck.com | Rate limit exceeded"); 
+				console.warn("usercheck.com | Rate limit exceeded");
+				resolve(true);
 			}
 			else if((r["status"]||0)==400){
 				msg('<i class="fal fa-times"></i> Email 格式不符：'+eml);
@@ -394,10 +392,13 @@ function check_eml(eml, $e){
 				collect_eml($e, "");
 				resolve(false);
 			}
+			else{
+				resolve(true);
+			}
+		}).fail(function(){
 			resolve(true);
-		}).catch(function(){
+		}).always(function(){
 			bd_loading(false);
-			resolve(true);
 		});
 	});
 }
@@ -421,17 +422,23 @@ function collect_eml($e, email){
 			if(e){
 				new_email = (new_email||"").trim();
 
+				if(new_email.length<5 || new_email.indexOf("@")<1){
+					msg('<i class="fal fa-times"></i> Email 格式不符');
+					collect_eml($e, new_email); 
+					alertify_input_shake();
+					return;
+				}
+
 				// Email檢查
-				check_eml(new_email, $e).then(function(r){
-					if(!r) return;
+				check_eml(new_email, $e).then(function(res){
+					if(!res) return;
 
 					if(prev_email==new_email){ // prev_email 已經檢查為有效 Email
 						eml_composer(true, voucher, new_email, timer);
 					}
-					else if(new_email.length>5){
-						eml_composer(true, voucher, new_email, timer);
-
+					else{
 						bd_loading(true);
+
 						bd_update({
 							action: "voucher_eml", 
 							voucher: voucher, 
@@ -439,9 +446,8 @@ function collect_eml($e, email){
 						}).then(function(r){
 							switch(r["Status"]){
 								case 1:
+									eml_composer(true, voucher, new_email, timer);
 									$e.attr({title: new_email});
-									bd_loading(false);
-									return;
 								break;
 
 								case 3:
@@ -458,20 +464,12 @@ function collect_eml($e, email){
 									msg();
 								break;
 							}
-							eml_composer(false);
-							bd_loading(false);
 						}).fail(function(){
 							msg();
-							eml_composer(false);
+						}).always(function(){
 							bd_loading(false);
 						});
 					}
-					else{
-						alertify_input_shake();
-						collect_eml("");
-						bd_loading(false);
-					}
-
 				});
 			}
 		}, email);
@@ -619,9 +617,9 @@ function collect_eml($e, email){
 							msg('<i class="fal fa-info-circle"></i> 抱歉，似乎遇到一些問題：'+JSON.stringify(r["Values"]));
 						break;
 					}
-					bd_loading(false);
 				}).fail(function(){
 					msg();
+				}).always(function(){
 					bd_loading(false);
 				});
 			}
@@ -884,11 +882,11 @@ function hj_tinymce_init(){
 	function linkify(s){
 		return (s || "")
 
-		// starts with http(s)://, ftp://
-		.replace(/\b(?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim, '<a target="_blank" href="$&">$&</a>')
+		// starts with http(s)://
+		.replace(/\b(?:https?):\/\/[\w\p{L}\p{N}\-+&@#\/%?=~_|!:,.;]*[\w\p{L}\p{N}\-+&@#\/%=~_|]/gimu, '<a target="_blank" href="$&">$&</a>')
 
 		// starts with "www."
-		.replace(/(^|[^\/])(www\.[\S]+(\b|$))/gim, '$1<a target="_blank" href="https://$2">$2</a>');
+		.replace(/(^|[^\/])(www\.[\w\p{L}\p{N}\-+&@#\/%?=~_|!:,.;]*)(?=$|[^a-zA-Z\p{L}\p{N}\-+&@#\/%?=~_|!:,.;])/gimu, '$1<a target="_blank" href="https://$2">$2</a>')
 	}
 
 function bd_export(){
