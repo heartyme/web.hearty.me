@@ -10,7 +10,7 @@ var btn_alias = "home";
 		hj_alice_history_init();
 		account_prefilling();
 
-		var $n = {
+		let $n = {
 			top: $(".directory .nav_btn[data-top]"), 
 			left: $(".directory .nav_btn[data-left]")
 		};
@@ -35,7 +35,7 @@ var btn_alias = "home";
 			e.stopPropagation();
 		});
 
-		var $p = $(".profile");
+		let $p = $(".profile");
 		$p.on("click", function(){
 			profile_popup();
 		}).find(".avatar").on("click", function(){
@@ -50,9 +50,18 @@ var btn_alias = "home";
 			penpal_add(this.dataset.username);
 		});
 
-		var $c = $(".alice_inner [data-opinions] textarea").autogrow(); // stackoverflow.com/a/2948256
+		let $txt = $(".alice_inner textarea").on("input", function(){
+			let $t = $(this), 
+				$c = $(".alice_inner .comment");
+
+			// 中文輸入法還沒選字時，就會被算入字數，導致無法選字或截斷
+			// 故 JS限為 85字，maxlength 則設為 88字
+			if($t.val().length>=85) $c.addClass("invalid");
+			else $c.removeClass("invalid");
+		}).autogrow(); // stackoverflow.com/a/2948256
+
 		if(!user_verify()){
-			$c.on("click", function(){
+			$txt.on("click", function(){
 				user_verify(true);
 			}).attr({readonly: ""});
 		}
@@ -71,7 +80,7 @@ function user_verify(notice){
 }
 
 function directory_scrolltop(on){
-	var $e = $(".directory");
+	let $e = $(".directory");
 	if(on){
 		$e.stop().scrollTop(0);
 		return 0;
@@ -85,7 +94,7 @@ function hj_alice_history_init(){
 	if(typeof history.pushState=="function"){
 		hj_alice_history_push();
 		window.addEventListener("popstate", function(){
-			var scrolled = $(".goodnight").scrollLeft();
+			let scrolled = $(".goodnight").scrollLeft();
 
 			if($(".goodnight .profile").is(":visible")){
 				profile_popup();
@@ -133,7 +142,7 @@ function hj_alice_history_init(){
 */
 
 function nav_goodnight(p, no_animation){
-	var $e = $(".goodnight");
+	let $e = $(".goodnight");
 	if($e.length>0){
 		$e.get(0).scroll({
 			left: $e.width()*(p||0), 
@@ -144,7 +153,7 @@ function nav_goodnight(p, no_animation){
 }
 
 function alice_opinions_toggle(o){
-	var $q = $(".alice_inner [data-quote]"), 
+	let $q = $(".alice_inner [data-quote]"), 
 		$o = $(".alice_inner [data-opinions]"), 
 		$u = $o.find("ul");
 	if(o||$u.is(":hidden")){
@@ -176,7 +185,7 @@ function alice_greeting_query(greeting_id){
 			case 1:
 				r = r["Values"];
 				greeting_id = r["greeting_id"];
-				var $g = $(".goodnight"), 
+				let $g = $(".goodnight"), 
 					$u = $g.find("[data-opinions] ul");
 
 				$g.find("[data-quote]").attr({title: r["greeting"]})
@@ -195,7 +204,7 @@ function alice_greeting_query(greeting_id){
 					"data-url": r["greeting_url"] || ""
 				}).find(".opinions").slice(1).remove(); // 清空
 
-				$g.find(".comment").attr("data-greeting_id", greeting_id);
+				$g.find(".comment [data-greeting_id]").attr("data-greeting_id", greeting_id);
 				if(r["comments"].length>0){
 					$u.find(".opinions:first").after(
 						r["comments"].map(function(c){
@@ -207,13 +216,13 @@ function alice_greeting_query(greeting_id){
 				$(".directory_inner [data-greeting_id]").removeAttr("data-active").filter("[data-greeting_id='"+greeting_id+"']").attr("data-active", "");
 
 				// 顯示加入筆友鈕
-				var $b = $(".profile [data-penpal_add],.profile [data-link]");
+				let $b = $(".profile [data-penpal_add],.profile [data-link]");
 				if(greeting_id==31){
 					$b.show();
 
 					// 阻擋 7天內註冊的新用戶
 					hj_update({action: "signup_days"}).then(function(r){
-						var days = parseInt(r["Values"]["signup_days"] || 0);
+						let days = parseInt(r["Values"]["signup_days"] || 0);
 						if(r["Status"]==1 && days<6){
 							days++;
 							msg('<i class="far fa-user-check"></i> '+_h("A-penpal_guest-0", {
@@ -293,7 +302,7 @@ function alice_bookmark(post_id){
 */
 
 function alice_greeting_comment(greeting_id){
-	var $o = $(".goodnight [data-opinions]"), 
+	let $o = $(".goodnight [data-opinions]"), 
 		$c = $o.find(".comment textarea"), 
 		c = ($c.val() || "").trim().replace(/[\r\n]{2,}/g, "\n"); // stackoverflow.com/a/22962887
 
@@ -302,7 +311,7 @@ function alice_greeting_comment(greeting_id){
 		msg('<i class="fal fa-comment-lines"></i> '+_h("A-comment_limit-0"));
 		shake($c);
 	}
-	else if(c.length>200){
+	else if(c.length>85){
 		msg('<i class="fal fa-comment-lines"></i> '+_h("A-comment_limit-1", {$chars: c.length}));
 		shake($c);
 	}
@@ -358,7 +367,7 @@ function alice_greeting_comment(greeting_id){
 }
 
 function hj_share_page(){
-	var url = $(".alice_inner [data-opinions] ul").attr("data-url")||"";
+	let url = $(".alice_inner [data-opinions] ul").attr("data-url")||"";
 	if(!url){
 		url = location.href.replace(location.host, "hearty.app");
 		url += (url.indexOf("?")>0?"&":"?")+"st=Alice%20%E8%AA%AA%E6%99%9A%E5%AE%89";
@@ -398,7 +407,7 @@ function hj_share_page(){
 }
 
 function alice_comment_toggle(v, $c){
-	var greeting_id = Number(v["greeting_id"]), 
+	let greeting_id = Number(v["greeting_id"]), 
 		comment_id = Number(v["comment_id"]);
 	if(v["comment_own"]=="1"){
 		alertify.set({labels: {ok: _h("A-no"), cancel: '<i class="fas fa-pencil"></i> '+_h("A-comment_edit-1")}, buttonReverse: false});
@@ -410,7 +419,7 @@ function alice_comment_toggle(v, $c){
 				}).then(function(r){
 					switch(r["Status"]){
 						case 1:
-							var $i = $(".comment textarea");
+							let $i = $(".comment textarea");
 							$i.val(
 								($c.text()+" "+($i.val()||"")).trim()
 							).focus();
@@ -483,12 +492,12 @@ function alice_signin_required(){
 	alice_signin_ask();
 }
 	function alice_signin_ask(f){
-		var u = "?r="+location.href.split("#")[0].split("?")[0].replace(location.origin, "")+"#signin";
+		let u = "?r="+location.href.split("#")[0].split("?")[0].replace(location.origin, "")+"#signin";
 		if(f){
 			hj_href(u);
 		}
 		else{
-			alertify.set({labels: {ok: '<i class="fas fa-door-open"></i>'+_h("A-signin-0"), cancel: _h("A-no")}});
+			alertify.set({labels: {ok: '<i class="fas fa-door-open"></i> '+_h("A-signin-0"), cancel: _h("A-no")}});
 			alertify.confirm('<i class="fal fa-user-lock"></i> '+_h("A-signin-1"), function(e){
 				if(e) hj_href(u);
 			});
@@ -496,7 +505,7 @@ function alice_signin_required(){
 	}
 
 function profile_popup(username, nickname, profile_image, gender){
-	var $p = $(".goodnight .profile");
+	let $p = $(".goodnight .profile");
 	if(username==null){
 		$p.fadeOut("fast");
 	}
@@ -551,12 +560,12 @@ function penpal_add(id){
 
 // 將推播帶的參數，寫入 cookie
 function account_prefilling(){
-	var u = getUrlPara("a");
+	let u = getUrlPara("a");
 	if(!!u && !getcookie("hearty_account"))
 		setcookie("hearty_account", u, 90);
 }
 
 // regexr.com/7p83p
 function banned_words(p){
-	return /http|www.|死|自(殘|残|殺|杀)|白(癡|痴|目)|北七|智障|腦殘|脑残|婊子|三小|(機|机)掰|大便|屎|屌|賤|贱|他(媽|妈)的|e04|(幹|干)你|你娘|拎老|靠北|夭(壽|寿)|外(送茶|約)|(約|正)妹|加賴|(性|做|愛)愛|(打|約)(炮|砲)|(全|半|無|戴)套|口(交|爆)|(內|顏|颜)射|(性|援|肛)交|一夜情|女優|(叫|找)小姐|(春|壯陽)(藥|药)|持久液|早洩|陽痿|(娛樂|娱乐)城|博奕|賭場|赌场|中((華|华)(人|)民(共和|)|)(國|国|共)|政府|(執|执)政|共(產|产)|黨|党|海(峽|峡)|(兩|两)岸|(習|习)近平|李(|克)(強|强)|郭文(貴|贵)|閆麗夢|闫丽梦|(希|西)塔|阿卡(西|夏)|大(師|师)|(師|师)(傅|父)|薩滿|萨满|頌缽|颂钵|通(靈|灵)|(靈|灵)(性|魂|體|体|數|数|命|氣|气)|梵|(顯|显)化|磁(場|场)|命(理|盤|盘)|脈輪|脉轮|(覺|觉)醒|魔法|算命|八字|紫薇|斗數|卜卦|(風|风)水|易(經|经|卦)|星(盤|盘)|(瑪|玛)雅曆|佛|南(無|无)|菩(提|薩|萨)|如(來|来)|(觀|观)音|修(行|士)|法(門|门)|妙法|大悲|(業|业)(障|力)|淨土|慧炬|心語|萊豬|莱猪|\s+(fuck|shit|bitch|asshole|dick)|\s+(fuck|shit|bitch|asshole|dick)/gi.test(p||"");
+	return /http|www.|死|自(殘|残|殺|杀)|白(癡|痴|目)|北七|智障|腦殘|脑残|婊子|三小|(機|机)掰|大便|屎|屌|賤|贱|他(媽|妈)的|e04|(幹|干)你|你娘|拎老|靠北|夭(壽|寿)|外(送茶|約)|(約|正)妹|加賴|(性|做|愛)愛|(打|約)(炮|砲)|(全|半|無|戴)套|口(交|爆)|(內|顏|颜)射|(性|援|肛)交|一夜情|女優|(叫|找)小姐|(春|壯陽)(藥|药)|持久液|早洩|陽痿|(娛樂|娱乐)城|博奕|賭場|赌场|中((華|华)(人|)民(共和|)|)(國|国|共)|政府|(執|执)政|共(產|产)|黨|党|海(峽|峡)|(兩|两)岸|(習|习)近平|李(|克)(強|强)|郭文(貴|贵)|閆麗夢|闫丽梦|(希|西)塔|阿卡(西|夏)|大(師|师)|(師|师)(傅|父)|薩滿|萨满|頌缽|颂钵|通(靈|灵)|(靈|灵)(性|魂|體|体|數|数|命|氣|气)|梵|(顯|显)化|磁(場|场)|命(理|盤|盘)|脈輪|脉轮|(覺|觉)醒|魔法|算命|八字|紫薇|斗數|卜卦|(風|风)水|易(經|经|卦)|星(盤|盘)|(瑪|玛)雅曆|佛|南(無|无)|菩(提|薩|萨)|如(來|来)|(觀|观)音|修(行|士)|法(門|门)|妙法|大悲|(業|业)(障|力)|淨土|慧炬|心語|萊豬|莱猪|\s+(fuck|shit|bitch|asshole|dick)|\s+(fuck|shit|bitch|asshole|dick)/i.test(p||"");
 }
