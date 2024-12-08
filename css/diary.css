@@ -1,7 +1,19 @@
 @charset "UTF-8";
 
-@import url(//cdn.jsdelivr.net/combine/gh/heartyme/web.hearty.me@40929/css/jquery.ui.resizable.min.css,npm/cssgram@0.1.3/source/css/cssgram.min.css,npm/slick-carousel@1.8.1/slick/slick.min.css,gh/heartyme/web.hearty.me@40929/css/diary.pagination.min.css,gh/heartyme/web.hearty.me@40929/css/periods.min.css,gh/heartyme/web.hearty.me@40929/css/ytbox.min.css);
+@import url(//cdn.jsdelivr.net/combine/gh/heartyme/web.hearty.me@40929/css/jquery.ui.resizable.min.css,npm/cropperjs@1.6.2/dist/cropper.min.css,npm/cssgram@0.1.3/source/css/cssgram.min.css,npm/slick-carousel@1.8.1/slick/slick.min.css,gh/heartyme/web.hearty.me@40929/css/diary.pagination.min.css,gh/heartyme/web.hearty.me@40929/css/periods.min.css,gh/heartyme/web.hearty.me@40929/css/ytbox.min.css);
 @import url(//cdn.jsdelivr.net/gh/erikflowers/weather-icons@2.0.10/css/weather-icons.min.css); /* dont use combine */
+
+:root{
+	--book-color: #ffd1a4; /* var(--book-color) */
+
+	/* 預設 */
+	--book-cover-def: url(//i.hearty.app/i/illustrations/kitchen.jpg);
+	--book-bg-def: url(//i.hearty.app/SsTuLyU.jpg);
+
+	/* 變數 */
+	--book-cover: var(--book-cover-def); /* var(--book-cover) */
+	--book-bg: var(--book-bg-def); /* var(--book-bg) */
+}
 
 *, 
 *::before, 
@@ -16,7 +28,8 @@ body{
 	margin: 0 auto;
 	padding: 0;
 	height: 100vh;
-	background: url(//i.hearty.app/SsTuLyU.jpg), #fff;
+	background-color: #fff;
+	background-image: var(--book-bg);
 	background-repeat: repeat;
 	background-size: contain;
 	background-position: center center;
@@ -260,7 +273,7 @@ a:active{
 		color: #bb785e;
 		margin: 0 .1em;
 		padding: 0 .2em;
-		border: 1px dashed #ffd1a4;
+		border: 1px dashed var(--book-color);
 		border-radius: .5em;
 	}
 	#editor_editable a:link, 
@@ -918,9 +931,12 @@ a:active{
 }
 .popup{
 	position: relative;
+	cursor: auto;
 	pointer-events: auto;
 }
 .popup.share, 
+.popup.style, /* 封面 */
+.popup.crop, /* 封面 */
 .popup.feedback, 
 .popup.post_attr, 
 .popup.ytbox, 
@@ -1120,6 +1136,147 @@ a:active{
 						background: transparent;
 						cursor: not-allowed;
 					}
+
+	/* 自訂封面 */
+	.popup.style .row, 
+	.popup.crop .row{
+		display: flex;
+		flex-flow: row wrap;
+		justify-content: space-between;
+		align-items: center;
+	}
+		.popup.style .row > div{
+			display: flex;
+			flex-flow: column wrap;
+		}
+		.popup.style .row *:nth-child(1){
+			flex: 3;
+		}
+		.popup.style .row *:nth-child(2){
+			flex: 1;
+		}
+
+	.popup.style #headline::after{
+		font-size: x-small;
+	}
+	.popup.style label{
+		position: relative;
+		width: 100%;
+		padding-top: 52.4%; /* 1.91:1 */
+		background-size: contain;
+		background-repeat: no-repeat;
+		background-position: center;
+		cursor: pointer;
+	}
+		.popup.style label::before{
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			font-family: "Font Awesome 5 Pro";
+			content: "\f0aa";
+			font-size: x-large;
+			font-weight: 300;
+			color: #999;
+			background: rgba(255,255,255,.3);
+			transition: background .2s linear;
+		}
+			.popup.style label:hover::before{
+				font-weight: 900;
+				background: transparent;
+			}
+
+		.popup.style label[for="cover_upload"]{
+			background-image: var(--book-cover);
+		}
+		.popup.style label[for="bg_upload"]{
+			background-image: var(--book-bg);
+		}
+
+		.popup.style input[type="file"]{
+			display: none;
+		}
+
+	.popup.style .colors{
+		display: flex;
+		flex-flow: row wrap;
+		justify-content: space-evenly;
+		align-items: center;
+		gap: 10px; /* 間距 */
+	}
+	.popup.style [data-c]{
+		flex: 1 0 calc((100% - (7 * 10px)) / 8); /* 每行 8個，扣間距 */ 
+		height: 26px;
+		border-radius: 50%;
+		background-color: var(--book-color);
+		cursor: pointer;
+	}
+		.popup.style [data-picked]{
+			outline: 2px solid #999;
+			border: .5px solid #fff;
+		}
+		.popup.style [data-c="f1cec7"]{
+			background-color: #f1cec7;
+		}
+		.popup.style [data-c="d8dad9"]{
+			background-color: #d8dad9;
+		}
+		.popup.style [data-c="cac3bb"]{
+			background-color: #cac3bb;
+		}
+		.popup.style [data-c="a7a4ab"]{
+			background-color: #a7a4ab;
+		}
+		.popup.style [data-c="78717e"]{
+			background-color: #78717e;
+		}
+		.popup.style [data-c="9e7c7f"]{
+			background-color: #9e7c7f;
+		}
+		.popup.style [data-c="e5cccf"]{
+			background-color: #e5cccf;
+		}
+		.popup.style [data-c="c6715a"]{
+			background-color: #c6715a;
+		}
+		.popup.style [data-c="f7d792"]{
+			background-color: #f7d792;
+		}
+		.popup.style [data-c="bcae88"]{
+			background-color: #bcae88;
+		}
+		.popup.style [data-c="727b68"]{
+			background-color: #727b68;
+		}
+		.popup.style [data-c="9b9383"]{
+			background-color: #9b9383;
+		}
+		.popup.style [data-c="e9d4c8"]{
+			background-color: #e9d4c8;
+		}
+		.popup.style [data-c="cfb3a4"]{
+			background-color: #cfb3a4;
+		}
+		.popup.style a[target="_blank"]{
+			border-bottom: 1px solid #888;
+		}
+
+	/* 裁剪 */
+	.popup.crop{
+    	min-width: 90%;
+	}
+		.popup.crop img{ /* cp_preview */
+			max-width: 100%;
+			max-height: 80vh;
+		}
+		.popup.crop canvas{
+			display: none;
+		}
+
 
 	.popup.feedback{
 		color: #555;
@@ -2113,8 +2270,7 @@ body.hj::-webkit-scrollbar,
 .notifications ul::-webkit-scrollbar, 
 .bk-list .bk-page::-webkit-scrollbar, 
 .catalog[data-mobile] div::-webkit-scrollbar, 
-.popup-underlayer > div::-webkit-scrollbar, 
-.popup.share .penpals select::-webkit-scrollbar{
+.popup-underlayer > div::-webkit-scrollbar{
 	display: none;
 	width: 0;
 	background: transparent;
@@ -2123,8 +2279,7 @@ body.hj::-webkit-scrollbar,
 	body.hj, 
 	.bk-list .bk-page, 
 	.catalog[data-mobile] div, 
-	.popup-underlayer > div, 
-	.popup.share .penpals select{
+	.popup-underlayer > div{
 		scrollbar-width: none;
 	}
 
@@ -2243,10 +2398,10 @@ body.hj::-webkit-scrollbar,
 	width: 100%;
 	height: 100%;
 	padding: 0 .3em;
-	border-top: 8px solid #ffd1a4;
-	border-right: 3px solid #ffd1a4;
-	border-bottom: 8px solid #ffd1a4;
-	border-left: 6px solid #ffd1a4;
+	border-top: 8px solid var(--book-color);
+	border-right: 3px solid var(--book-color);
+	border-bottom: 8px solid var(--book-color);
+	border-left: 6px solid var(--book-color);
 	border-radius: .6em;
 	background: url(//i.hearty.app/XCR4X1w.png) repeat center center, #fff;
 	overflow-x: hidden;
@@ -2871,6 +3026,22 @@ diary.pagination.min.css
 		backdrop-filter: blur(30px) brightness(1.05);
 		z-index: 0; /* cssgram fix */
 	}
+		/*
+			Android Bug Fixed: 
+			backdrop-filter is incompatible with some Android devices
+			https://youtu.be/MdzM51JnyD8
+		*/
+		/* target: Android devices */
+		@supports not (-webkit-touch-callout: none){ /* not iOS */
+			@media (pointer: coarse){ /* touch screen only */
+				.bk-page figure::before{
+					background: rgba(255,255,255,.8);
+					-webkit-backdrop-filter: none;
+					backdrop-filter: none;
+				}
+			}
+		}
+
 		/* Firefox Bug Fixed: Not Support backdrop-filter
 			caniuse.com/#search=backdrop-filter
 		@supports (-moz-appearance: none){
@@ -2879,6 +3050,7 @@ diary.pagination.min.css
 			}
 		}
 		*/
+
 		.bk-page [data-screenshoted] figure::before{
 			background: rgba(255,255,255,.7);
 		}
@@ -3199,33 +3371,60 @@ diary.pagination.min.css
 
 /* Book */
 .bk-book .bk-front::after, 
-.bk-book .bk-front .bk-cover-back, 
+.bk-book .bk-cover-back, 
 .bk-book .bk-back, 
 .bk-book .bk-left{
-	background: url(//i.hearty.app/i/journal_background.jpg), #ffd1a4;
+	background-color: var(--book-color);
+	background-image: url(//i.hearty.app/i/book_background.png);
+	/* origin: i0.wp.com/www.toptal.com/designers/subtlepatterns/uploads/so-white.png */
+
 	background-repeat: repeat;
 	background-size: cover;
-}
-.bk-book .bk-front .bk-cover{
-	background-color: #ffd1a4;
+	background-blend-mode: multiply;
 }
 .bk-book .bk-cover{
 	position: absolute; /* absolute for Safari; alt: static */
 	width: 100%;
 	/* max-width: 480px; */
-	background: url(//i.hearty.app/i/illustrations/kitchen.jpg) no-repeat center 80%;
+	background-color: var(--book-color);
+	background-image: var(--book-cover);
+	background-repeat: no-repeat;
+	background-position: center; /* center 80% */
 	background-size: cover;
 }
-.bk-book .bk-cover h2{
-	position: absolute;
-	top: 40px;
-	right: 40px;
-	left: 40px;
-	color: #555;
-	line-height: 1.6;
-	text-shadow: 0px 0px 5px #fff;
-	-webkit-font-smoothing: antialiased;
-}
+	.bk-book .bk-cover h2{
+		position: absolute;
+		top: 40px;
+		right: 40px;
+		left: 40px;
+		color: #555;
+		line-height: 1.6;
+		text-shadow: 0px 0px 5px #fff;
+		-webkit-font-smoothing: antialiased;
+	}
+	/* 自訂日記本 */
+	.btn_style{
+		position: absolute;
+		left: 1em;
+		bottom: 2em;
+		padding: .5em .6em;
+		color: slategrey;
+		border: 1px solid slategrey;
+		border-radius: 50%;
+		background: rgba(255,255,255,.7);
+		transition: background 0.5s ease;
+	}
+		.btn_style::before{
+			font-family: "Font Awesome 5 Pro";
+			content: "\f03e";
+		}
+		.btn_style:hover{
+			background: #fff;
+		}
+		.btn_style:hover::before{
+			font-weight: 900;
+		}
+
 .bk-book .bk-left h2{
 	color: #fff;
 	font-size: smaller;
