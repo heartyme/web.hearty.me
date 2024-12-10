@@ -429,8 +429,8 @@ function tp_pay(payvia, prime, card_country){ // eg. card_country = TW
 		console.log("* fn tp_pay: "+JSON.stringify(data));
 
 		$.ajax({
-			type: "post", 
-			url: location.origin+"/shop/tp.prime?"+tp_params(true), 
+			type: "POST", 
+			url: "/shop/tp.prime?"+tp_params(true), 
 			async: true, 
 			crossDomain: true, 
 			dataType: "json", 
@@ -590,9 +590,9 @@ function getUrlPara(para){
 
 // 取得 Cookie
 function getcookie(cname){
-	var name = cname+"=", ca = document.cookie.split(";");
-	for(var i=0; i<ca.length; i++){
-		var c = ca[i].trim();
+	let name = cname+"=", ca = document.cookie.split(";");
+	for(let i=0; i<ca.length; i++){
+		let c = ca[i].trim();
 		if(c.indexOf(name)==0) return c.substring(name.length, c.length);
 	}
 	return "";
@@ -604,7 +604,7 @@ function tp_msg(txt, callback){
 }
 
 function tp_loading(on){
-	var $b = $("body");
+	let $b = $("body");
 	if(on===false)
 		$b.removeClass("loading");
 	else

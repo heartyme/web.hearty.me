@@ -9,7 +9,7 @@ function bill(order_no){
 
 function bill_reload(){
 	setTimeout(function(){
-		var u = new URL(location.href);
+		let u = new URL(location.href);
 		if(u.searchParams.has("reload")){
 			// 給 tp.buy.js 讀取，可關 3D
 			setcookie("hearty_3ds", 0, 2);
@@ -23,7 +23,7 @@ function bill_reload(){
 }
 
 function bill_share(){
-	var url = location.href.replace(location.host, "hearty.app");
+	let url = location.href.replace(location.host, "hearty.app");
 
 	if(/iOS|Android/i.test(check_hjapp())){
 		location.assign(
@@ -69,16 +69,72 @@ function bill_screenshot($e, orderno){
 			$(".btn_screenshot_download").removeAttr("onclick").attr({
 				target: "_blank", 
 				href: c.toDataURL("image/png"), // b64
-				download: "Hearty-Journal_"+orderno+".png", 
-				rel: "noopener"
+				download: "Hearty-Journal_"+orderno+".png"
 			}).get(0).click();
+		}).finally(function(){
 			hj_loading(false);
 		});
 	});
 }
+	/* 
+		bill_screenshot 的 JPG 壓縮版本
+		由於 png 及 jpg 檔案差異小，所以 bill_screenshot_compress 未啟用
+	*/
+	function bill_screenshot_compress($e, orderno){
+		hj_loading(true);
+		$e = $e || $(".bill_payment");
+
+		$.getScript("//cdn.jsdelivr.net/combine/npm/html2canvas@1.4.1/dist/html2canvas.min.js,npm/compressorjs@1.2.1/dist/compressor.min.js", function(){
+			window.html2canvas($e.get(0), {
+				useCORS: true, 
+				scale: window.devicePixelRatio, 
+				width: $e.get(0).offsetWidth, 
+				height: $e.get(0).offsetHeight
+			}).then(function(c){
+				// canvas 轉 base64 (原圖)，備用
+				let b64 = c.toDataURL("image/png"), 
+					$a = $(".btn_screenshot_download").removeAttr("onclick").attr({
+						target: "_blank", 
+						download: "Hearty-Journal_"+orderno+".png"
+					});
+
+				// canvas 轉 blob
+				c.toBlob(function(blob){
+					// 壓縮
+					new Compressor(blob, {
+						quality: 0.9, // 壓縮質量（0-1）
+						mimeType: "image/jpeg", 
+						success(blob_compressed){
+							// blob 轉 base64
+							let f = new FileReader();
+							f.readAsDataURL(blob_compressed);
+							f.onloadend = function(){
+								let b64_compressed = f.result;
+
+								// 下載
+								$a.attr({ 
+									href: b64_compressed, 
+									download: "Hearty-Journal_"+orderno+".jpg"
+								}).get(0).click();
+							};
+						}, 
+						error(e){
+							// 下載原圖 (base64)
+							$a.attr({ 
+								href: b64, 
+							}).get(0).click();
+						}
+					});
+
+				}, "image/png");
+			}).finally(function(){
+				hj_loading(false);
+			});
+		});
+	}
 
 function sales_tracking(evt, pkg_id, order_no){
-	var pkg = pkg_info(pkg_id), 
+	let pkg = pkg_info(pkg_id), 
 		plan = (pkg_id>4 ? "Prepaid" : "Monthly")+" Plan";
 	if(!pkg) return false; // 無此方案 or 禮物方案
 
@@ -133,7 +189,7 @@ function sales_tracking(evt, pkg_id, order_no){
 	}
 }
 	function pkg_info(pkg_id){
-		var pkg = {
+		let pkg = {
 			1: {unit: 50, subtotal: 600, quantity: 12}, // (老用戶優惠) 儲值 12月 (不對外顯示)
 			2: {unit: 149, subtotal: 447, quantity: 3}, // 儲值 3月
 			3: {unit: 109, subtotal: 654, quantity: 6}, // 儲值 6月
@@ -144,7 +200,7 @@ function sales_tracking(evt, pkg_id, order_no){
 		return (pkg_id in pkg) ? pkg[pkg_id] : false;
 	}
 	function affiliates_cps(pkg_id, order_no, amt){
-		var pkg_name = {
+		let pkg_name = {
 			2: "season", 
 			3: "semi-annual", 
 			4: "annual", 
@@ -154,7 +210,7 @@ function sales_tracking(evt, pkg_id, order_no){
 		if(!!pkg_name){
 			try{
 				(function(){
-					var payload = {
+					let payload = {
 						step: pkg_name
 						// revenue: 90
 						// order: order_no||"", 
@@ -164,7 +220,7 @@ function sales_tracking(evt, pkg_id, order_no){
 					if(!!order_no) payload["order"] = order_no;
 					if(parseInt(amt)>0) payload["orderTotal"] = amt;
 
-					var VARemoteLoadOptions = {
+					let VARemoteLoadOptions = {
 						whiteLabel: {id: 8, siteId: 2640, domain: "t.adotone.com"},
 						conversion: true,
 						conversionData: payload, 

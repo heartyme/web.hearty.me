@@ -8,7 +8,7 @@ $(function(){
 	};
 
 	$(document).scroll(function(){
-		var $u = $(".notify .page_up");
+		let $u = $(".notify .page_up");
 		if($(this).scrollTop()>200) $u.stop().fadeIn("slow");
 		else $u.stop().fadeOut("slow");
 	});
@@ -19,13 +19,11 @@ $(function(){
 function hj_update__push(d){
 	return $.ajax({
 		url: location.href, 
-		type: "post", 
-		crossDomain: true, 
+		type: "POST", 
 		dataType: "json", 
 		data: d, 
 		async: true, 
-		timeout: 10000, 
-		xhrFields: {withCredentials: true}
+		timeout: 10000
 	});
 }
 
@@ -39,7 +37,7 @@ function get_sent_stats(){
 }
 
 function get_recipients(){
-	var $recipients = $(".recipients"), 
+	let $recipients = $(".recipients"), 
 		uid_selection = parseInt($("input[name='uid_selection']:checked").val() || 0), 
 		devices = [
 			"iPhone", 
@@ -65,10 +63,10 @@ function get_recipients(){
 			case 1:
 				r = r["Values"];
 				$recipients.empty();
-				for(var user_id in r){
-					var u = r[user_id];
-					for(var t in u["tokens"]){
-						var device = devices[parseInt(u["tokens"][t]["device"])], 
+				for(let user_id in r){
+					let u = r[user_id];
+					for(let t in u["tokens"]){
+						let device = devices[parseInt(u["tokens"][t]["device"])], 
 							fcm_id = parseInt(u["tokens"][t]["fcm_id"]), 
 							sent_today = parseInt(u["tokens"][t]["sent_today"]);
 
@@ -108,7 +106,7 @@ function send_push(bulk, $btn){
 	$btn = $btn==null ? $(".recipients li[data-sent_today='0']:first") : $btn;
 	if(!$btn.length) return false;
 
-	var d = $btn.get(0).dataset, 
+	let d = $btn.get(0).dataset, 
 		$push = $(".push_data"), 
 		push = {
 			title: ($push.find("[data-title]").val() || "").trim(), 
@@ -149,7 +147,7 @@ function send_push(bulk, $btn){
 			action: "send_push", 
 			push: JSON.stringify(push)
 		}).then(function(r){
-			var v = r["Values"];
+			let v = r["Values"];
 			switch(r["Status"]){
 				case 1:
 					console.log(JSON.stringify(r));
@@ -181,7 +179,7 @@ function send_push(bulk, $btn){
 			}
 
 			if(bulk){
-				var $btn_next = $btn.nextAll("[data-bulk='"+$btn.attr("data-bulk")+"']").eq(0);
+				let $btn_next = $btn.nextAll("[data-bulk='"+$btn.attr("data-bulk")+"']").eq(0);
 
 				// ### debug
 				console.log("* debug: "+$btn_next.length+"; data-sent_today: "+$(".recipients li[data-sent_today='0']").length);
@@ -223,7 +221,7 @@ function send_push(bulk, $btn){
 
 			// 使其繼續
 			if(bulk){
-				var $btn_next = $btn.nextAll("[data-bulk='"+$btn.attr("data-bulk")+"']").eq(0);
+				let $btn_next = $btn.nextAll("[data-bulk='"+$btn.attr("data-bulk")+"']").eq(0);
 
 				// ### debug
 				console.log("* debug: "+$btn_next.length+"; data-sent_today: "+$(".recipients li[data-sent_today='0']").length);
@@ -243,7 +241,7 @@ function send_push(bulk, $btn){
 	}
 
 	function send_push_bulk(){
-		var $d = $(".recipients li[data-sent_today='0']"), 
+		let $d = $(".recipients li[data-sent_today='0']"), 
 			d = $d.length;
 
 		if(d>0){
@@ -261,7 +259,7 @@ function send_push(bulk, $btn){
 		}
 	}
 	function filter_finished(hide){
-		var $r = $(".recipients");
+		let $r = $(".recipients");
 		if(!hide) $r.removeClass("unfinished");
 		else $r.addClass("unfinished");
 	}
@@ -377,7 +375,7 @@ function template_prefill(n){
 	}
 }
 	function template_prefilling(d){
-		var $p = $(".push_data");
+		let $p = $(".push_data");
 			$p.find("[data-title]").val(d["title"]);
 			$p.find("[data-body]").val(d["body"]);
 			$p.find("[data-url]").val(d["url"]);
@@ -396,7 +394,7 @@ function filter_recipients(v){
 	});
 }
 function filter_all(max_user_id){
-	var $u = $(".user_data [data-uid_interval]");
+	let $u = $(".user_data [data-uid_interval]");
 	$u.filter(":eq(0)").val(1).attr({max: max_user_id});
 	$u.filter(":eq(1)").val(max_user_id).attr({max: max_user_id});
 }

@@ -6,7 +6,7 @@ hj_getScript("//cdn.jsdelivr.net/combine/npm/@webcreate/infinite-ajax-scroll@3.1
 	$(function(){
 		post_font();
 
-		var ias = new InfiniteAjaxScroll(".feed_wall", {
+		let ias = new InfiniteAjaxScroll(".feed_wall", {
 			scrollContainer: ".feed_wall", 
 			item: ".article", 
 			next: ".pager_next", 
@@ -37,11 +37,11 @@ hj_getScript("//cdn.jsdelivr.net/combine/npm/@webcreate/infinite-ajax-scroll@3.1
 		});
 
 		// 聚焦於某篇日記
-		var post_assigned = Number(getUrlPara("post") || 0);
+		let post_assigned = Number(getUrlPara("post") || 0);
 		if(post_assigned>0) focus_active_post(post_assigned).attr("data-active", "");
 
 		$(".page .story").scroll(function(){
-			var $u = $(".nav_btn.fa-chevron-up");
+			let $u = $(".nav_btn.fa-chevron-up");
 			if($(this).scrollTop()>200) $u.stop().fadeIn("slow");
 			else $u.stop().fadeOut("slow");
 		}).hide();
@@ -82,7 +82,7 @@ leave_InAppBrowser();
 function feed_hotkey_init(){
 	if(!is_touch_device()){
 		$(document).on("keydown", function(e){
-			var k = e.keyCode, 
+			let k = e.keyCode, 
 				$f = $(".feed_wall"), 
 				$a = $f.find("article");
 
@@ -110,7 +110,7 @@ function hj_feed_history_init(){
 	if($("body").width()<1025 && typeof history.pushState=="function"){
 		hj_feed_history_push();
 		window.addEventListener("popstate", function(){
-			var $s = $(".page .story"), 
+			let $s = $(".page .story"), 
 				scrolled = $(".feed").scrollLeft();
 
 			if($(".feed .profile").is(":visible")){
@@ -145,7 +145,7 @@ function hj_feed_history_init(){
 	}
 
 function nav_feed(p, no_animation){
-	var $e = $(".feed");
+	let $e = $(".feed");
 	if($e.length>0){
 		$e.get(0).scroll({
 			left: $e.width()*(p||0), 
@@ -155,7 +155,7 @@ function nav_feed(p, no_animation){
 }
 
 function read_post(d){
-	var post_id = Number(d["post_id"]) || 0, 
+	let post_id = Number(d["post_id"]) || 0, 
 		$s = $(".page .story"), 
 		$p = $s.find("article"), 
 		$cov = $s.find(".covid19"), 
@@ -165,7 +165,7 @@ function read_post(d){
 
 	$.ajax({
 		url: location.href, 
-		type: "post", 
+		type: "POST", 
 		data: {
 			action: "read", 
 			post_id: post_id
@@ -184,7 +184,7 @@ function read_post(d){
 				$p.find("p").html(linkify(r["post"]));
 
 				// 檢查是否為 COVID-19 相關
-				if(/co(vid|ronavirus)|vaccin(e|ation)|(epi|pan)demic|delta|omicron|新冠|冠(狀|状)|病毒|肺炎|疫(情|苗)|(防|抗)疫|武(漢|汉)/ig.test(r["title"]+r["post"])) $cov.show();
+				if(/co(vid|ronavirus)|vaccin(e|ation)|(epi|pan)demic|delta|omicron|新冠|冠(狀|状)|病毒|肺炎|疫(情|苗)|(防|抗)疫|武(漢|汉)/i.test(r["title"]+r["post"])) $cov.show();
 				else $cov.hide();
 
 				$p.find(".published").attr({title: r["published"]});
@@ -247,7 +247,7 @@ function read_post(d){
 function focus_active_post(post_id){
 	nav_feed(0);
 
-	var $p = $(".feed_wall article"+(post_id==null ? "[data-active]" : "[data-post_id='"+post_id+"']"));
+	let $p = $(".feed_wall article"+(post_id==null ? "[data-active]" : "[data-post_id='"+post_id+"']"));
 	if("scrollIntoView" in document.documentElement && $p.length>0) $p.get(0).scrollIntoView();
 
 	$p.delay(400).animate({zoom: 1.1}, 300, function(){
@@ -288,7 +288,7 @@ function bookmark(post_id, $e){
 }
 
 function profile_popup(username, nickname, profile_image, gender, post_id){
-	var $p = $(".feed .profile");
+	let $p = $(".feed .profile");
 	if(username==null){
 		$p.fadeOut("fast");
 	}
@@ -310,7 +310,7 @@ function profile_popup(username, nickname, profile_image, gender, post_id){
 }
 
 function feed_share_this(username, post_id){
-	var url = "https://hearty.app/"+username+"/"+post_id+"?st="+encodeURIComponent($(".story h2").attr("title")||"");
+	let url = "https://hearty.app/"+username+"/"+post_id+"?st="+encodeURIComponent($(".story h2").attr("title")||"");
 
 	if(/iOS|Android/i.test(check_hjapp())){
 		location.assign(
@@ -353,7 +353,7 @@ function how2publish(){
 function report_abuse(post_id){
 	account_status().then(function(r){
 		if(r["Status"]==1){
-			var $a = $(".page .story article"), 
+			let $a = $(".page .story article"), 
 				title = ($a.find("h2").attr("title") || "無標題").trim();
 
 			alertify.set({labels: {ok: _h("f-no"), cancel: '<i class="fas fa-check-circle"></i> '+_h("f-report_ask-1")}, buttonReverse: false});

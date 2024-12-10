@@ -14,12 +14,12 @@ $(function(){
 });
 
 function hj_survey(uri, $selector, callback){
-	var $f = ($selector || $("body")).find("[data-gform]"), 
+	let $f = ($selector || $("body")).find("[data-gform]"), 
 		$f_invalid = [];
 
 	// 必填，檢查 input 本身及有相同 name 的集合是否為空
 	$f.filter("[required]").each(function(){
-		var $t = $(this).is("[name]") ? // 取得同名之任一值
+		let $t = $(this).is("[name]") ? // 取得同名之任一值
 				$f.filter($("[name='"+$(this).attr("name")+"']")) : 
 				$(this), 
 			v = hj_survey_val($t);
@@ -27,7 +27,7 @@ function hj_survey(uri, $selector, callback){
 			$f_invalid.push({e: $t, t: $t.attr("title")||""});
 	});
 	$f.filter("[minlength]").each(function(){
-		var l = $(this).val().length;
+		let l = $(this).val().length;
 		if(l>0 && l<Number($(this).attr("minlength")))
 			$f_invalid.push({e: $(this), t: $(this).attr("title")||""});
 	});
@@ -42,7 +42,7 @@ function hj_survey(uri, $selector, callback){
 	});
 	// RegExp
 	$f.filter("[pattern]").each(function(){
-		var r = new RegExp($(this).attr("pattern"));
+		let r = new RegExp($(this).attr("pattern"));
 		if(!r.test(hj_survey_val($(this)))) $f_invalid.push({e: $(this), t: $(this).attr("title")||""});
 	});
 
@@ -52,9 +52,9 @@ function hj_survey(uri, $selector, callback){
 		return $f_invalid[0].t;
 	}
 
-	var data = {};
+	let data = {};
 	$f.each(function(){
-		var $t = $(this).is("[name]") ? // 取得同名之任一值
+		let $t = $(this).is("[name]") ? // 取得同名之任一值
 				$f.filter($("[name='"+$(this).attr("name")+"']")) : 
 				$(this), 
 			v = hj_survey_val($t);
@@ -79,8 +79,8 @@ function hj_survey(uri, $selector, callback){
 	}
 
 function hj_survey_subscriber(){
-	var $b = $(".btns_action li"); $b.removeAttr("data-active");
-	var r = hj_survey(
+	let $b = $(".btns_action li"); $b.removeAttr("data-active");
+	let r = hj_survey(
 		"1FAIpQLScZSsT5cp4Yf3B41LVbgD6sUMUpMqr6uXyVwR6Cx6Bf6C2l0A", 
 		$(".survey"), 
 		function(r){
@@ -135,7 +135,7 @@ function hj_survey_sortable_init($e){
 }
 
 function survey_notice(o, t){
-	var $n = $(".survey header .notice"), 
+	let $n = $(".survey header .notice"), 
 		$t = $(".survey .title");
 	if(o){
 		$t.hide();
@@ -156,7 +156,7 @@ function survey_modified(o){
 }
 
 function survey_unlock(o, n){
-	var $s = $(".survey");
+	let $s = $(".survey");
 	if(o){
 		for(let i=1; i<=n; i++) $s.find("[data-unlock='"+i+"']").fadeIn();
 	}

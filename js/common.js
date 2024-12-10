@@ -26,43 +26,34 @@ if(typeof dataLayer!="undefined"){
 // 通用更新
 function hj_update(d){
 	return $.ajax({
-		url: location.origin+"/update", //+"?"+(!window.hj_username ? "" : "u="+hj_username+"&")+new Date().getMinutes()
-		type: "post", 
-		crossDomain: true, 
+		url: "/update", 
+		type: "POST", 
 		dataType: "json", 
 		data: d, 
-		async: true, 
-		xhrFields: {
-			withCredentials: true
-		}
+		async: true
 	});
 }
-
-function update(d){
-	var r = $.ajax({
-		url: location.origin+"/update", //+"?"+(!window.hj_username ? "" : "u="+hj_username+"&")+new Date().getMinutes(), 
-		type: "post", 
-		crossDomain: true, 
-		dataType: "json", 
-		data: d, 
-		async: false, 
-		xhrFields: {
-			withCredentials: true
-		}, 
-		success: function(v){
-			return $(v)["selector"];
-		}
-	});
-	return r.status>=200 && r.status<300 || r.status==304 ? 
-		JSON.parse(r.responseText) : false;
-}
+	function update(d){
+		let r = $.ajax({
+			url: "/update", 
+			type: "POST", 
+			dataType: "json", 
+			data: d, 
+			async: false, 
+			success: function(v){
+				return $(v)["selector"];
+			}
+		});
+		return r.status>=200 && r.status<300 || r.status==304 ? 
+			JSON.parse(r.responseText) : false;
+	}
 
 function is_touch_device(){
 	return ("ontouchstart" in window || ("maxTouchPoints" in navigator && navigator.maxTouchPoints>0)) && !matchMedia("(pointer:fine)").matches;
 }
 
 function check_OS(os){
-	var u = navigator.userAgent || "", 
+	let u = navigator.userAgent || "", 
 		d = /iP(ad|hone|od)|watchOS/i.test(u) ? ["iOS"] : 
 			u.match(/Windows|Macintosh|Android|Linux/gi) || [];
 	d = d.length>0 ? d.slice(-1)[0] : "";
@@ -73,14 +64,14 @@ function check_OS(os){
 	return os==null ? d : os==d;
 }
 function check_browser(browser){
-	var u = navigator.userAgent || "", 
+	let u = navigator.userAgent || "", 
 		b = /^((?!chrome|android).)*safari|Hearty_(iOS|macOS)/i.test(u) ? ["Safari"] : 
 			u.match(/(HuaWei|Ya|UC|QQ|BIDU|LB|Oppo|Miui|Vivo)browser|MetaSr|Maxthon|Edg(e|)|Opera(| Mini)|OPR|Firefox|Chrom(e|ium)|Trident|MSIE/gi) || [];
 	b = b.length>0 ? b[b.length-1] : "";
 	return browser==null ? b : browser==b;
 }
 function check_hjapp(app){
-	var a = (navigator.userAgent || "").match(/Hearty_(iOS|Android|macOS)/) || [];
+	let a = (navigator.userAgent || "").match(/Hearty_(iOS|Android|macOS)/) || [];
 	a = a.length>0 ? a[0].replace(/Hearty_/i, "") : false;
 	return app==null ? a : app==a;
 }
@@ -150,17 +141,17 @@ function hj_getFile(url, filename, callback){
 			if(!r.ok) throw new Error();
 			return r.blob();
 		}).then(function(b){
-			var u = (window.URL||window.webkitURL).createObjectURL(b);
+			let u = (window.URL||window.webkitURL).createObjectURL(b);
 			$("<a>", {
 				href: u, 
 				download: decodeURIComponent(filename || url.split("/").slice(-1)[0] || "")
 			}).get(0).click();
 			(window.URL||window.webkitURL).revokeObjectURL(u);
 
-			hj_loading(false);
 			if(typeof callback=="function") callback();
 		}).catch(function(){
 			open_url("//"+url);
+		}).finally(function(){
 			hj_loading(false);
 		});
 	}
@@ -179,7 +170,7 @@ function _h_init(){
 		$("body *,title").each(function(){
 			let o = Object.assign({}, $(this).get(0).dataset);
 
-			for(var k in o){
+			for(let k in o){
 				// 文字
 				if(k=="h"){
 					let v = _h(o[k]).replace(/\n/g, "");
@@ -244,7 +235,7 @@ function check_hostname(){
 		top.location.href = self.location.href;
 	}
 	else if(location.hostname!="hearty.me"){
-		var u = location.href.replace(location.hostname, "hearty.me");
+		let u = location.href.replace(location.hostname, "hearty.me");
 		$(function(){
 			msg('<h3><i class="far fa-wrench"></i> Testing Purposes Only</h3><i class="fab fa-cloudflare"></i> "<u>'+location.hostname+'</u>" is used to demonstrate a known bug, please use the service on our primary domain: <u>hearty.me</u> to prevent issues.', "Back", function(){
 				top.location.href = u;
@@ -260,7 +251,7 @@ function cssFeatureSupported(prop, value){
 		return CSS.supports(prop, value);
 	}
 	else{
-		var d = document.createElement("div");
+		let d = document.createElement("div");
 		d.style[prop] = value;
 	 	return d.style[prop]==value;
 	}
@@ -268,16 +259,16 @@ function cssFeatureSupported(prop, value){
 
 // 網址參數
 function getUrlPara(para){
-	var reg = new RegExp("(^|&)"+para+"=([^&]*)(&|$)"), 
+	let reg = new RegExp("(^|&)"+para+"=([^&]*)(&|$)"), 
 		r = location.search.substr(1).match(reg);
 	if(r!=null) return decodeURIComponent(r[2]); return null;
 }
 
 // 取得 Cookie
 function getcookie(cname){
-	var name = cname+"=", ca = document.cookie.split(";");
-	for(var i=0; i<ca.length; i++){
-		var c = ca[i].trim();
+	let name = cname+"=", ca = document.cookie.split(";");
+	for(let i=0; i<ca.length; i++){
+		let c = ca[i].trim();
 		if(c.indexOf(name)==0) return c.substring(name.length, c.length);
 	}
 	return "";
@@ -287,7 +278,7 @@ function getcookie(cname){
 function setcookie(cname, val, days_added){
 	if(typeof val=="undefined") val = "";
 
-	var d = new Date();
+	let d = new Date();
 	d.setDate(d.getDate()+(days_added||1));
 	document.cookie = (cname||"")+"="+val+";expires="+d.toGMTString()+";domain=."+document.domain+";path=/;samesite=lax;secure";
 }
@@ -299,7 +290,7 @@ function hj_alert(t){
 
 // 振動
 function hj_vibrate(s){
-	var v = "vibrate" in navigator;
+	let v = "vibrate" in navigator;
 	if(v) navigator.vibrate([s||80]);
 	return v;
 }
@@ -335,7 +326,7 @@ function msg(txt, btn, callback){
 }
 
 function alertify_input_custom(a, c){
-	var $a = $("#alertify .alertify-text");
+	let $a = $("#alertify .alertify-text");
 	if(!(a==null) && typeof a=="object"){
 		if(a.type=="password") $a.wrap("<form></form>"); // Password field should be contained in a form: https://www.chromium.org/developers/design-documents/create-amazing-password-forms/
 		if(!("autocomplete" in a)) a["autocomplete"] = "off";
@@ -378,7 +369,7 @@ function gform_post(uri, data){
 function url_shortener(path, is_short, title, img, desc){
 	path = (path || "").replace(location.origin+"/", ""); // 剔除域名
 
-	var host = "https://hearty.me/", 
+	let host = "https://hearty.me/", 
 		utm = "utm_source=hj.rs&utm_medium=hj.rs&utm_campaign=hj.rs", 
 		uri = path+(path.indexOf("?")<0?"?":"&")+utm, 
 		url = encodeURIComponent(host+uri);
@@ -402,7 +393,7 @@ function url_shortener(path, is_short, title, img, desc){
 		})
 	}).then(function(j){
 		if("shortLink" in j){
-			var shortened = (j["shortLink"]||"").split("/").slice(-1).toString();
+			let shortened = (j["shortLink"]||"").split("/").slice(-1).toString();
 
 			// forms.gle/TnbqbGpguryiP6UR6
 			gform_post("1FAIpQLSdSBwn2jYQoGxa4_IavoY_PTzhEN-j7drarxHa9lYQSDNKVdQ", {
@@ -536,7 +527,7 @@ function date_format(d, inclue_year){
 		d = new Date(parseInt(d)*1000);
 	}
 
-	var opt = {month: "short", day: "numeric"};
+	let opt = {month: "short", day: "numeric"};
 	if(inclue_year) opt["year"] = "numeric";
 
 	return d.toLocaleDateString(hj_lang(), opt);
@@ -554,7 +545,7 @@ function htmlspecialchars(str){
 function htmlDecode(i){
 	return $("<i>").html(i || "").text();
 	/* Alt: 
-		var e = document.createElement("i");
+		let e = document.createElement("i");
 		e.innerHTML = i || " ";
 		return e.childNodes[0].nodeValue;
 	*/
@@ -562,8 +553,8 @@ function htmlDecode(i){
 
 // 抖動
 function shake($e){
-	var l = 20;
-	for(var i=0; i<8; i++)
+	let l = 20;
+	for(let i=0; i<8; i++)
 		$e.animate({
 			"margin-left": "+="+(l=-l)+"px",
 			"margin-right": "-="+l+"px"
@@ -579,14 +570,14 @@ function nth(n){
 
 // 跳脫 Line 內建瀏覽器
 function leave_InAppBrowser(){
-	var o = getUrlPara("openExternalBrowser");
+	let o = getUrlPara("openExternalBrowser");
 	if((navigator.userAgent || "").indexOf("Line/")>0 && !o){
-		var u = location.href;
+		let u = location.href;
 		location.href = u+(u.indexOf("?")>0 ? "&":"?")+"openExternalBrowser=1";
 	}
 	else if(o){
 		try{
-			var u = new URL(location);
+			let u = new URL(location);
 			u.searchParams.delete("openExternalBrowser");
 
 			if(typeof history.replaceState=="function")
@@ -665,7 +656,7 @@ function fb_evt_push(evt, val){
 	if(!evt) return;
 
 	// fb.com/business/help/402791146561655
-	var is_custom = ["AddPaymentInfo","AddToCart","AddToWishlist","CompleteRegistration","Contact","CustomizeProduct","Donate","FindLocation","InitiateCheckout","Lead","Purchase","Schedule","Search","StartTrial","SubmitApplication","Subscribe","ViewContent"].indexOf(evt)<0;
+	let is_custom = ["AddPaymentInfo","AddToCart","AddToWishlist","CompleteRegistration","Contact","CustomizeProduct","Donate","FindLocation","InitiateCheckout","Lead","Purchase","Schedule","Search","StartTrial","SubmitApplication","Subscribe","ViewContent"].indexOf(evt)<0;
 
 	if(typeof fbq!="undefined"){
 		try{
@@ -738,7 +729,7 @@ function hj_copy($e, t){
 	if($e.length>0){
 		select_input_text($e);
 		
-		var c = document.execCommand("Copy", false, null);
+		let c = document.execCommand("Copy", false, null);
 		if(c) alertify.success('<i class="far fa-copy"></i> '+(t || _h("h-copy")));
 		$e.blur();
 		return c;
@@ -749,7 +740,7 @@ function hj_copy($e, t){
 }
 	function hj_copy_text(t){
 		t = t || "";
-		var $e = $("[data-clipboard]");
+		let $e = $("[data-clipboard]");
 		if(!$e.length){
 			$e = $("<input>", {
 				type: "text", 
@@ -791,7 +782,7 @@ function hj_ip(alt){
 	// Cloudflare
 	return $.ajax({
 		type: "GET", 
-		url: (alt ? "//ip.heartymail.com" : location.origin)+"/cdn-cgi/trace", 
+		url: (alt ? "//api.hearty.app" : location.origin)+"/cdn-cgi/trace", 
 		async: true, 
 		crossDomain: true, 
 		dataType: "text"
@@ -835,7 +826,7 @@ function hj_ip(alt){
 	}
 
 function hj_localize_cn(){
-	var sc = /zh-(CN|SG|MY)/i.test(hj_lang());
+	let sc = /zh-(CN|SG|MY)/i.test(hj_lang());
 	if(sc){
 		hj_getScript_gh({
 			path: "js/diary.zhongwen.min.js", 
@@ -862,7 +853,7 @@ function hj_rate(){
 	}
 }
 	function hj_rating(param){
-		var t = _h("h-rate-0")+'<br><i class="fal fa-star"></i> <i class="fal fa-star"></i> <i class="fal fa-star"></i> <i class="fal fa-star"></i> <i class="fal fa-star"></i>';
+		let t = _h("h-rate-0")+'<br><i class="fal fa-star"></i> <i class="fal fa-star"></i> <i class="fal fa-star"></i> <i class="fal fa-star"></i> <i class="fal fa-star"></i>';
 		/* Google 商家連結：
 			bitly.com/2YRuw7z
 			g.co/kgs/mpL8GH#lkt=LocalPoiReviews
@@ -871,7 +862,7 @@ function hj_rate(){
 
 		// 第 1步
 		if(param==null){
-			var r = {
+			let r = {
 					Google: ['<i class="fab fa-google"></i> Google', "//hearty.me/wv?o=bitly.com/2YRuw7z"], 
 					iOS: ['<i class="fab fa-app-store"></i> App Store', "//hearty.me/wv?o=apps.apple.com/app/id1423459636?action=write-review"], 
 					Android: ['<i class="fab fa-google-play"></i> Android', "market://details?id=com.hearty.me&showAllReviews=true"]
@@ -915,7 +906,7 @@ function get_app(os, cp){
 	os = os || check_OS();
 	cp = cp || "topbar";
 
-	var cn = hj_lang_zhcn(), 
+	let cn = hj_lang_zhcn(), 
 		dl = {
 			Android: {
 				apk: "//cdn.jsdelivr.net/gh/chennien/d.hearty.app@main/android/Hearty%20Journal.apk", 
@@ -951,7 +942,7 @@ function get_app(os, cp){
 		break;
 
 		case "Windows":
-			var ua = navigator.userAgent || "", 
+			let ua = navigator.userAgent || "", 
 				browser = check_browser(), 
 				ver = "default", 
 				cpu = /(Win|WOW|x)64|ARM/i.test(ua)||!check_OS("Windows") ? "" : "/x86";
@@ -1037,10 +1028,10 @@ function hj_firebase_init(){
 		});
 
 		if(!check_hjapp() && firebase.messaging.isSupported()){
-			var m = firebase.messaging();
+			let m = firebase.messaging();
 			m.usePublicVapidKey("BJGwjWY6MviBp3gKYq8yjJ7LQT-TUBfWphAMmq3biKDqINUv1s6l_qkvyEqF27ox3sxOoJCO_B7VDFS2qtYqozk");
 			m.onMessage((payload) => {
-				var d = payload["data"];
+				let d = payload["data"];
 				new Notification(d["title"], {
 					body: d["body"], 
 					icon: d["badge"]
@@ -1071,7 +1062,7 @@ function hj_fcm_init(onfinish){
 		Notification.requestPermission().then((permission) => {
 			switch(permission){
 				case "granted":
-					var m = firebase.messaging();
+					let m = firebase.messaging();
 					m.getToken().then((currentToken) => {
 						if(currentToken){
 							hj_fcm_register(currentToken, onfinish);
@@ -1096,7 +1087,7 @@ function hj_fcm_init(onfinish){
 				break;
 
 				case "denied":
-					var bucket = "hearty_notification_denied"; 
+					let bucket = "hearty_notification_denied"; 
 					if(!getcookie(bucket)){
 						alertify.set({labels: {ok: _h("h-notify-3"), cancel: '<i class="fas fa-toggle-on"></i> '+_h("h-notify-2")}, buttonReverse: true});
 						alertify.confirm('<i class="far fa-bell-slash"></i> '+_h("h-notify-0")+"<br>"+_h("h-notify-1")+' <i class="far fa-sad-tear"></i>', function(e){
@@ -1146,7 +1137,7 @@ function hj_fcm_init(onfinish){
 	}
 
 function hj_loading(on){
-	var $b = $("body");
+	let $b = $("body");
 	if(on===false)
 		$b.removeClass("loading");
 	else
@@ -1169,7 +1160,7 @@ function hj_href(url){
 function post_font(font_id){
 	font_id = font_id || getcookie("hearty_post_font") || "";
 
-	var fonts = [
+	let fonts = [
 		"openhuninn", // 0
 		"taipeisans", // 1
 		"openhuninn", // 2 (空號)
@@ -1209,7 +1200,7 @@ function post_font(font_id){
 	if(!font_id) return fonts;
 	else font_id = parseInt(font_id);
 
-	var font = fonts[font_id];
+	let font = fonts[font_id];
 	if(!font){
 		return false;
 	}

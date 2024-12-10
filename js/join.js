@@ -35,7 +35,7 @@ function apply_signin_redirect(){
 }
 
 function application_toggle(on){
-	var $a = $(".join_apply"), 
+	let $a = $(".join_apply"), 
 		$b = $("body");
 	if(on){
 		$a.fadeIn(); $b.addClass("unscrollable");
@@ -48,7 +48,7 @@ function application_toggle(on){
 
 function apply(){
 	if(examine()){
-		var $a = $(".join_apply"), 
+		let $a = $(".join_apply"), 
 			$e = $a.find("input[name='email']"), 
 			$p = $a.find("input[name='phone']"), 
 			$i = $a.find("textarea[name='idea']"), 
@@ -79,7 +79,7 @@ function apply(){
 
 				$.ajax({
 					url: location.href, 
-					type: "post", 
+					type: "POST", 
 					crossDomain: true, 
 					dataType: "json", 
 					data: {
@@ -116,7 +116,7 @@ function apply(){
 }
 
 function examine(){
-	var $a = $(".join_apply"), e = !0;
+	let $a = $(".join_apply"), e = !0;
 	$a.find("input[type='text'][required]").each(function(){
 		if($(this).val().length<1){
 			notice(true, "「"+$(this).attr("title")+"」尚未填寫");
@@ -136,7 +136,7 @@ function examine(){
 }
 
 function notice(on, msg){
-	var $n = $(".notice");
+	let $n = $(".notice");
 	if(on) $n.text(msg).fadeIn("fast");
 	else $n.fadeOut();
 }

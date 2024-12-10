@@ -4,7 +4,7 @@ var btn_alias = "img";
 
 hj_getScript("//cdn.jsdelivr.net/combine/npm/@webcreate/infinite-ajax-scroll@3.1.0/dist/infinite-ajax-scroll.min.js,npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js,npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js").then(function(){
 	$(function(){
-		var ias = new InfiniteAjaxScroll(".img_wall", {
+		let ias = new InfiniteAjaxScroll(".img_wall", {
 				item: ".img_wall figure", 
 				next: ".pager_next", 
 				pagination: ".pager", 
@@ -61,7 +61,7 @@ $(function(){
 	document.title = _h("I-title")+" | 💝 Hearty Journal 溫度日記";
 });
 
-let msnry;
+var msnry;
 function imagesLoadedAndLayout(el){
 	if(!msnry){
 		msnry = new Masonry(".img_wall", {
@@ -111,7 +111,7 @@ function read_post(post_id){
 		hj_href("account");
 	}
 	else{
-		var u = hj_username+"/"+post_id;
+		let u = hj_username+"/"+post_id;
 		if(/iOS|Android/i.test(check_hjapp())) window.open(location.origin+"/"+u, "_blank");
 		else hj_href(u);
 	} 

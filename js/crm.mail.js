@@ -9,14 +9,14 @@ $(function(){
 	};
 
 	$(document).on("scroll", function(){
-		var $u = $(".notify .page_up");
+		let $u = $(".notify .page_up");
 		if($(this).scrollTop()>200) $u.stop().fadeIn("slow");
 		else $u.stop().fadeOut("slow");
 	});
 });
 
 function hj_preview(on, html){
-	var $p = $(".hj_preview");
+	let $p = $(".hj_preview");
 	if(!(html==null)) $p.find("iframe").attr("srcdoc", html);
 	if(on) $p.slideDown("fast");
 	else $p.fadeOut("fast");
@@ -32,7 +32,7 @@ function get_templates(k){
 			if(!!d && k in d){
 				d = d[k];
 
-				var $push = $(".push_data");
+				let $push = $(".push_data");
 				$push.find("[data-sender]").val(d["sender"]["name"]);
 				$push.find("[data-subject]").val(d["subject"]);
 				$push.find("[data-body]").val(d["body"]);
@@ -43,10 +43,10 @@ function get_templates(k){
 	}
 	function get_menu_templates(){
 		get_templates().then(function(d){
-			var $l = $("select[data-templates]");
+			let $l = $("select[data-templates]");
 			$l.html( $("<option>", {selected: ""}).text("無"));
 
-			for(var k in d){
+			for(let k in d){
 				$("<option>", {
 					value: k, 
 					text: d[k]["name"], 
@@ -121,14 +121,14 @@ function editor_init(){
 		/*
 		file_picker_types: "image", 
 		file_picker_callback: function(cb,value,meta){
-			var $i = $("<input>", {
+			let $i = $("<input>", {
 				type: "file", 
 				accept: "image/*"
 			}).on("change", function(){
-				var file = this.files[0], 
+				let file = this.files[0], 
 					reader = new FileReader();
 				reader.onload = function(){
-					var id = 'blobid'+(new Date()).getTime(), 
+					let id = 'blobid'+(new Date()).getTime(), 
 						blobCache = tinymce.activeEditor.editorUpload.blobCache, 
 						base64 = reader.result.split(',')[1], 
 						blobInfo = blobCache.create(id, file, base64);
@@ -151,13 +151,11 @@ function richformat(){
 function hj_update__push(d){
 	return $.ajax({
 		url: location.href, 
-		type: "post", 
-		crossDomain: true, 
+		type: "POST", 
 		dataType: "json", 
 		data: d, 
 		async: true, 
-		timeout: 10000, 
-		xhrFields: {withCredentials: true}
+		timeout: 10000
 	});
 }
 
@@ -171,7 +169,7 @@ function get_sent_stats(){
 }
 
 function get_recipients(){
-	var $recipients = $(".recipients"), 
+	let $recipients = $(".recipients"), 
 		uid_selection = parseInt($("input[name='uid_selection']:checked").val() || 0), 
 		uid_interval = $("input[data-uid_interval]").map(function(){return parseInt(this.value || 1);}).get().sort(), 
 		uid_listed = $("textarea[data-uid_listed]").val().split(",").map(function(u){return parseInt(u.trim())||1}).sort();
@@ -195,7 +193,7 @@ function get_recipients(){
 			case 1:
 				$recipients.html(
 					r["Values"].map(function(u){
-						var sent_today = parseInt(u["sent_today"]), 
+						let sent_today = parseInt(u["sent_today"]), 
 							email_verified = parseInt(u["email_verified"]);
 						return $("<li>", {
 							onclick: sent_today>0 ? 
@@ -234,7 +232,7 @@ function send_mail(bulk, $btn){
 	$btn = $btn==null ? $(".recipients li[data-sent_today='0']:first") : $btn;
 	if(!$btn.length) return false;
 
-	var d = $btn.get(0).dataset, 
+	let d = $btn.get(0).dataset, 
 		$push = $(".push_data"), 
 		user_id = (d["user_id"] || "").trim(), 
 		username = (d["username"] || "").trim(), 
@@ -293,7 +291,7 @@ function send_mail(bulk, $btn){
 }
 
 	function send_mail_exec(mail, bulk, $btn){
-		var username = mail["recipient"]["username"], 
+		let username = mail["recipient"]["username"], 
 			nickname = mail["recipient"]["nickname"];
 
 		hj_update__push({
@@ -370,14 +368,14 @@ function send_mail(bulk, $btn){
 			msg('<i class="fal fa-sync-alt"></i> 排程進行中，一次只能跑一組排程'); return;
 		}
 
-		var $d = $(".recipients li[data-sent_today='0']"), 
+		let $d = $(".recipients li[data-sent_today='0']"), 
 			d = $d.length;
 		if(d>0){
 			alertify.set({labels: {ok: "取消", cancel: '<i class="fas fa-inbox-out"></i> 確定群發'}, buttonReverse: false});
 			alertify.confirm('<i class="fal fa-envelope-open-text"></i> 即將寄送至 '+d+"組 Emails", function(e){
 				if(!e){
 					window.send_bulk = setInterval(function(){
-						var $d = $(".recipients li[data-sent_today='0']"), 
+						let $d = $(".recipients li[data-sent_today='0']"), 
 							d = $d.length;
 
 						if($d.length>0){
@@ -397,7 +395,7 @@ function send_mail(bulk, $btn){
 	}
 /*
 	function send_mail_bulk__legacy(){
-		var $d = $(".recipients li[data-sent_today='0']"), 
+		let $d = $(".recipients li[data-sent_today='0']"), 
 			d = $d.length;
 		if(d>0){
 			alertify.set({labels: {ok: "取消", cancel: "<i class='fas fa-inbox-out'></i> 確定群發"}, buttonReverse: false});
@@ -428,7 +426,7 @@ function send_mail(bulk, $btn){
 		});
 	}
 	function filter_finished(hide){
-		var $r = $(".recipients");
+		let $r = $(".recipients");
 		if(!hide) $r.removeClass("unfinished");
 		else $r.addClass("unfinished");
 	}
@@ -444,7 +442,7 @@ function filter_recipients(v){
 	});
 }
 function filter_all(max_user_id){
-	var $u = $(".user_data [data-uid_interval]");
+	let $u = $(".user_data [data-uid_interval]");
 	$u.filter(":eq(0)").val(1).attr({max: max_user_id});
 	$u.filter(":eq(1)").val(max_user_id).attr({max: max_user_id});
 }

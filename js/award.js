@@ -2,7 +2,7 @@
 
 var btn_alias = "award";
 
-if(/Edge|Trident|MSIE/gi.test(check_browser())) 
+if(/Edge|Trident|MSIE/i.test(check_browser())) 
 	msg('<i class="fal fa-exclamation-circle"></i> IE 太舊囉，請改用其他瀏覽器<br>建議使用：<i class="fab fa-chrome"></i> Google Chrome');
 
 $(function(){
@@ -13,15 +13,15 @@ $(function(){
 		nav_toggle($(".menu"), true);
 	});
 	$(".award_nav select").on("input", function(){
-		var fn = $(this).val() || "";
-		hj_href("award/"+(!fn?"":fn+".php")+"?utm_source=website&utm_medium=award_nav&utm_campaign=award"+new Date().getFullYear()%100);
+		let fn = $(this).val() || "";
+		hj_href("award/"+(!fn?"":fn+".php")+"?utm_source=web&utm_medium=award_nav&utm_campaign=award"+new Date().getFullYear()%100);
 	});
 
 	$(".apply_btn[data-publish]").on("click", function(){
 		award_apply(publish_post);
 	});
 	$(".apply_btn[data-posts]").on("click", function(){
-		open_url("//go.hearty.me/TDXUS");
+		open_url("//go.hearty.me/uyqjs");
 	});
 
 
@@ -31,7 +31,7 @@ $(function(){
 	});
 
 	$(".nav_btn.fa-share-alt").on("click", hj_share_page);
-	var $u = $(".nav_btn.fa-chevron-up");
+	let $u = $(".nav_btn.fa-chevron-up");
 	$(document).scroll(function(){
 		if($(this).scrollTop()>200) $u.stop().fadeIn("fast");
 		else $u.stop().fadeOut("fast");
@@ -44,7 +44,7 @@ $(function(){
 
 	// 申請參賽證明
 	// go.hearty.me/hjawardcert 
-	var cert = getUrlPara("cert");
+	let cert = getUrlPara("cert");
 	if(!!cert) cert_request(cert);
 
 	hj_localize_cn();
@@ -80,7 +80,7 @@ function award_apply(onfinish){
 	function publish_post(){
 		$(".mask").hide();
 
-		if(parseInt(today(8).replace(/-/g,""))>20240930)
+		if(parseInt(today(8).replace(/-/g,""))>20250131)
 			msg('<i class="fal fa-door-closed"></i> 本屆活動已截稿，歡迎下一屆再來參加 ヽ(✿´･ヮ･)ﾉ♡');
 		else
 			hj_href("//supr.link/Th3tP"); // award/post.php
@@ -111,7 +111,7 @@ function cert_request(evt_no){
 						alertify.set({labels: {ok: "我已認證", cancel: '<i class="fas fa-arrow-circle-right"></i> 前往認證'}, buttonReverse: true});
 						alertify.confirm('<i class="fal fa-user"></i> 提醒︰記得認證 Email 及手機，確保具備參賽資格', function(e){
 							hj_href(
-								(e ? "d" : "account")+"?utm_source=website&utm_medium=award_cert&utm_campaign=award"+new Date().getFullYear()%100
+								(e ? "d" : "account")+"?utm_source=web&utm_medium=award_cert&utm_campaign=award"+new Date().getFullYear()%100
 							);
 						});
 					});
@@ -145,7 +145,7 @@ function cert_request(evt_no){
 
 	if(!("jsPDF" in window)){
 		hj_getScript_gh({
-			repo: "MrRio/jsPDF", 
+			repo: "parallax/jsPDF", 
 			path: "dist/jspdf.min.js", 
 			commit: "3c195a50ea88e54419875cf442acf1fe8a1c5386"
 		});
@@ -158,7 +158,7 @@ function cert_generate(evt_no, name, subject){
 	alertify.success('<i class="fal fa-arrow-alt-to-bottom"></i> 開始下載');
 
 	try{
-		var evt = [{
+		let evt = [{
 				alias: "happiness", // 0
 				name: "小確幸"
 			}, {
@@ -187,19 +187,19 @@ function cert_generate(evt_no, name, subject){
 			h = d.internal.pageSize.getHeight(), 
 			title = new Date().getFullYear()+" 溫度日記《"+evt["name"]+"》線上徵文活動";
 
-	    d.setProperties({
+		d.setProperties({
 			title: title+"："+name, 
 			subject: title+"："+name, 
 			author: "溫度日記", 
 			keywords: "溫度日記, 日記, 徵文活動", 
 			creator: "蜜思股份有限公司"
-	    });
+		});
 
 		// 背景
 		d.addImage("https://i.hearty.app/SJyu20Y.jpg", "JPEG", 0, 0, w, h);
 		d.addImage("https://hearty.me/award/img/cert_hr.png", "PNG", 10, 10, 190, 3.25);
 
-		d.addFont("https://cdn.jsdelivr.net/gh/lxgw/LxgwWenKaiTC@v1.500/fonts/TTF/LXGWWenKaiTC-Regular.ttf", "wenkai", "normal");
+		d.addFont("https://cdn.jsdelivr.net/gh/lxgw/LxgwWenKaiTC@v1.501/fonts/TTF/LXGWWenKaiTC-Regular.ttf", "wenkai", "normal");
 		/* old: 
 		d.addFont("https://cdn.jsdelivr.net/gh/lxgw/LxgwWenKai@d7d3617f8a15832fba7963549928f5855ab97932/TTF/LXGWWenKai-Regular.ttf", "wenkai", "normal");
 		*/
@@ -233,16 +233,18 @@ function cert_generate(evt_no, name, subject){
 		d.save("溫度日記_"+name+".pdf");
 	}
 	catch(e){
-		msg('<i class="fal fa-info-circle"></i> 證書下載不成功，請稍後再試試看');
+		msg('<i class="fal fa-info-circle"></i> 證書下載不成功，請稍後再試試看', '<i class="fas fa-mug"></i> 好的', function(){
+			location.reload(true);
+		});
 	}
 }
 
 function hj_intro(){
-	open_url("//"+(is_touch_device()?"get":"try")+".hearty.me/?utm_source=website&utm_medium=footer&utm_campaign=award"+new Date().getFullYear()%100);
+	open_url("//"+(is_touch_device()?"get":"try")+".hearty.me/?utm_source=web&utm_medium=footer&utm_campaign=award"+new Date().getFullYear()%100);
 }
 
 function hj_share_page(){
-	var url = "https://go.hearty.me/hjaward", 
+	let url = "https://go.hearty.me/hjaward", 
 		qrcode = "data:image/png;base64,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";
 
 	if(/iOS|Android/i.test(check_hjapp())){
@@ -289,7 +291,7 @@ function hj_email(v){
 	else{
 		$("#alertify-ok").click();
 
-		var m = "bxejz9a7@nien.co";
+		let m = "bxejz9a7@nien.co";
 		alertify.set({labels: {ok: '<i class="fas fa-copy"></i> 複製', cancel: "否"}, buttonReverse: false});
 		alertify.prompt('<i class="fal fa-envelope"></i> 連絡 Email：<br><small>(如為辦法中敘明之資訊，將不再特別回覆)</small>', function(e){
 			if(e){

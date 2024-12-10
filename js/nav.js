@@ -5,7 +5,7 @@ menu_init();
 function menu_init(){
 	(function($){
 		$(document).ready(function(){
-			var nav = {}, 
+			let nav = {}, 
 				$h = $(".hj-main"), 
 				$t = $(".editor_toolbelt"), 
 				dur = check_OS("Android") ? 0 : 300;
@@ -76,7 +76,7 @@ function menu_init(){
 			if(typeof a2hs_init=="function") a2hs_init();
 
 			if(typeof btn_alias!=="undefined"){
-				var $l = $("nav.menu li[data-btn='"+btn_alias+"']");
+				let $l = $("nav.menu li[data-btn='"+btn_alias+"']");
 				$l.attr("data-active", "").find("a").removeAttr("href");
 			}
 
@@ -128,7 +128,7 @@ function nav_toggle($e, o){
 }
 
 function menu_apps(){
-	var os = check_OS(), 
+	let os = check_OS(), 
 		touch_device = is_touch_device();
 
 	// App
@@ -145,7 +145,7 @@ function menu_apps(){
 function fb_deferred_load(){
 	setTimeout(function(){
 		if(!!window.FB && "XFBML" in FB){
-			var $f = $("[data-fb-load]");
+			let $f = $("[data-fb-load]");
 			if($f.length>0){
 				$f.each(function(){
 					try{FB.XFBML.parse($(this).get(0));}
