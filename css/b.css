@@ -15,16 +15,10 @@ body{
 	background-repeat: repeat;
 	background-position: center center;
 	scrollbar-width: none;
-	-ms-overflow-style: none;
 	overscroll-behavior: none;
 	-webkit-overflow-scrolling: touch;
 	-webkit-touch-callout: none;
 }
-	body::-webkit-scrollbar{
-		display: none;
-		width: 0;
-		background: transparent;
-	}
 
 a:link, 
 a:visited, 

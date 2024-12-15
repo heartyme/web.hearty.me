@@ -1,7 +1,7 @@
 @charset "UTF-8";
 
 @import url(//cdn.jsdelivr.net/npm/purecss@1.0.1/build/pure-min.min.css);
-@import url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@40929/css/snow.min.css);
+@import url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@41214/css/snow.min.css);
 
 *, 
 *::before, 
@@ -73,7 +73,6 @@ a.link:active{
 	}
 
 body.home{
-	scrollbar-width: none;
 	overscroll-behavior: none;
 }
 body.home::after{
@@ -84,12 +83,14 @@ body.home::after{
 	width: 100%;
 	height: 50px;
 	pointer-events: none;
-	background: -webkit-linear-gradient(to top, rgba(255,255,255,0) 0%,rgba(255,255,255,.9) 100%);
-	background: -moz-linear-gradient(to top, rgba(255,255,255,0) 0%,rgba(255,255,255,.9) 100%);
 	background: linear-gradient(to top, rgba(255,255,255,0) 0%,rgba(255,255,255,.9) 100%);
 }
-	/* Hide Scrollbar */
-	body.home::-webkit-scrollbar{
+	body.home, 
+	.home_signin .authblock > div{
+		scrollbar-width: none;
+	}
+	body.home::-webkit-scrollbar, 
+	.home_signin .authblock > div::-webkit-scrollbar{
 		display: none;
 		width: 0;
 		background: transparent;
@@ -153,7 +154,7 @@ body.home::after{
 .home_cover{
 	background-size: cover !important;
 	background-repeat: no-repeat;
-	background-position: center center;
+	background-position: center;
 	background-attachment: fixed;
 }
 	/* iPad Fix */
@@ -223,7 +224,6 @@ body.home::after{
 		position: absolute;
 		content: attr(title);
 		top:  0;
-		top: constant(safe-area-inset-top, 0);
 		top: env(safe-area-inset-top, 0);
 		padding: 1em 2em;
 		letter-spacing: 3px;
@@ -241,10 +241,10 @@ body.home::after{
 		border: 2px solid salmon;
 		border-radius: .5em;
 		box-shadow: 10px 10px 30px rgba(0,0,0,.3);
-		background: url(//i.hearty.app/XCR4X1w.png) repeat center center, #fff;
+		background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 	}
 		.hj_preview iframe.loading{
-			background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@408/img/kitten.png) no-repeat center center, #fff;
+			background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@408/img/kitten.png) no-repeat center, #fff;
 			background-size: 250px;
 		}
 
@@ -348,9 +348,7 @@ body.home::after{
 }
 	.home_action .join_btn[data-active]{
 		background-color: #f16d6e;
-		background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-		background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-		background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+		background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 	}
 	.home_action .join_btn:hover{
 		filter: brightness(1.2);
@@ -520,7 +518,6 @@ audio::-webkit-media-controls-timeline{
 	overflow: clip;
 }
 .home_signin .header{
-	margin-top: constant(safe-area-inset-top, 0);
 	margin-top: env(safe-area-inset-top, 0);
 	padding: 2.5vh 0;
 }
@@ -565,11 +562,6 @@ audio::-webkit-media-controls-timeline{
 	padding: 0 0 1em 0;
 	overflow-x: hidden;
 	overflow-y: auto;
-}
-.home_signin .authblock > div::-webkit-scrollbar{
-	display: none;
-	width: 0;
-	background: transparent;
 }
 .home_soundtrack .fa-times, 
 .home_signin .fa-times{
@@ -820,7 +812,7 @@ and (orientation: portrait){
  */
 
 /* 觸控裝置 */
-@media (hover: on-demand){
+@media (hover: none){
 	.home_cover .scroll{
 		display: none;
 	}
@@ -905,9 +897,7 @@ and (orientation: portrait){
 	bottom: 1em;
 	right: .5em;
 	background-color: #f16D6e;
-	background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+	background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 	box-shadow: 5px 0 20px 5px rgba(0,0,0,.1);
 	cursor: pointer;
 }

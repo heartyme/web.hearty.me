@@ -8,21 +8,16 @@
 html{
 	box-sizing: border-box;
 	appearance: none;
-	scrollbar-width: none;
 }
 body{
 	margin: 0;
 	background-image: url(//i.hearty.app/fHsfWPa.jpg);
 	background-repeat: repeat;
-	background-position: center center;
+	background-position: center;
 	overscroll-behavior: none;
 	-webkit-overflow-scrolling: touch;
+	scrollbar-width: none;
 }
-	body::-webkit-scrollbar{
-		display: none;
-		width: 0;
-		background: transparent;
-	}
 	body.loading::after{
 		position: fixed;
 		content: "";
@@ -30,7 +25,7 @@ body{
 		left: 0;
 		width: 100%;
 		height: 100%;
-		background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@40929/img/kitten.png) no-repeat center center, 
+		background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@40929/img/kitten.png) no-repeat center, 
 			linear-gradient(rgba(255,255,255,.7), rgba(255,255,255,.7));
 		background-size: 250px;
 		cursor: wait;

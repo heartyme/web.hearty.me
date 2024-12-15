@@ -171,9 +171,7 @@ body{
 	border-radius: .6em;
 	color: #fff;
 	background-color: #666;
-	background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+	background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 	cursor: pointer;
 	transition: filter .2s linear;
 }
@@ -213,12 +211,7 @@ body{
 }
 
 @media screen and (max-width: 767px){
-	body::-webkit-scrollbar{
-		display: none;
-		width: 0;
-		background: transparent;
-	}
-	
+
 	/* Android Keyboard Overlay Fix */
 	.survey{
 		margin-bottom: 10em;

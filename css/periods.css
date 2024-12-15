@@ -51,9 +51,7 @@
 .periods input[disabled]{
 	color: #888;
 	background-color: #ddd;
-	background-image: -webkit-linear-gradient(top,rgba(255,255,255,0),rgba(255,255,255,.3));
-	background-image: -moz-linear-gradient(top,rgba(255,255,255,0),rgba(255,255,255,.3));
-	background-image: linear-gradient(top,rgba(255,255,255,0),rgba(255,255,255,.3));
+	background-image: linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,.3));
 	cursor: not-allowed;
 }
 /*
@@ -83,10 +81,8 @@
 .periods .day_trash > div{
 	padding: .6em .8em;
 	color: #fff;
-	background-color: #F16D6E;
-	background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+	background-color: #f16d6e;
+	background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 	border-radius: .6em;
 	margin: .8em;
 }

@@ -14,11 +14,6 @@ body{
 	scrollbar-width: none;
 	overscroll-behavior: none;
 }
-	body::-webkit-scrollbar{
-		display: none;
-		width: 0;
-		background: transparent;
-	}
 
 a:link, 
 a:visited, 
@@ -42,10 +37,9 @@ h1, h2, h3, h4, h5{
 	text-align: center;
 	height: auto;
 	min-height: 100vh;
-	background: url(//i.hearty.app/XCR4X1w.png) repeat center center, #fff;
+	background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 
 	/* iOS Notch */
-	padding-top: constant(safe-area-inset-top, 0);
 	padding-top: env(safe-area-inset-top, 0);
 }
 
@@ -126,9 +120,7 @@ textarea:focus{
 	font-size: small;
 	color: #fff;
 	background-color: #888;
-	background-image: -webkit-linear-gradient(top,rgba(136,136,136,.4),rgba(136,136,136,0));
-	background-image: -moz-linear-gradient(top,rgba(136,136,136,.4),rgba(136,136,136,0));
-	background-image: linear-gradient(top,rgba(136,136,136,.4),rgba(136,136,136,0));
+	background-image: linear-gradient(to bottom,rgba(136,136,136,.4),rgba(136,136,136,0));
 	letter-spacing: 1px;
 	text-decoration: none;
 	outline: 0;
@@ -136,9 +128,7 @@ textarea:focus{
 }
 .application_btns > button[data-active]{
 	background-color: #f16d6e;
-	background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+	background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 }
 .application_btns > button[disabled="disabled"]::after{
 	content: "";

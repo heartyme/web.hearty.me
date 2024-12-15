@@ -24,7 +24,7 @@
 		padding-bottom: 56.25%;
 		border: 3px solid #F16D6E;
 		border-radius: .5em;
-		background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@40929/img/kitten.png) no-repeat center center, linear-gradient(rgba(253,245,230,.3), rgba(253,245,230,1));
+		background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@41214/img/kitten.png) no-repeat center, linear-gradient(rgba(253,245,230,.3), rgba(253,245,230,1));
 		background-size: 50%;
 		overflow: hidden;
 		overflow: clip;
@@ -63,9 +63,7 @@
 		height: 2.4em;
 		color: #fff;
 		background-color: #f16d6e;
-		background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-		background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-		background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+		background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 		border-radius: 50%;
 		cursor: pointer;
 	}
@@ -89,11 +87,6 @@
 	scrollbar-width: none;
 	-webkit-overflow-scrolling: touch;
 }
-.ytbox .yt_playlist *::-webkit-scrollbar{
-	display: none;
-	width: 0;
-	background: transparent;
-}
 	.ytbox .yt_list ol{
 		position: absolute;
 		display: flex;
@@ -116,15 +109,11 @@
 	}
 		.ytbox .yt_list ol:not(:empty)::before{
 			top: 0;
-			background: -webkit-linear-gradient(to top,rgba(255,255,255,0) 0,rgba(255,255,255,1) 100%);
-			background: -moz-linear-gradient(to top,rgba(255,255,255,0) 0,rgba(255,255,255,1) 100%);
 			background: linear-gradient(to top,rgba(255,255,255,0) 0,rgba(255,255,255,1) 100%);
 			scroll-snap-align: start;
 		}
 		.ytbox .yt_list ol:not(:empty)::after{
 			bottom: 0;
-			background: -webkit-linear-gradient(to bottom,rgba(255,255,255,0) 0,rgba(255,255,255,1) 100%);
-			background: -moz-linear-gradient(to bottom,rgba(255,255,255,0) 0,rgba(255,255,255,1) 100%);
 			background: linear-gradient(to bottom,rgba(255,255,255,0) 0,rgba(255,255,255,1) 100%);
 		}
 	.ytbox .yt_list ol:empty::before, 

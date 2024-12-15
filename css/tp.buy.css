@@ -1,6 +1,6 @@
 @charset "UTF-8";
 
-@import url(//cdn.jsdelivr.net/combine/gh/necolas/normalize.css@8.0.1/normalize.min.css,gh/fabien-d/alertify.js@0.3.11/themes/alertify.core.min.css,gh/heartyme/web.hearty.me@40929/css/alertify.custom.min.css);
+@import url(//cdn.jsdelivr.net/combine/gh/necolas/normalize.css@8.0.1/normalize.min.css,gh/fabien-d/alertify.js@0.3.11/themes/alertify.core.min.css,gh/heartyme/web.hearty.me@41214/css/alertify.custom.min.css);
 @import url(//cdn.jsdelivr.net/gh/hung1001/font-awesome-pro@v5.15.4/css/all.min.css);
 
 /* Comfortaa */
@@ -39,7 +39,7 @@ body{
 		width: 100%;
 		height: 100%;
 		content: "";
-		background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@40929/img/kitten.png) no-repeat center center, 
+		background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@41214/img/kitten.png) no-repeat center, 
 			linear-gradient(rgba(255,255,255,.65), rgba(255,255,255,.65));
 		background-size: 250px;
 		-webkit-backdrop-filter: blur(2px);
@@ -104,7 +104,7 @@ body{
 	color: #222;
 	line-height: 1.6;
 	letter-spacing: .3px;
-	background: url(//i.hearty.app/XCR4X1w.png) repeat center center, #fff;
+	background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 }
 section{
 	display: flex;
@@ -114,7 +114,6 @@ section{
 	width: 100%;
 	max-width: 900px;
 	margin: 0 auto;
-	margin-top: constant(safe-area-inset-top, 0);
 	margin-top: env(safe-area-inset-top, 0);
 	background: rgba(255,255,255,.6);
 	border-radius: .5em;

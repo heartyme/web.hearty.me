@@ -17,16 +17,14 @@ body{
 	margin: 0 auto;
 	padding: 0;
 	overscroll-behavior: none;
-	scrollbar-width: none;
 	background: #fff;
 	-webkit-overflow-scrolling: touch;
 }
-	body::-webkit-scrollbar, 
-	.redeem_tutorial::-webkit-scrollbar{
-		display: none;
-		width: 0;
-		background: transparent;
+	body, 
+	.redeem_tutorial{
+		scrollbar-width: none;
 	}
+
 	body::before{
 		position: fixed;
 		display: block;
@@ -36,8 +34,6 @@ body{
 		width: 100%;
 		height: 50px;
 		pointer-events: none;
-		background: -webkit-linear-gradient(to top, rgba(255,255,255,0) 0%,rgba(255,255,255,.9) 100%);
-		background: -moz-linear-gradient(to top, rgba(255,255,255,0) 0%,rgba(255,255,255,.9) 100%);
 		background: linear-gradient(to top, rgba(255,255,255,0) 0%,rgba(255,255,255,.9) 100%);
 	}
 
@@ -65,7 +61,7 @@ section{
 	height: auto;
 	letter-spacing: 1px;
 	user-select: none;
-	background: url(//i.hearty.app/XCR4X1w.png) repeat center center, #fff;
+	background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 }
 	.bd_cover .mockup, 
 	.bd_cover::before{
@@ -316,9 +312,7 @@ footer{
 	}
 	.bd_btn[data-active]{
 		background-color: #f16d6e;
-		background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-		background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-		background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+		background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 		cursor: pointer;
 	}
 	.bd_btn[title]::after{
@@ -378,7 +372,7 @@ footer{
 
 	@supports (-webkit-touch-callout: none){
 		.redeem_tutorial video{
-			background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@40929/img/kitten.png) no-repeat center center, linear-gradient(rgba(253,245,230,.3), rgba(253,245,230,1));
+			background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@41214/img/kitten.png) no-repeat center, linear-gradient(rgba(253,245,230,.3), rgba(253,245,230,1));
 			background-size: 60%;
 		}
 	}
@@ -407,8 +401,7 @@ footer{
 			letter-spacing: 3px;
 
 			/* Gradient Text */
-			background: -webkit-linear-gradient(orange,gold);
-			background: linear-gradient(orange,gold);
+			background: linear-gradient(to bottom, orange, gold);
 			-webkit-background-clip: text;
 			background-clip: text;
 			-webkit-text-fill-color: transparent;
@@ -474,7 +467,6 @@ footer{
 	.hj_preview > div[title]::before{
 		position: absolute;
 		content: attr(title);
-		top: constant(safe-area-inset-top, 0);
 		top: env(safe-area-inset-top, 0);
 		padding: 1em 2em;
 		letter-spacing: 3px;
@@ -492,10 +484,10 @@ footer{
 		border: 2px solid salmon;
 		border-radius: .5em;
 		box-shadow: 10px 10px 30px rgba(0,0,0,.3);
-		background: url(//i.hearty.app/XCR4X1w.png) repeat center center, #fff;
+		background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 	}
 		.hj_preview iframe.loading{
-			background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@40929/img/kitten.png) no-repeat center center;
+			background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@41214/img/kitten.png) no-repeat center;
 			background-size: 250px;
 		}
 

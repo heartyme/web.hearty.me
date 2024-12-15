@@ -14,17 +14,11 @@ body{
 	margin: 0;
 	overscroll-behavior: none;
 	-webkit-touch-callout: none;
-	background: url(//i.hearty.app/XCR4X1w.png) repeat center center, #fff;
+	background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 }
 	body, 
 	.recipient_data ol{
 		scrollbar-width: none;
-	}
-	body::-webkit-scrollbar, 
-	.recipient_data ol::-webkit-scrollbar{
-		display: none;
-		width: 0;
-		background: transparent;
 	}
 
 a:link, 
@@ -193,10 +187,8 @@ li[data-device="5"]::before{
 	border-radius: .6em;
 	font-size: small;
 	color: #fff;
-	background-color: #F16D6E;
-	background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+	background-color: #f16d6e;
+	background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 	letter-spacing: 1px;
 	text-decoration: none;
 	cursor: pointer;
@@ -249,9 +241,9 @@ small{
 .user_data h3{
 	position: sticky;
 	top: 0;
-	background-image: -webkit-linear-gradient(top,rgba(255,255,255,.8),rgba(255,255,255,.1));
-	background-image: -moz-linear-gradient(top,rgba(255,255,255,.8),rgba(255,255,255,.1));
-	background-image: linear-gradient(top,rgba(255,255,255,.8),rgba(255,255,255,.1));
+	background-image: -webkit-linear-gradient(to bottom,rgba(255,255,255,.8),rgba(255,255,255,.1));
+	background-image: -moz-linear-gradient(to bottom,rgba(255,255,255,.8),rgba(255,255,255,.1));
+	background-image: linear-gradient(to bottom,rgba(255,255,255,.8),rgba(255,255,255,.1));
 	pointer-events: none;
 	z-index: 1;
 }
@@ -308,9 +300,9 @@ small{
 	min-height: 8em;
 	height: 100%;
 	border-radius: .4em;
-	background-image: -webkit-linear-gradient(top,rgba(251,245,237,1),rgba(255,255,255,.8));
-	background-image: -moz-linear-gradient(top,rgba(251,245,237,1),rgba(255,255,255,.8));
-	background-image: linear-gradient(top,rgba(251,245,237,1),rgba(255,255,255,.8));
+	background-image: -webkit-linear-gradient(to bottom,rgba(251,245,237,1),rgba(255,255,255,.8));
+	background-image: -moz-linear-gradient(to bottom,rgba(251,245,237,1),rgba(255,255,255,.8));
+	background-image: linear-gradient(to bottom,rgba(251,245,237,1),rgba(255,255,255,.8));
 }
 .recipient_data .result ol{
 	position: relative;

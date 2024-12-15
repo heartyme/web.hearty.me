@@ -28,7 +28,7 @@ body.loading::after{
 	left: 0;
 	width: 100%;
 	height: 100%;
-	background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@40929/img/kitten.png) no-repeat center center, 
+	background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@41214/img/kitten.png) no-repeat center, 
 		linear-gradient(rgba(255,255,255,.65), rgba(255,255,255,.65));
 	background-size: 250px;
 	cursor: wait;
@@ -51,7 +51,7 @@ a:active{
 .bill.page{
 	height: auto;
 	min-height: 100vh;
-	background: url(//i.hearty.app/XCR4X1w.png) repeat center center, #fff;
+	background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 }
 .bill.printable{
 	-webkit-print-color-adjust: exact;
@@ -73,6 +73,7 @@ a:active{
 .bill_payment, 
 .bill_dropped{
 	max-width: 90%;
+	margin: 0 auto; /* added for shop/staff */
 	padding: .4em 1em;
 	border: 1px dotted #ccc;
 	border-radius: .5em;
@@ -184,10 +185,8 @@ a:active{
 		border-radius: .6em;
 		font-size: small;
 		color: #fff;
-		background-color: #F16D6E;
-		background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-		background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-		background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+		background-color: #f16d6e;
+		background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 		letter-spacing: 1px;
 		text-decoration: none;
 		cursor: pointer;

@@ -26,16 +26,9 @@ body{
 	padding: 0;
 	height: auto;
 	min-height: 100vh;
-	background: url(//i.hearty.app/XCR4X1w.png) repeat center center, #fff;
-	scrollbar-width: none;
+	background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 	overscroll-behavior: none;
 }
-	/* body::-webkit-scrollbar, */
-	.redeem_tutorial::-webkit-scrollbar{
-		display: none;
-		width: 0;
-		background: transparent;
-	}
 
 section{
 	flex: 1;
@@ -312,8 +305,6 @@ header{
 		width: 100%;
 		height: 50px;
 		pointer-events: none;
-		background: -webkit-linear-gradient(to top, rgba(255,255,255,.3) 0%,rgba(255,255,255,.9) 100%);
-		background: -moz-linear-gradient(to top, rgba(255,255,255,.3) 0%,rgba(255,255,255,.9) 100%);
 		background: linear-gradient(to top, rgba(255,255,255,.3) 0%,rgba(255,255,255,.9) 100%);
 		z-index: -1;
 	}
@@ -335,7 +326,6 @@ header [data-menu]{
 	flex: 1;
 	justify-content: space-evenly;
 	margin: 0 auto;
-	margin-top: constant(safe-area-inset-top, 0);
 	margin-top: env(safe-area-inset-top, 0);
 	padding: 1em 0;
 }
@@ -413,9 +403,7 @@ section ol{ /* section 可躲過 menu */
 	}
 	section ol li[data-active]{
 		background-color: #f16d6e;
-		background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-		background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-		background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+		background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 	}
 	section ol li[title]::after{
 		content: attr(title);
@@ -718,6 +706,7 @@ small{
 	backdrop-filter: blur(5px);
 	cursor: pointer;
 	overflow-y: scroll;
+	scrollbar-width: none;
 }
 	.redeem_tutorial > div{
 		display: flex;
@@ -745,7 +734,7 @@ small{
 	}
 	@supports (-webkit-touch-callout: none){
 		.redeem_tutorial video{
-			background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@40929/img/kitten.png) no-repeat center center, linear-gradient(rgba(253,245,230,.3), rgba(253,245,230,1));
+			background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@41214/img/kitten.png) no-repeat center, linear-gradient(rgba(253,245,230,.3), rgba(253,245,230,1));
 			background-size: 60%;
 		}
 	}
@@ -770,7 +759,6 @@ small{
 	.hj_preview > div[title]::before{
 		position: absolute;
 		content: attr(title);
-		top: constant(safe-area-inset-top, 0);
 		top: env(safe-area-inset-top, 0);
 		padding: 1em 2em;
 		letter-spacing: 3px;
@@ -788,10 +776,10 @@ small{
 		border: 2px solid #d78b7b;
 		border-radius: .5em;
 		box-shadow: 10px 10px 30px rgba(0,0,0,.3);
-		background: url(//i.hearty.app/XCR4X1w.png) repeat center center, #fff;
+		background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 	}
 		.hj_preview iframe.loading{
-			background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@40929/img/kitten.png) no-repeat center center;
+			background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@41214/img/kitten.png) no-repeat center;
 			background-size: 250px;
 		}
 
@@ -806,9 +794,7 @@ small{
 	height: 2.5em;
 	color: #fff;
 	background-color: #ddbbae;
-	background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+	background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 	border-radius: 50%;
 	cursor: pointer;
 	transition: background .2s ease-in;
