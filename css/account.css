@@ -29,7 +29,14 @@ body{
 	font-smooth: always;
 	text-rendering: optimizeLegibility;
 }
-	body::-webkit-scrollbar{
+	body, 
+	.account, 
+	.account > div{
+		scrollbar-width: none;
+	}
+	body::-webkit-scrollbar, 
+	.account::-webkit-scrollbar, 
+	.account > div::-webkit-scrollbar{
 		display: none;
 		width: 0;
 		background: transparent;
@@ -61,7 +68,6 @@ body{
 	height: 3em;
 	margin: 0 auto;
 	padding: 0;
-	padding-top: constant(safe-area-inset-top, 0);
 	padding-top: env(safe-area-inset-top, 0);
 	text-align: center;
 	pointer-events: none;
@@ -90,7 +96,6 @@ body{
 	align-items: stretch;
 	width: 100%;
 	height: 80vh;
-	margin-top: constant(safe-area-inset-top, 0);
 	margin-top: env(safe-area-inset-top, 0);
 	overflow-x: auto;
 	overflow-y: hidden;
@@ -98,14 +103,8 @@ body{
 	-webkit-overflow-scrolling: touch;
 	scroll-snap-type: x mandatory;
 	scroll-behavior:smooth;
-	scrollbar-width: none;
 }
-	.account::-webkit-scrollbar, 
-	.account > div::-webkit-scrollbar{
-		display: none;
-		width: 0;
-		background: transparent;
-	}
+
 .account_items{
 	flex: 1 0 100%;
 	height: 100%;
@@ -221,7 +220,6 @@ body{
 	}
 		/* iOS Notch Fix */
 		.user_profile:nth-child(2){
-			margin-bottom: constant(safe-area-inset-top, 0);
 			margin-bottom: env(safe-area-inset-top, 0);
 		}
 		.user_profile ul{
@@ -305,22 +303,12 @@ label[title]::after{
 	content: attr(title);
 }
 
-#hj_booktitle{
-	white-space: pre-line;
-}
-	#hj_booktitle[data-empty]:empty::after{
-		content: attr(data-empty);
-		letter-spacing: 1px;
-	}
-
 .account_btn, 
 [data-phone-no=""][data-empty]::after{
 	display: inline-block;
 	padding: .8em 1em;
 	background: #bc8f8f;
-	background: -webkit-linear-gradient(top,rgba(188,143,143,.7),rgba(188,143,143,1));
-	background: -moz-linear-gradient(top,rgba(188,143,143,.7),rgba(188,143,143,1));
-	background: linear-gradient(top,rgba(188,143,143,.7),rgba(188,143,143,1));
+	background: linear-gradient(to bottom,rgba(188,143,143,.7),rgba(188,143,143,1));
 	color: #fff;
 	font-size: smaller;
 	border-radius: .5em;
@@ -347,9 +335,7 @@ label[title]::after{
 
 .account_btn[data-orange]{
 	background: orangered;
-	background: -webkit-linear-gradient(top,rgba(255,83,73,.7),rgba(255,83,73,1));
-	background: -moz-linear-gradient(top,rgba(255,83,73,.7),rgba(255,83,73,1));
-	background: linear-gradient(top,rgba(255,83,73,.7),rgba(255,83,73,1));
+	background: linear-gradient(to bottom,rgba(255,83,73,.7),rgba(255,83,73,1));
 }
 	.account_btn[data-orange]:hover{
 		background: orangered;
@@ -580,10 +566,8 @@ label[title]::after{
 	border-radius: 50%;
 	bottom: 1em;
 	right: .5em;
-	background-color: #f16D6e;
-	background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+	background-color: #f16d6e;
+	background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 	box-shadow: 5px 0 20px 5px rgba(0,0,0,.1);
 	cursor: pointer;
 }
@@ -613,10 +597,10 @@ label[title]::after{
 		border: 2px solid salmon;
 		border-radius: .5em;
 		box-shadow: 10px 10px 30px rgba(0,0,0,.3);
-		background: url(//i.hearty.app/XCR4X1w.png) repeat center center, #fff;
+		background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 	}
 		.hj_preview iframe.loading{
-			background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@40929/img/kitten.png) no-repeat center center;
+			background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@41214/img/kitten.png) no-repeat center;
 			background-size: 250px;
 		}
 

@@ -1,7 +1,7 @@
 "use strict";
 
 function account_init(){
-	var t = getUrlPara("tab"), 
+	let t = getUrlPara("tab"), 
 		v = getUrlPara("vr"), 
 		m = getUrlPara("msg"), 
 		l = getUrlPara("line");
@@ -57,9 +57,9 @@ function account_init(){
 }
 
 function signin_ask(f){
-	var a = getcookie("hearty_account") || "";
+	let a = getcookie("hearty_account") || "";
 		a = !a ? "" : "&account="+a;
-	var u = "?r="+location.href.split("#")[0].split("?")[0].replace(location.origin, "")+a+"#signin";
+	let u = "?r="+location.href.split("#")[0].split("?")[0].replace(location.origin, "")+a+"#signin";
 	if(f){
 		hj_href(u);
 	}
@@ -79,9 +79,9 @@ function account_area_calc(){
 
 function account_usage(){
 	return hj_update({action: "account_usage"}).then(function(r){
-		var $u = $(".usage");
+		let $u = $(".usage");
 		if(r["Status"]==1){
-			var v = r["Values"], 
+			let v = r["Values"], 
 				t = " "+_h("a-usage", {
 					$num: numberWithCommas(v["num"]||0), 
 					$chars: numberWithCommas(v["chars"]||0)
@@ -95,7 +95,7 @@ function account_usage(){
 }
 
 function birthday_init(){
-	var $bd = $("#birthday");
+	let $bd = $("#birthday");
 
 	if(check_OS("iOS") || check_browser("Safari")){
 		if(/zh/i.test(hj_lang())){
@@ -122,8 +122,9 @@ function birthday_init(){
 			href: hj_jsdelivr()+"css/datepicker/jquery.ui.datepicker.custom.min.css"
 		}).appendTo("head");
 
-		var yr = new Date().getFullYear();
+		let yr = new Date().getFullYear();
 
+		// datepicker 需使用 onchange觸發
 		return $d.attr({
 			type: "text", 
 			readonly: ""
@@ -175,7 +176,7 @@ function birthday_init(){
 		});
 	}
 	function birthday_age(){
-		var age = parseInt(((Date.now()-new Date($("#birthday").val()))/(31557600000))) || 0, 
+		let age = parseInt(((Date.now()-new Date($("#birthday").val()))/(31557600000))) || 0, 
 			age_restricted = age>0 && age<18, 
 			$m = $(".menu [data-btn='home'],.menu [data-btn='feed']");
 
@@ -290,7 +291,7 @@ function uploader_init(){
 				}, 
 				success: function(r){
 					if(r["status"]==1){ // 1: 成功; 0: 錯誤
-						var img = "//i0.wp.com/s3.ap-northeast-1.wasabisys.com/hearty-users/"+r["basenames"][0];
+						let img = "//i0.wp.com/s3.ap-northeast-1.wasabisys.com/hearty-users/"+r["basenames"][0];
 						$("#profile_image img").attr({src: img});
 						$(".profile_image div").css({"background-image": 'url("'+img+'")'});
 
@@ -324,13 +325,13 @@ function uploader_init(){
 function uploader_handle(f){
 	hj_loading();
 
-	var $i = $("#profile_image img"), 
+	let $i = $("#profile_image img"), 
 		[file] = f, 
 		p1 = uploader_createImageFromFile($i.get(0), file), 
 		p2 = uploader_getFileBase64Encode(file);
 
 	Promise.all([p1, p2]).then(function(r){
-		var [img, b64] = r;
+		let [img, b64] = r;
 		$i.attr({src: b64});
 
 		hj_loading(false);
@@ -348,7 +349,7 @@ function uploader_handle(f){
 	}
 	function uploader_getFileBase64Encode(blob){
 		return new Promise((resolve, reject) => {
-			var reader = new FileReader();
+			let reader = new FileReader();
 
 			reader.readAsDataURL(blob);
 			reader.onload = () => resolve(reader.result);
@@ -376,7 +377,6 @@ function hj_picture(ask){
 		}
 		else{
 			alertify.set({labels: {ok: _h("a-no"), cancel: '<i class="fas fa-chevron-square-up"></i> '+_h("a-avatar-2")}, buttonReverse: true});
-
 			alertify.confirm('<i class="fal fa-image-polaroid"></i> '+_h("a-avatar-1", {$ext: ext.toUpperCase()}), function(e){
 				if(!e) hj_picture();
 			});
@@ -384,12 +384,12 @@ function hj_picture(ask){
 	}
 
 function picture_rotate(){
-	var $i = $("#profile_image img");
+	let $i = $("#profile_image img");
 
 	alertify.set({labels: {ok: '<i class="fas fa-check-circle"></i> '+_h("a-ok-1"), cancel: '<i class="fas fa-undo fa-flip-horizontal"></i> '+_h("a-rotate")}, buttonReverse: false});
 	alertify.confirm($i.prop("outerHTML"), function(e){
 		if(!e){
-			var i = ($i.attr("src")||"").split("#");
+			let i = ($i.attr("src")||"").split("#");
 
 			i[1] = i[1] || 0; i[1]++;
 			i = i[1]==4 ? i[0] : i.join("#");
@@ -410,14 +410,14 @@ function picture_rotate(){
 }
 
 function nickname_editing(changed){
-	var $n = $("#nickname"), 
+	let $n = $("#nickname"), 
 		$btn = $(".account_btn[data-nickname]");
 
 	if(changed){
 		$btn.fadeIn();
 	}
 	else{
-		var n = $n.val().trim();
+		let n = $n.val().trim();
 		hj_update({
 			action: "profile_update", 
 			field: "nickname", 
@@ -533,14 +533,14 @@ function email_editing(email){
 			});
 		}
 		else{
-			var $v = $("[data-email-verify]");
+			let $v = $("[data-email-verify]");
 			hj_update({action: "email_verification"}).then(function(r){
 				switch(r["Status"]){
 					case 1:
 						hj_timer($v.find("#email_resend"), true);
 						$v.attr("data-email-verify", 0);
 
-						var u = r["Values"]["email_login_url"];
+						let u = r["Values"]["email_login_url"];
 						if(u.length>0){
 						    alertify.set({labels: {ok: _h("a-ok-0"), cancel: _h("a-no")}, buttonReverse: !1});
 						    alertify.confirm(_h("a-email_sent-0", {$isp: u[0]}), function(e){
@@ -633,7 +633,7 @@ function hj_timer($e, start, dur){
 			(function countdown(){
 				if(Number($e.attr("data-timeout"))>0){
 					dur--;
-					var t = dur>0 ? 
+					let t = dur>0 ? 
 						// parseInt(dur/60, 10).toString().padStart(2, "0")+":"+
 						parseInt(dur%60, 10).toString().padStart(2, "0") : "";
 
@@ -654,7 +654,7 @@ function support_pincode(reissue){
 		reissue: +!(reissue==null)
 	}).then(function(r){
 		if(r["Status"]==1){
-			var pin = r["Values"]["pincode"];
+			let pin = r["Values"]["pincode"];
 
 			alertify.set({labels: {ok: '<i class="fas fa-arrow-alt-to-bottom"></i> '+_h("a-pin-1"), cancel: '<i class="fas fa-reply"></i> '+_h("a-back")}, buttonReverse: false});
 			alertify.confirm('<i class="far fa-comment-dots"></i> '+_h("a-pin-0", {$pin: pin}), function(e){
@@ -664,7 +664,7 @@ function support_pincode(reissue){
 						download: "Hearty-PINcode.txt"
 					}).get(0).click();
 				}
-				var $s = $("#Smallchat iframe");
+				let $s = $("#Smallchat iframe");
 				if($s.length>0 && !is_touch_device()) $s.contents().find(".Launcher").click();
 			});
 		}
@@ -704,7 +704,7 @@ function post_font_change(font_id, font_name){
 function language_editing(lang, title){
 	// 將帳號內的設定同步至 cookie
 	if(!lang){
-		var lang = parseInt($("#language").val())||1;
+		let lang = parseInt($("#language").val())||1;
 	}
 	else{
 		msg('<i class="far fa-language" style="font-size:26px"></i> '+_h("i-lang", {$lang: title}));
@@ -768,7 +768,7 @@ function timezone_editing(tz){
 }
 
 function username_details(){
-	var username = $(".hj_username").attr("title") || "";
+	let username = $(".hj_username").attr("title") || "";
 	alertify.set({labels: {ok: '<i class="fas fa-sync"></i> '+_h("a-id_edit"), cancel: '<i class="fas fa-hand-peace"></i> '+_h("a-back")}, buttonReverse: true});
 	alertify.confirm('<i class="fal fa-user"></i> '+_h("a-id")+"<u>"+username+'</u> <i class="far fa-globe-asia"></i><br>('+_h("a-id_public")+")", function(e){
 		if(e) username_editing(username);
@@ -843,61 +843,8 @@ function username_details(){
 		});
 	}
 
-function booktitle_editing(title){
-	account_status().then(function(r){
-		if(r["Values"]["vip"]==1){
-			alertify.set({labels: {ok: '<i class="fas fa-check-circle"></i> '+_h("a-name-2"), cancel: _h("a-no")}, buttonReverse: false});
-			alertify.prompt('<i class="fal fa-book"></i> '+_h("a-name-1"), function(e, title){
-				if(e){
-					title = (title || "").trim();
-
-					if(title.length>0){
-						hj_update({
-							action: "profile_update", 
-							field: "booktitle", 
-							data: title
-						}).then(function(r){
-							switch(r["Status"]){
-								case 1:
-									$("#hj_booktitle").text(title).attr({title: title});
-									alertify.success('<i class="fal fa-book"></i> '+_h("a-name-3", {$title: title}));
-
-									ga_evt_push("BookTitle", {
-										event_category: "Profile Update", 
-										event_label: "BookTitle"
-									});
-								break;
-
-								case 2:
-									signin_required();
-								break;
-
-								default:
-									msg();
-								break;
-							}
-						}).fail(function(){
-							msg();
-						});
-					}
-				}
-			}, (title || "Dear Diary").toString() );
-
-			alertify_input_custom({
-				placeholder: "eg. "+_h("a-name-4"), 
-				maxlength: 40
-			}, {
-				"letter-spacing": "2px"
-			});
-		}
-		else{
-			vip_only(_h("a-name-0"));
-		}
-	});
-}
-
 function nav_account(p, no_animation){
-	var $e = $(".account");
+	let $e = $(".account");
 	if($e.length>0){
 		$e.get(0).scroll({
 			left: $e.children().eq(p||0).get(0).offsetLeft, // $e.width()*(p||0)
@@ -977,11 +924,11 @@ function export_txt(txt){
 		}
 		else{
 			vip_only(_h("a-dl"));
-			hj_loading(false);
 			export_txt_stats("notice_upgrade");
 		}
 	}).fail(function(){
 		msg();
+	}).always(function(){
 		hj_loading(false);
 	});
 }
@@ -1034,8 +981,8 @@ function account_suspend(){
 function signin_history(){
 	hj_update({action: "signin_history"}).then(function(r){
 		if(r["Status"]==1){
-			var $tr = r["Values"].map(function(d){
-				var cc = d["country"]||"";
+			let $tr = r["Values"].map(function(d){
+				let cc = d["country"]||"";
 				if(cc.length==2) 
 					cc = $("<img>", {
 						src: "//cdn.statically.io/img/flagcdn.com/28x21/"+cc.toLowerCase()+".png", 
@@ -1071,8 +1018,8 @@ function signin_history(){
 }
 
 function voucher_redeem(voucher){
-	var voucher = voucher || getcookie("hearty_voucher") || "", 
-		evt = "Voucher Redeem";
+	voucher = voucher || getcookie("hearty_voucher") || "";
+	let evt = "Voucher Redeem";	
 
 	alertify.set({labels: {ok: '<i class="fas fa-check-circle"></i> '+_h("a-redeem-1"), cancel: _h("a-no")}, buttonReverse: false});
 	alertify.prompt('<i class="far fa-gift-card"></i> '+_h("a-redeem-0"), function(e, voucher){
@@ -1195,7 +1142,7 @@ function voucher_redeem(voucher){
 }
 
 function hj_preview(o, url){
-	var $b = $("body"), 
+	let $b = $("body"), 
 		$d = $(".hj_preview"), 
 		$i = $d.find("iframe");
 

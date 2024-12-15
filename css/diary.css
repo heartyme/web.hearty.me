@@ -1,6 +1,6 @@
 @charset "UTF-8";
 
-@import url(//cdn.jsdelivr.net/combine/gh/heartyme/web.hearty.me@40929/css/jquery.ui.resizable.min.css,npm/cropperjs@1.6.2/dist/cropper.min.css,npm/cssgram@0.1.3/source/css/cssgram.min.css,npm/slick-carousel@1.8.1/slick/slick.min.css,gh/heartyme/web.hearty.me@40929/css/diary.pagination.min.css,gh/heartyme/web.hearty.me@40929/css/periods.min.css,gh/heartyme/web.hearty.me@40929/css/ytbox.min.css);
+@import url(//cdn.jsdelivr.net/combine/gh/heartyme/web.hearty.me@41214/css/jquery.ui.resizable.min.css,npm/cropperjs@1.6.2/dist/cropper.min.css,npm/cssgram@0.1.3/source/css/cssgram.min.css,npm/slick-carousel@1.8.1/slick/slick.min.css,gh/heartyme/web.hearty.me@41214/css/diary.pagination.min.css,gh/heartyme/web.hearty.me@41214/css/periods.min.css,gh/heartyme/web.hearty.me@41214/css/ytbox.min.css);
 @import url(//cdn.jsdelivr.net/gh/erikflowers/weather-icons@2.0.10/css/weather-icons.min.css); /* dont use combine */
 
 :root{
@@ -9,6 +9,8 @@
 	/* 預設 */
 	--book-cover-def: url(//i.hearty.app/i/illustrations/kitchen.jpg);
 	--book-bg-def: url(//i.hearty.app/SsTuLyU.jpg);
+	--book-bg-size: contain;
+	--book-bg-repeat: repeat;
 
 	/* 變數 */
 	--book-cover: var(--book-cover-def); /* var(--book-cover) */
@@ -30,9 +32,9 @@ body{
 	height: 100vh;
 	background-color: #fff;
 	background-image: var(--book-bg);
-	background-repeat: repeat;
-	background-size: contain;
-	background-position: center center;
+	background-size: var(--book-bg-size);
+	background-repeat: var(--book-bg-repeat);
+	background-position: center;
 	background-attachment: fixed;
 	overscroll-behavior: none;
 }
@@ -46,7 +48,7 @@ body{
 		left: 0;
 		width: 100%;
 		height: 100%;
-		background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@40929/img/kitten.png) no-repeat center center, 
+		background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@41214/img/kitten.png) no-repeat center, 
 			linear-gradient(rgba(255,255,255,.65), rgba(255,255,255,.65));
 		background-size: 250px;
 		cursor: wait;
@@ -61,8 +63,7 @@ a:active{
 	cursor: pointer;
 	color: inherit;
 }
-::-webkit-input-placeholder, 
-::-moz-placeholder{
+::-webkit-input-placeholder{
 	font-style: italic;
 }
 .blur{
@@ -88,8 +89,6 @@ a:active{
 	top: 0;
 	width: 100%;
 	background: rgba(255,255,255,.95);
-	background: -webkit-linear-gradient(bottom,rgba(255,255,255,.8),rgba(255,255,255,1));
-	background: -moz-linear-gradient(bottom,rgba(255,255,255,.8),rgba(255,255,255,1));
 	background: linear-gradient(bottom,rgba(255,255,255,.8),rgba(255,255,255,1));
 	z-index: 2;
 }
@@ -111,7 +110,7 @@ a:active{
 	.bk-page [data-screenshoted] .bookmark{
 		width: 14px;
 		height: 20px;
-		background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAUBAMAAABPKxEfAAAALVBMVEUAAADBinXBinXBinXBinXBinXBinXBinXBinXBinXBinXBinXBinXBinXBinUFNRISAAAADnRSTlMAwECA8OBg0HAwEKBQIANoNCwAAAA/SURBVAjXY5ikBAKaDHLvQOAhgziYv5FBkAEEDGlIswUmgOjFfiFPuwwZRPzKuFKfFDLICQGlDz5k6AWrmwEArjUVF5GsrsQAAAAASUVORK5CYII=") no-repeat center center;
+		background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAUBAMAAABPKxEfAAAALVBMVEUAAADBinXBinXBinXBinXBinXBinXBinXBinXBinXBinXBinXBinXBinXBinUFNRISAAAADnRSTlMAwECA8OBg0HAwEKBQIANoNCwAAAA/SURBVAjXY5ikBAKaDHLvQOAhgziYv5FBkAEEDGlIswUmgOjFfiFPuwwZRPzKuFKfFDLICQGlDz5k6AWrmwEArjUVF5GsrsQAAAAASUVORK5CYII=") no-repeat center;
 	}
 		.bk-page [data-screenshoted] .bookmark::before{
 			content: "";
@@ -134,7 +133,7 @@ a:active{
 	overflow: hidden;
 	overflow: clip;
 	user-select: all;
-	-webkit-text-stroke: .3px #ccc;
+	/* -webkit-text-stroke: .3px #ccc; macOS Safari 會醜醜 */
 	cursor: pointer;
 }
 	.bk-page #subject::before{
@@ -356,7 +355,7 @@ a:active{
 		transition: margin-left .06s linear, margin-right .06s linear;
 		background-repeat: no-repeat;
 		background-size: contain;
-		background-position: center center;
+		background-position: center;
 	}
 	.asset .sticker_static{
 		margin: .2em .5em; /* 邊界 */
@@ -1009,9 +1008,7 @@ a:active{
 		font-weight: bold;
 		color: #fff;
 		background-color: rosybrown;
-		background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-		background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-		background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+		background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 	}
 		.popup.share .privacy_selector li:not([data-selected]):hover{
 			background: #f8f3f3;
@@ -1090,9 +1087,7 @@ a:active{
 				.popup.share .penpals .toggles:hover{
 					color: #fff;
 					background-color: rosybrown;
-					background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-					background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-					background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+					background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 				}
 				.popup.share .penpals .penpal_delete{
 					opacity: 0;
@@ -1156,6 +1151,10 @@ a:active{
 			flex: 1;
 		}
 
+
+	.popup.style #headline[title]:empty::before{
+		content: attr(title);
+	}
 	.popup.style #headline::after{
 		font-size: x-small;
 	}
@@ -1182,6 +1181,7 @@ a:active{
 			font-size: x-large;
 			font-weight: 300;
 			color: #999;
+			text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
 			background: rgba(255,255,255,.3);
 			transition: background .2s linear;
 		}
@@ -1218,6 +1218,9 @@ a:active{
 		.popup.style [data-picked]{
 			outline: 2px solid #999;
 			border: .5px solid #fff;
+		}
+		.popup.style [data-c="ffd1a4"]{
+			background-color: #ffd1a4;
 		}
 		.popup.style [data-c="f1cec7"]{
 			background-color: #f1cec7;
@@ -1269,6 +1272,28 @@ a:active{
 	.popup.crop{
     	min-width: 90%;
 	}
+		.popup.crop .row a{
+			display: inline-block;
+			padding: .2em .6em;
+			margin: .4em 0;
+			color: rosybrown;
+			border: 1px solid rosybrown;
+			border-radius: .6em;
+			letter-spacing: 1px;
+			font-size: smaller;
+			transition: background .2s linear;
+			cursor: pointer;
+		}
+		.popup.crop .row a[data-active]{
+			font-weight: bold;
+			color: #fff;
+			background-color: rosybrown;
+			background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
+		}
+			.popup.crop .row a:not([data-active]):hover{
+				background: #f8f3f3;
+			}
+
 		.popup.crop img{ /* cp_preview */
 			max-width: 100%;
 			max-height: 80vh;
@@ -1691,9 +1716,7 @@ a:active{
 		border-radius: .6em;
 		color: #fff;
 		background-color: #888;
-		background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-		background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-		background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+		background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 		cursor: pointer;
 		transition: filter .2s linear;
 		box-shadow: 0 1px 3px rgba(0,0,0,.1);
@@ -1987,7 +2010,7 @@ a:active{
 	letter-spacing: 1px;
 }
 .popup.tutorial_sticker div{
-	background: url(//i.hearty.app/b/images/gesture_mobile.png?o=1) no-repeat center center;
+	background: url(//i.hearty.app/b/images/gesture_mobile.png?o=1) no-repeat center;
 	background-size: contain;
 	width: 100%;
 	height: 80vh;
@@ -2144,7 +2167,6 @@ a:active{
 	align-items: center;
 	justify-content: center;
 	padding: 0 1.6em;
-	padding-top: constant(safe-area-inset-top, 0);
 	padding-top: env(safe-area-inset-top, 0);
 	color: #fff;
 	background: rgb(239,86,87); /* rgba(241,109,110,.85) */
@@ -2167,9 +2189,7 @@ a:active{
 
 	.warning-underlayer [data-normal]{
 		background: #c78f7a;
-		background: -webkit-linear-gradient(top,rgba(199,143,122,1),rgba(199,143,122,.8));
-		background: -moz-linear-gradient(top,rgba(199,143,122,1),rgba(199,143,122,.8));
-		background: linear-gradient(top,rgba(199,143,122,1),rgba(199,143,122,.8));
+		background: linear-gradient(to bottom,rgba(199,143,122,1),rgba(199,143,122,.8));
 	}
 	.warning-underlayer [data-blink]{
 		animation: warning_blink 950ms infinite;
@@ -2266,22 +2286,26 @@ a:active{
 }
 
 /* Hide Scrollbar */
-body.hj::-webkit-scrollbar, 
-.notifications ul::-webkit-scrollbar, 
-.bk-list .bk-page::-webkit-scrollbar, 
-.catalog[data-mobile] div::-webkit-scrollbar, 
-.popup-underlayer > div::-webkit-scrollbar{
-	display: none;
-	width: 0;
-	background: transparent;
+body.hj, 
+.notifications ul, 
+.bk-list .bk-page, 
+.catalog[data-mobile] div{
+	scrollbar-width: none;
 }
-	/* Firefox */
-	body.hj, 
-	.bk-list .bk-page, 
-	.catalog[data-mobile] div, 
-	.popup-underlayer > div{
-		scrollbar-width: none;
+/* 
+	移除了 .popup-underlayer > div
+	因小螢幕手機上，popup.styles 會太長，需捲軸讓用戶知道下面還有
+*/
+	/* Chrome 121 + Safari 18.2 以下用 */
+	body.hj::-webkit-scrollbar, 
+	.notifications ul::-webkit-scrollbar, 
+	.bk-list .bk-page::-webkit-scrollbar, 
+	.catalog[data-mobile] div::-webkit-scrollbar{
+		display: none;
+		width: 0;
+		background: transparent;
 	}
+
 
 	/*
 	A child div (.catalog[data-desktop]) isn't scrollable wrapped in an absolute positioned element (.bk-cover-back) on Firefox and Safari macOS. Thus, the scrollbar is show to scroll manually by user (::-webkit-scrollbar, scrollbar-width) .
@@ -2403,7 +2427,7 @@ body.hj::-webkit-scrollbar,
 	border-bottom: 8px solid var(--book-color);
 	border-left: 6px solid var(--book-color);
 	border-radius: .6em;
-	background: url(//i.hearty.app/XCR4X1w.png) repeat center center, #fff;
+	background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 	overflow-x: hidden;
 	overflow-x: clip;
 	overflow-y: scroll;
@@ -2444,9 +2468,7 @@ body.hj::-webkit-scrollbar,
 
 .catalog .tabs [data-queried="1"]{
 	background-color: #c68e78;
-	background-image: -webkit-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: -moz-linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
-	background-image: linear-gradient(top,rgba(255,255,255,.3),rgba(255,255,255,0));
+	background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 	color: #fff;
 	font-weight: bolder;
 	border-radius: 50%;
@@ -2808,7 +2830,7 @@ diary.pagination.min.css
 	position: relative;
 	display: none;
 	height: 100%;
-	background: url(//i.hearty.app/i/illustrations/picnic.jpg) center center no-repeat;
+	background: url(//i.hearty.app/i/illustrations/picnic.jpg) center no-repeat;
 	background-size: cover;
 	box-shadow: inset 0 0 14px 8px #fff;
 	cursor: pointer;
@@ -2857,8 +2879,6 @@ diary.pagination.min.css
 	transform: translateX(-50%);
 	padding: 0 1em;
 	background: rgba(255,255,255,.85);
-	background: -webkit-linear-gradient(to bottom, rgba(255,255,255,.6) 0%,rgba(255,255,255,.9) 100%);
-	background: -moz-linear-gradient(to bottom, rgba(255,255,255,.6) 0%,rgba(255,255,255,.9) 100%);
 	background: linear-gradient(to bottom, rgba(255,255,255,.6) 0%,rgba(255,255,255,.9) 100%);
 	box-shadow: 1px 1px 6px 2px rgba(204,204,204,.8);
 	border-radius: .6em .6em 0 0;
@@ -2928,9 +2948,7 @@ diary.pagination.min.css
 	}
 	.editor_toolbelt .kit.save[data-unsaved]::before{
 		background: rgba(250,128,114,.4);
-		background: -webkit-radial-gradient(center,ellipse cover,rgba(250,128,114,.5)30%,rgba(250,128,114,.25)70%);
-		background: -moz-radial-gradient(center,ellipse cover,rgba(250,128,114,.5)30%,rgba(250,128,114,.25)70%);
-		background: radial-gradient(center,ellipse cover,rgba(250,128,114,.5)30%,rgba(250,128,114,.25)70%);
+		background: radial-gradient(ellipse at center, rgba(250,128,114,.5) 30%, rgba(250,128,114,.25) 70%);
 	}
 
 
@@ -3042,15 +3060,6 @@ diary.pagination.min.css
 			}
 		}
 
-		/* Firefox Bug Fixed: Not Support backdrop-filter
-			caniuse.com/#search=backdrop-filter
-		@supports (-moz-appearance: none){
-			.bk-page figure::before{
-				background: rgba(255,255,255,.8);
-			}
-		}
-		*/
-
 		.bk-page [data-screenshoted] figure::before{
 			background: rgba(255,255,255,.7);
 		}
@@ -3103,7 +3112,7 @@ diary.pagination.min.css
 	left: 0;
 	width: 100%;
 	height: 100%;
-	background-position: center center;
+	background-position: center;
 	background-repeat: no-repeat;
 	transition: all .5s ease-in-out;
 }
@@ -3179,7 +3188,6 @@ diary.pagination.min.css
 .catalog[data-mobile] .tabs, 
 .stickerbook .stickerlist, 
 .stickerbook .stickertabs{
-	margin-top: constant(safe-area-inset-top, 0);
 	margin-top: env(safe-area-inset-top, 0);
 }
 /* 
@@ -3192,13 +3200,11 @@ diary.pagination.min.css
  and (orientation: portrait){
 	.mh-head .left, 
 	.mh-head .right{
-		padding-top: constant(safe-area-inset-top, 0);
 		padding-top: env(safe-area-inset-top, 0);
 	}
 	.hj-main, 
 	.notifications .arr, 
 	.notifications ul{
-		margin-top: constant(safe-area-inset-top, 0);
 		margin-top: env(safe-area-inset-top, 0);
 	}
 }
@@ -3288,9 +3294,12 @@ diary.pagination.min.css
 		order: 3;
 	}
 	.popup .btn_close{
-		position: fixed;
 		top: 0;
+
+		/*
+		position: fixed;
 		right: 0;
+		*/
 	}
 	.hj_stars [data-rating]{
 		font-size: medium;
@@ -3395,13 +3404,13 @@ diary.pagination.min.css
 	.bk-book .bk-cover h2{
 		position: absolute;
 		top: 40px;
-		right: 40px;
-		left: 40px;
+		left: 30px;
 		color: #555;
 		line-height: 1.6;
-		text-shadow: 0px 0px 5px #fff;
+		text-shadow: -1.2px -1.2px 0 #fff, 1.2px -1.2px 0 #fff, -1.2px 1.2px 0 #fff, 1.2px 1.2px 0 #fff;
 		-webkit-font-smoothing: antialiased;
 	}
+
 	/* 自訂日記本 */
 	.btn_style{
 		position: absolute;
@@ -3558,7 +3567,7 @@ diary.pagination.min.css
 nav.catalog[data-mobile], 
 nav.stickerbook{
 	border-left: 1px dashed #ccc;
-	background: url(//i.hearty.app/XCR4X1w.png) repeat center center, #fff;
+	background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 	-webkit-tap-highlight-color: rgba(0,0,0,.1);
 	user-select: none;
 }
@@ -3710,8 +3719,6 @@ nav.stickerbook .mm-panel::before{
 	padding: .6em 0 .2em 0;
 	justify-content: center;
 	background-color: rgba(255,255,255,.2);
-	background-image: -webkit-linear-gradient(to top, rgba(255,255,255,.3) 0%,rgba(255,255,255,1) 100%);
-	background-image: -moz-linear-gradient(to top, rgba(255,255,255,.3) 0%,rgba(255,255,255,1) 100%);
 	background-image: linear-gradient(to top, rgba(255,255,255,.3) 0%,rgba(255,255,255,1) 100%);
 }
 .stickerbook .stickertabs .tab{
@@ -3774,10 +3781,10 @@ nav.stickerbook .mm-panel::before{
 		border: 2px solid salmon;
 		border-radius: .5em;
 		box-shadow: 10px 10px 30px rgba(0,0,0,.3);
-		background: url(//i.hearty.app/XCR4X1w.png) repeat center center, #fff;
+		background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 	}
 		.hj_preview iframe.loading{
-			background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@40929/img/kitten.png) no-repeat center center;
+			background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@41214/img/kitten.png) no-repeat center;
 			background-size: 250px;
 		}
 
@@ -3821,6 +3828,9 @@ nav.stickerbook .mm-panel::before{
 
 /* 電腦 & not iPad Pro Portrait */
 @media only screen and (min-width: 1025px) and (orientation: landscape){
+	.btn_style{
+		font-size: larger;
+	}
 	.popup.share{
 		padding: 2em;
 	}

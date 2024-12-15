@@ -93,6 +93,9 @@ function URL_handling(){
 	// Add Images
 	else if(!!getUrlPara("img")) post_create().then(function(){post_picture(true);});
 
+	// Add Images
+	else if(!!getUrlPara("style")) style_change();
+
 	/* 子 WebView 開連結
 	var l = getUrlPara("link");
 	if(!!l) location.href = "//"+l+(l.indexOf("?")>0 ? "&":"?")+"wvtab=1";
@@ -551,7 +554,7 @@ function vip_init(){
 	return isVIP;
 }
 
-function vip_fn(f){
+function vip_fn(f, param){
 	var c = current_post();
 	if(c["vip"]){
 		switch(f){
@@ -574,9 +577,28 @@ function vip_fn(f){
 			case "screenshot":
 				hj_screenshot();
 			break;
+
+			case "headline":
+				style_headline();
+			break;
+
+			case "cover":
+				$("#cover_upload").click();
+			break;
+
+			case "bg":
+				$("#bg_upload").click();
+			break;
+
+			case "color":
+				style_color(param);
+			break;
 		}
 	}
 	else{
+		// 先關掉當前 popup
+		if(["headline", "cover", "bg", "color"].indexOf(f)>=0) popup_toggle(false, "style");
+
 		hj_upgrade_toggle(true);
 	}
 	return c["vip"];
@@ -612,7 +634,7 @@ function hj_rmenu_toggle(e, o, $l){
 function datepicker_init(){
 	$("<link>", {
 		rel: "stylesheet", 
-		href: hj_jsdelivr()+"css/jquery.ui.datepicker.custom.min.css"
+		href: hj_jsdelivr()+"css/datepicker/jquery.ui.datepicker.custom.min.css"
 	}).appendTo("head");
 
 	if(/zh/i.test(hj_lang())){
@@ -629,8 +651,9 @@ function datepicker_init(){
 		var $d = $(".post_attr #post_created"), 
 			yr = new Date().getFullYear();
 
+		// datepicker 需使用 onchange觸發
 		return $d.attr({
-			type: "text", 
+			type: "text"
 		}).datepicker({
 			changeYear: true, 
 			changeMonth: true, 
@@ -901,6 +924,283 @@ function sticker__editor_hotkeys(on, bundle_id, asset_id){
 		});
 	}
 }
+
+
+/* 自訂日記本 */
+function style_change(evt){ // ?style=1 網址會觸發
+	if(!!evt) evt.stopPropagation(); // 按鈕處理
+
+	// 如未初始化，則初始化
+	let $s = $(".popup.style");
+	if(!$s.is("[data-init]")){
+		$s.attr("data-init", "");
+		cover_uploader_init();
+		bg_uploader_init();
+		style_color(); // 初始化
+	}
+	popup_toggle(true, "style");
+}
+	function style_headline(){
+		let $h = $("#headline"), 
+			headline = $h.text()||"";
+		alertify.set({labels: {ok: '<i class="fas fa-check-circle"></i> '+_h("e-headline-2"), cancel: _h("e-no-1")}, buttonReverse: false});
+		alertify.prompt('<i class="fal fa-book"></i> '+_h("e-headline-1"), function(e, headline){
+			if(e){
+				headline = (headline||"").trim();
+
+				hj_update({
+					action: "profile_update", 
+					field: "book_headline", 
+					data: headline
+				}).then(function(r){
+					switch(r["Status"]){
+						case 1:
+							$h.add(".bk-cover h2").text(headline);
+							alertify.success('<i class="fal fa-book"></i> '+_h("e-headline-3", {$headline: headline}));
+
+							ga_evt_push("Book Headline", {
+								event_category: "Profile Update", 
+								event_label: "Book Headline"
+							});
+						break;
+
+						case 2:
+							signin_required();
+						break;
+
+						default:
+							msg();
+						break;
+					}
+				}).fail(function(){
+					msg();
+				});
+			}
+		}, headline||"");
+
+		alertify_input_custom({
+			placeholder: _h("e-headline-4")+" (◍•ᴗ•◍)", 
+			maxlength: 40
+		}, {
+			"letter-spacing": "2px"
+		});
+	}
+
+	function style_color(color){
+		let s = $(":root").get(0).style, 
+			$c = $(".colors");
+
+		if(!color){ // 書本初始化
+			color = getComputedStyle(document.documentElement).getPropertyValue("--book-color").trim().slice(1);
+			if(!color) return;
+		}
+		else{ // 更新
+			hj_update({
+				action: "style_color", 
+				color: color
+			}).then(function(r){
+				if(r["Status"]==1) alertify.success('<i class="fas fa-palette"></i> '+_h("e-color-1"));
+			});
+		}
+
+		s.setProperty("--book-color", "#"+color); // 書本填色
+		$c.find("[data-picked]").removeAttr("data-picked"); // 選色
+		$c.find("[data-c='"+color+"']").attr("data-picked", "");
+	}
+
+	function style_img_reset(category, silent){
+		hj_update({
+			action: "style_img_reset", 
+			category: category
+		}).then(function(r){
+			if(r["Status"]==1){
+				let s = $(":root").get(0).style;
+
+				// 封面 (2)
+				if(category==2){
+					s.setProperty("--book-cover", "var(--book-cover-def)");
+					if(!silent) alertify.success('<i class="fas fa-undo"></i> '+_h("e-cover-7"));
+				}
+				// 背景 (3)
+				else{
+					s.setProperty("--book-bg", "var(--book-bg-def)");
+					s.setProperty("--book-bg-size", "contain");
+					s.setProperty("--book-bg-repeat", "repeat");
+					if(!silent) alertify.success('<i class="fas fa-undo"></i> '+_h("e-bg-4"));
+				}
+			}
+			else{
+				msg();
+			}
+		});
+	}
+
+function bg_uploader_init(){
+	let $bg = $("#bg_upload");
+	$bg.on("input", function(evt){
+		hj_loading(true);
+		style_img_reset(3, true); // 先刪舊圖
+
+		let file = evt.target.files[0];
+		if(file){
+			let ext = (file.name||"").split('.').pop().toLowerCase();
+			if(/jpg|jpeg|png|gif|bmp|webp|avif|heic|heif/i.test(ext)){
+				let d = new FormData();
+				d.append("myfile", file);
+				d.append("category", 3);
+				d.append("privacy", 9);
+
+				$.ajax({
+					url: "/update", 
+					type: "POST",
+					data: d, 
+					dataType: "json", 
+					contentType: false, // 需為 false
+					processData: false, // 需為 false
+					complete: function(){
+						hj_loading(false);
+						$bg.val("");
+					}, 
+					success: function(r){
+						if(r["status"]==1){
+							let s = $(":root").get(0).style;
+							s.setProperty("--book-bg", "url('//s3.ap-northeast-1.wasabisys.com/hearty-backgrounds/"+r["basenames"]+"')");
+							s.setProperty("--book-bg-size", "cover");
+							s.setProperty("--book-bg-repeat", "no-repeat");
+							alertify.success('<i class="fas fa-book-spells"></i> '+_h("e-bg-3"));
+						}
+						else{
+							msg("Error: "+JSON.stringify(r));
+						}
+					}, 
+					error: function (xhr, status, err){
+						msg("Error: "+err);
+					}
+				});
+			}
+			else{
+				hj_loading(false);
+				msg(_h("e-bg-2", {$ext: ext}));
+			}
+		}
+	});
+
+	// 阻擋點 label 直接上傳，先檢查 VIP資格
+	$("label[for='bg_upload']").on("click", function(e){
+		e.preventDefault();
+		vip_fn("bg");
+	});
+}
+
+let cropper; /* 小寫 */
+function cover_uploader_init(){
+	cropper_sdk(function(){
+		// 處理選擇的圖片
+		$("#cover_upload").on("input", function(evt){
+			let file = evt.target.files[0];
+			if(file){
+				let ext = (file.name||"").split('.').pop().toLowerCase();
+				if(/jpg|jpeg|png|gif|bmp|webp|avif/i.test(ext)){
+					let	reader = new FileReader(), 
+						cp_preview = $("#cp_preview").get(0);
+
+					reader.onload = function(e){
+						cp_preview.src = e.target.result;
+						cp_preview.onload = function(){
+							if(cropper) cropper.destroy(); // 銷毀 Cropper
+
+							cropper = new Cropper(cp_preview, {
+								aspectRatio: 0.85, // 裁剪比 1:1.19 (1/1.19)
+								viewMode: 1, // 限制裁剪區為圖片內部
+								zoomable: false, // 停用縮放
+								minCropBoxWidth: 100, 
+								background: false
+							});
+						};
+					};
+					reader.readAsDataURL(file);
+
+					popup_toggle(false, "style");
+					popup_toggle(true, "crop");
+					$(".popup-underlayer").removeAttr("onclick");
+				}
+				else{
+					msg(_h("e-cover-5", {$ext: ext}));
+				}
+			}
+		});
+
+		// 阻擋點 label 直接上傳，先檢查 VIP資格
+		$("label[for='cover_upload']").on("click", function(e){
+			e.preventDefault();
+			vip_fn("cover");
+		});
+	});
+}
+	function cropper_sdk(callback){
+		callback = callback || function(){};
+
+		if("Cropper" in window) callback;
+		else hj_getScript_npm("cropperjs@1.6.2/dist/cropper.min.js", callback);
+	}
+	function cover_uploader_crop(){
+		if(cropper){
+			hj_loading(true);
+			style_img_reset(2, true); // 先刪舊圖
+
+			let cropped = cropper.getCroppedCanvas(), 
+				cropped_b64 = cropped.toDataURL('image/jpeg'), // image/png
+				$cropped = $(".crop canvas").get(0), 
+				s = $(":root").get(0).style;
+
+			s.setProperty("--book-cover", "url("+cropped_b64+")");
+
+			// 匯出至 canvas
+			$cropped.width = cropped.width;
+			$cropped.height = cropped.height;
+			$cropped.getContext('2d').drawImage(cropped, 0, 0);
+
+			// 將 canvas轉為 Blob，然後上傳
+			$cropped.toBlob(blob => {
+				let d = new FormData();
+				d.append("myfile", blob, "cover.png");
+				d.append("category", 2);
+				d.append("privacy", 9);
+
+				$.ajax({
+					url: "/update", 
+					type: "POST",
+					data: d, 
+					dataType: "json", 
+					contentType: false, // 需為 false
+					processData: false, // 需為 false
+					complete: function(){
+						hj_loading(false);
+					}, 
+					success: function(r){
+						if(r["status"]==1){
+							s.setProperty("--book-cover", "url('//s3.ap-northeast-1.wasabisys.com/hearty-covers/"+r["basenames"]+"')");
+							alertify.success('<i class="fas fa-book-spells"></i> '+_h("e-cover-6"));
+						}
+						else{
+							msg("Error: "+JSON.stringify(r));
+						}
+					}, 
+					error: function(xhr, status, err){
+						msg("Error: "+err);
+					}
+				});
+			}, "image/jpeg");
+
+			cover_uploader_reset();
+		}
+	}
+		function cover_uploader_reset(){
+			popup_toggle(false, "crop");
+			$("#cover_upload").val("");
+			if(cropper) cropper.destroy(); // 銷毀 Cropper
+		}
+
 
 // 維修公告
 function scheduled_maintenance(init, t){
@@ -3077,9 +3377,10 @@ function post_publish(){
 						msg();
 					break;
 				}
-				hj_loading(false);
 			}).fail(function(j){
 				hj_update_failed({fn: "post_publish", flag: 1, err: j});
+			}).always(function(){
+				hj_loading(false);
 			});
 		}
 	});
@@ -3489,9 +3790,9 @@ function hj_feedback(){
 				$s.attr({title: _h("e-feedback-7")});
 				msg(_h("e-feedback-7"));
 			}
-			$b.show(); hj_loading(false);
 		}).fail(function(j){
 			hj_update_failed({fn: "feedback", flag: 1, err: j});
+		}).always(function(){
 			$b.show(); hj_loading(false);
 		});
 
@@ -3566,7 +3867,7 @@ function sticker__list(set_num, set_alias){
 									"data-src": set["alias"]+"/"+set["cover"]+".png"
 								}).add($("<h5>", {
 									text: set["name"], 
-									"data-new": +(set_num>101||[85].indexOf(set_num)>=0)
+									"data-new": +(set_num>122||[82,103].indexOf(set_num)>=0)
 								})), 
 							"data-sticker": 0
 						})
@@ -5312,13 +5613,12 @@ function how_much($c){
 		let NT = parseInt($c.closest(".package").find(".price_unit").text())||0, 
 			local = Math.ceil(NT*rate*10)/10;
 		msg('<i class="fal fa-info-circle"></i> '+_h("p-currency-0")+"TWD$ "+NT+" ≈ <b>"+currency+" "+local+"</b>");
-		hj_loading(false);
 
 		ga_evt_push("Currency", {
 			event_category: "Currency", 
 			event_label: currency
 		});
-	}).fail(function(){
+	}).always(function(){
 		hj_loading(false);
 	});
 }
@@ -5370,62 +5670,67 @@ function price_selector(pkg_id){
 	}
 }
 
-// 僅台灣儲值用藍新，其他用 TP
-function hj_purchase2(d){
-	if(d==null) return false;
-
-	// 台灣儲值
-	// 藍新 (信用卡單筆 | ATM | 超商)
-	if(d["cc"]=="TW" && d["recurring"]==0){
-		hj_href("shop/np.buy?"+$.param(d));
-	}
-	// 台灣訂閱+國外全方案
-	// TapPay (信用卡單筆/訂閱 | AP | GP | 支付寶)
-	else{
-		hj_href("shop/tp.buy?"+$.param(d));
-	}
-
-
-	var pkg_id = d["pkg"], 
-		pkg = pkg_info(pkg_id);
-
-	ga_evt_push("add_to_cart", {
-		items: [{
-			item_id: pkg_id, 
-			item_name: "VIP Premium", 
-			item_list_name: "pricing", 
-			item_variant: (d["recurring"]==0 ? "Prepaid" : "Monthly")+" Plan", 
-			quantity: pkg["quantity"], 
-			price: pkg["unit"]
-		}]
-	});
-	fb_evt_push("AddToCart", {
-		content_type: "product", 
-		content_name: "VIP Premium", 
-		contents: [{
-			id: pkg_id, 
-			quantity: pkg["quantity"]
-		}], 
-		value: pkg["subtotal"], 
-		num_items: 1, 
-		currency: "TWD"
-	});
+function hj_purchase(d){
+	hj_purchase_nptp(d); // 藍新為主
 }
-	// 2025 方案 (綁卡實名制後)
-	function hj_purchase(d){
+	// 藍新為主
+	// 僅國外儲值用 TP，其他用藍新
+	function hj_purchase_nptp(d){
 		if(d==null) return false;
 
-		if(
-			(d["recurring"]==0 && d["cc"]=="TW") || // 台灣儲值 (信用卡 | ATM | 超商)
-			(d["recurring"]==1 && d["cc"]!="TW") // 海外訂閱 (僅信用卡)
-		){
+		// 國外儲值
+		// TapPay (信用卡單筆/訂閱 | AP | GP | 支付寶)
+		if(d["cc"]!="TW" && d["recurring"]==0){
+			hj_href("shop/tp.buy?"+$.param(d));
+		}
+		// 台灣全方案+國外訂閱
+		// 藍新 (信用卡單筆 | ATM | 超商)
+		else{
 			hj_href("shop/np.buy?"+$.param(d));
 		}
-		else{ // 海外儲值 (信用卡 | AP | GP | 支付寶) + 台灣訂閱 (僅信用卡 + 實名認證)
+
+		let pkg_id = d["pkg"], 
+			pkg = pkg_info(pkg_id);
+
+		ga_evt_push("add_to_cart", {
+			items: [{
+				item_id: pkg_id, 
+				item_name: "VIP Premium", 
+				item_list_name: "pricing", 
+				item_variant: (d["recurring"]==0 ? "Prepaid" : "Monthly")+" Plan", 
+				quantity: pkg["quantity"], 
+				price: pkg["unit"]
+			}]
+		});
+		fb_evt_push("AddToCart", {
+			content_type: "product", 
+			content_name: "VIP Premium", 
+			contents: [{
+				id: pkg_id, 
+				quantity: pkg["quantity"]
+			}], 
+			value: pkg["subtotal"], 
+			num_items: 1, 
+			currency: "TWD"
+		});
+	}
+	// TP 為主
+	// 僅台灣儲值用藍新，其他用 TP
+	function hj_purchase_tpnp(d){
+		if(d==null) return false;
+
+		// 台灣儲值
+		// 藍新 (信用卡單筆 | ATM | 超商)
+		if(d["cc"]=="TW" && d["recurring"]==0){
+			hj_href("shop/np.buy?"+$.param(d));
+		}
+		// 台灣訂閱+國外全方案
+		// TapPay (信用卡單筆/訂閱 | AP | GP | 支付寶)
+		else{
 			hj_href("shop/tp.buy?"+$.param(d));
 		}
 
-		var pkg_id = d["pkg"], 
+		let pkg_id = d["pkg"], 
 			pkg = pkg_info(pkg_id);
 
 		ga_evt_push("add_to_cart", {
@@ -5451,7 +5756,7 @@ function hj_purchase2(d){
 		});
 	}
 
-	// 藍新購買 (已停用)
+	// 藍新 (已停用)
 	function hj_purchase_np(d){
 		if(d==null) return false;
 
@@ -5468,7 +5773,7 @@ function hj_purchase2(d){
 			hj_href("shop/np.buy?"+$.param(d));
 		}
 
-		var pkg_id = d["pkg"], 
+		let pkg_id = d["pkg"], 
 			pkg = pkg_info(pkg_id);
 		ga_evt_push("add_to_cart", {
 			items: [{
@@ -5514,20 +5819,21 @@ function post_picture(ask){
 		});
 	if($f.length>0) $f.get(0).click();
 }
-	// 副檔名檢查
+	// 副檔名檢查 (Safari)
+	// caniuse.com/input-file-accept
 	function post_picture_onselect(f){
 		if(!f || !f[0]) return;
 
-		var ext = (f[0]["name"]||"").toLowerCase().split(".").slice(-1).toString() || "jpg";
-		if(["jpg", "jpeg", "png", "gif", "bmp", "webp", "avif", "heic", "heif"].indexOf(ext)<0){
+		let ext = (f[0]["name"]||"").toLowerCase().split(".").slice(-1).toString() || "jpg";
+		if(/jpg|jpeg|png|gif|bmp|webp|avif|heic|heif/i.test(ext)){
+			// $(".bk-page .frame").addClass("uploading");
+			hj_uploader_preview(f);
+		}
+		else{
 			alertify.set({labels: {ok: _h("e-no-1"), cancel: '<i class="fas fa-chevron-square-up"></i> '+_h("e-picture-3")}, buttonReverse: true});
 			alertify.confirm('<i class="fal fa-image-polaroid"></i> '+_h("e-picture-5", {$ext: ext.toUpperCase()}), function(e){
 				if(!e) post_picture();
 			});
-		}
-		else{
-			// $(".bk-page .frame").addClass("uploading");
-			hj_uploader_preview(f);
 		}
 	}
 
