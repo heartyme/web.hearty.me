@@ -253,15 +253,18 @@ function alice_greeting_query(greeting_id){
 	});
 }
 	function alice_greeting_comments(g, c){
+		let gender = c["gender"], 
+			profile_image = c["profile_image"] || ("default"+(gender==1 ? "_male":"")+".jpg");
+
 		return $("<li>", {
 			class: "opinions", 
 			html: $("<div>", {
 				class: "avatar", 
 				title: c["nickname"], 
-				onclick: "profile_popup('"+c["username"]+"','"+c["nickname"]+"','"+c["profile_image"]+"','"+c["gender"]+"')", 
+				onclick: "profile_popup('"+c["username"]+"','"+c["nickname"]+"','"+profile_image+"','"+gender+"')", 
 				"data-vip": c["is_vip"] // $.inArray(c["username"], ["nien", "jianny"])<0 ? 0 : 1
 			}).css({
-				"background-image": "url(//i.hearty.app/u/"+c["profile_image"]+")"
+				"background-image": "url(//i.hearty.app/u/"+profile_image+")"
 			}).add(
 				$("<div>", {
 					class: "opinion", 
@@ -331,13 +334,17 @@ function alice_greeting_comment(greeting_id){
 			switch(r["Status"]){
 				case 1:
 					r = r["Values"];
+
+					let gender = r["gender"], 
+						profile_image = r["profile_image"] || ("default"+(gender==1 ? "_male":"")+".jpg");
+
 					$o.scrollTop(0).find(".opinions:first").after(alice_greeting_comments({
 						greeting_id: greeting_id
 					}, {
 						username: r["username"], 
 						nickname: r["nickname"], 
-						profile_image: r["profile_image"], 
-						gender: r["gender"], 
+						profile_image: profile_image, 
+						gender: gender, 
 						comment_id: r["comment_id"], 
 						comment_own: 1, 
 						comment: c
