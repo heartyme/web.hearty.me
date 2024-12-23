@@ -291,9 +291,14 @@ function uploader_init(){
 				}, 
 				success: function(r){
 					if(r["status"]==1){ // 1: 成功; 0: 錯誤
-						let img = "//i0.wp.com/s3.ap-northeast-1.wasabisys.com/hearty-users/"+r["basenames"][0];
-						$("#profile_image img").attr({src: img});
-						$(".profile_image div").css({"background-image": 'url("'+img+'")'});
+						let img = "s3.ap-northeast-1.wasabisys.com/hearty-users/"+r["basenames"][0];
+						img = [
+							"//i0.wp.com/"+img, 
+							"//"+img
+						];
+
+						$("#profile_image img").attr({src: img[0]});
+						$(".profile_image div").css({"background-image": 'url("'+img[0]+'"),url("'+img[1]+'")'});
 
 						picture_rotate();
 						alertify.success('<i class="far fa-address-card"></i> '+_h("a-avatar-3"));

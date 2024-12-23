@@ -3,69 +3,66 @@
 var hj_editor_loaded = true;
 var timer; // 自動儲存重試 timeout
 
-(function($){
-	$(document).ready(function(){
-		$d1 = $.when(
-			$d0, // book init
-			hj_getScript("//cdn.jsdelivr.net/combine/gh/godswearhats/jquery-ui-rotatable@1.1.1/jquery.ui.rotatable.min.js,npm/jquery-ui-touch-punch@0.2.3/jquery.ui.touch-punch.min.js,npm/interactjs@1.10.27/dist/interact.min.js"+(!getUrlPara("retry") ? "" : "?"))
-		).then(function(){
-			editor_include_once();
-			editor_enable();
-		});
-
-		hj_editor_history_init();
-		hj_rmenu_init($("[data-hj_rmenu]"));
-
-		$(".popup-underlayer .popup,.popup.feedback,.popup.diary_screenshot a,.prologue .start,.asset .detach,.popup.notifications ul,.image-zoom .img_btns").on("click", function(e){
-			e.stopPropagation();
-		});
-
-		// YTbox
-		hj_getScript_gh({
-			path: "js/ytbox.min.js"
-			// commit: "main"
-		});
-
-		// 網路及電量
-		network_watch(); battery_watch();
-
-		// 繁簡轉換
-		if(typeof zh_translatePage=="undefined"){
-			hj_getScript_gh({
-				path: "js/diary.zhongwen.min.js", 
-				// commit: "main"
-			}, function(){
-				hj_localize_cn();
-			});
-		}
-		else{
-			hj_localize_cn();
-		}
-
-		URL_handling();
-
-		try{
-			hj_ip().then(function(d){
-				var $u = $("[data-uptime]");
-				$u.text($u.text()+"，"+(d["colo"]||""));
-			});
-		}
-		catch(e){}
-
-		// Post Init
-		ga_evt_push("Post Init", {
-			event_category: "Posts"
-		});
-
-		/* 維修預告
-		scheduled_maintenance(true, [
-			1656795600, // 2022/7/3 @ 5:00am
-			1656799200 // 2022/7/3 @ 6:00am
-		]);
-		*/
+$(function(){
+	$d1 = $.when(
+		$d0, // book init
+		hj_getScript("//cdn.jsdelivr.net/combine/gh/godswearhats/jquery-ui-rotatable@1.1.1/jquery.ui.rotatable.min.js,npm/jquery-ui-touch-punch@0.2.3/jquery.ui.touch-punch.min.js,npm/interactjs@1.10.27/dist/interact.min.js"+(!getUrlPara("retry") ? "" : "?"))
+	).then(function(){
+		editor_include_once();
+		editor_enable();
 	});
-})(jQuery);
 
+	hj_editor_history_init();
+	hj_rmenu_init($("[data-hj_rmenu]"));
+
+	$(".popup-underlayer .popup,.popup.feedback,.popup.diary_screenshot a,.prologue .start,.asset .detach,.popup.notifications ul,.image-zoom .img_btns").on("click", function(e){
+		e.stopPropagation();
+	});
+
+	// YTbox
+	hj_getScript_gh({
+		path: "js/ytbox.min.js"
+		// commit: "main"
+	});
+
+	// 網路及電量
+	network_watch(); battery_watch();
+
+	// 繁簡轉換
+	if(typeof zh_translatePage=="undefined"){
+		hj_getScript_gh({
+			path: "js/diary.zhongwen.min.js", 
+			// commit: "main"
+		}, function(){
+			hj_localize_cn();
+		});
+	}
+	else{
+		hj_localize_cn();
+	}
+
+	URL_handling();
+
+	try{
+		hj_ip().then(function(d){
+			var $u = $("[data-uptime]");
+			$u.text($u.text()+"，"+(d["colo"]||""));
+		});
+	}
+	catch(e){}
+
+	// Post Init
+	ga_evt_push("Post Init", {
+		event_category: "Posts"
+	});
+
+	/* 維修預告
+	scheduled_maintenance(true, [
+		1656795600, // 2022/7/3 @ 5:00am
+		1656799200 // 2022/7/3 @ 6:00am
+	]);
+	*/
+});
 
 // 愛諾園測試用 ### debug
 if(!!getcookie("hearty_loveuno")) hj_href("//demo.loveuno.com/?utm_source=hearty_journal&utm_medium=hearty_journal&utm_campaign=hearty_journal&utm_id=hearty_journal");
@@ -1063,8 +1060,14 @@ function bg_uploader_init(){
 					}, 
 					success: function(r){
 						if(r["status"]==1){
-							let s = $(":root").get(0).style;
-							s.setProperty("--book-bg", "url('//s3.ap-northeast-1.wasabisys.com/hearty-backgrounds/"+r["basenames"]+"')");
+							let s = $(":root").get(0).style, 
+								img = "s3.ap-northeast-1.wasabisys.com/hearty-backgrounds/"+r["basenames"];
+							img = [
+								"//i0.wp.com/"+img, 
+								"//"+img
+							];
+
+							s.setProperty("--book-bg", "url('"+img[0]+"'),url('"+img[1]+"')");
 							s.setProperty("--book-bg-size", "cover");
 							s.setProperty("--book-bg-repeat", "no-repeat");
 							alertify.success('<i class="fas fa-book-spells"></i> '+_h("e-bg-3"));
@@ -1179,7 +1182,13 @@ function cover_uploader_init(){
 					}, 
 					success: function(r){
 						if(r["status"]==1){
-							s.setProperty("--book-cover", "url('//s3.ap-northeast-1.wasabisys.com/hearty-covers/"+r["basenames"]+"')");
+							let img = "s3.ap-northeast-1.wasabisys.com/hearty-covers/"+r["basenames"];
+							img = [
+								"//i0.wp.com/"+img, 
+								"//"+img
+							];
+
+							s.setProperty("--book-cover", "url('"+img[0]+"'),url('"+img[1]+"')");
 							alertify.success('<i class="fas fa-book-spells"></i> '+_h("e-cover-6"));
 						}
 						else{
@@ -1385,8 +1394,10 @@ function period__initialize(){
 	var $pd = $(".periods");
 	if(!$pd.data("loaded")){
 		hj_getScript_gh({
+			// Date-picker bug on some Chrome 131, Windows
+			// https://i.hearty.app/j/6768f963d041c.gif
 			path: "js/periods.min.js", 
-			// commit: "main"
+			commit: "9a0df7ac8443df55c57e96fd16c399e038d66bcb" // commit: "main"
 		}, function(){
 			$pd.slideDown("slow").data({loaded: true});
 		});
@@ -4074,29 +4085,22 @@ function hj_video(action, yt){
 		break;
 
 		case "play":
-			if(false){
-				$pic.find("#youtube iframe").attr({
-					src: location.origin+"/p/sheara.html"
-				}).show();
-			}
-			else{
-				$pic.find("#youtube iframe").attr({
-					src: "//www.youtube-nocookie.com/embed/"+yt+"?"+$.param({
-						controls: 1, 
-						fs: 1, 
-						modestbranding: 1, 
-						cc_load_policy: 1, 
-						rel: 0, 
-						autoplay: 1, 
-						playsinline: 1, 
+			$pic.find("#youtube iframe").attr({
+				src: "//www.youtube-nocookie.com/embed/"+yt+"?"+$.param({
+					controls: 1, 
+					fs: 1, 
+					modestbranding: 1, 
+					cc_load_policy: 1, 
+					rel: 0, 
+					autoplay: 1, 
+					playsinline: 1, 
 
-						// Loop
-						loop: 1, 
-						playlist: yt
-					})
-				}).show();
-				$pic.find(".far").slideUp();
-			}
+					// Loop
+					loop: 1, 
+					playlist: yt
+				})
+			}).show();
+			$pic.find(".far").slideUp();
 		break;
 
 		case "update":
@@ -5872,7 +5876,7 @@ function image_uploader_init(){
 		$u = $(".img_uploader");
 
 	$u.find("#mulitplefileuploader").uploadFile({
-		url: location.origin+"/update", 
+		url: "/update", 
 		dragDrop: true, 
 		fileName: "myfile", 
 		allowedTypes: "jpg,jpeg,png,gif,bmp,webp,avif,heic,heif", 
@@ -6190,13 +6194,13 @@ function customized_notification(action, val){
 			notifications_new([{
 				notification_id: 1, 
 				msg: _h("e-n_verify_email-0", {$item: (val || "Email")}), 
-				clk: "open_url(location.origin+'/account?ev=1')", 
+				clk: "open_url('/account?ev=1')", 
 				unread: 1, 
 				icon: "far fa-envelope"
 			}], false);
 
 			$(".popup.feedback .notice").text(_h("e-n_verify_email-1")).on("click", function(){
-				open_url(location.origin+"/account?ev=1");
+				open_url("/account?ev=1");
 			});
 		break;
 
@@ -6206,7 +6210,7 @@ function customized_notification(action, val){
 				notifications_new([{
 					notification_id: 8, 
 					msg: _h("e-n_verify_phone"), 
-					clk: "open_url(location.origin+'/p/phone.php')", 
+					clk: "open_url('/p/phone.php')", 
 					unread: 1, 
 					icon: "far fa-mobile"
 				}], Math.random()>=0.5);

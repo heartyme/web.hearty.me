@@ -106,7 +106,7 @@ function hj_getScript(url, onsuccess, onerror, attrs){
 		p = p || {};
 			p["repo"] = "repo" in p ? p["repo"] : "heartyme/web.hearty.me";
 			p["path"] = "path" in p ? p["path"] : "";
-			p["commit"] = "commit" in p ? p["commit"] : 40929; // "main"
+			p["commit"] = "commit" in p ? p["commit"] : 41214; // "main"
 
 		onsuccess = onsuccess || {};
 		onerror = onerror || {};
@@ -161,7 +161,7 @@ function hj_getFile(url, filename, callback){
 }
 
 function hj_jsdelivr(){
-	return "//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@40929/";
+	return "//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@41214/";
 }
 
 // 語系檔
@@ -259,10 +259,15 @@ function cssFeatureSupported(prop, value){
 
 // 網址參數
 function getUrlPara(para){
-	let reg = new RegExp("(^|&)"+para+"=([^&]*)(&|$)"), 
-		r = location.search.substr(1).match(reg);
-	if(r!=null) return decodeURIComponent(r[2]); return null;
+	return new URLSearchParams(window.location.search).get(para);
 }
+	/*
+	function getUrlPara(para){
+		let reg = new RegExp("(^|&)"+para+"=([^&]*)(&|$)"), 
+			r = location.search.substr(1).match(reg);
+		if(r!=null) return decodeURIComponent(r[2]); return null;
+	}
+	*/
 
 // 取得 Cookie
 function getcookie(cname){
@@ -497,7 +502,7 @@ function get_qrcode($qr, url, fn){
 
 // 現在時戳
 function timestamping(){
-	return !Date.now ? new Date().getTime() : Date.now()/1e3|0;
+	return Date.now()/1e3|0;
 }
 
 function today(tz_diff){
@@ -782,7 +787,7 @@ function hj_ip(alt){
 	// Cloudflare
 	return $.ajax({
 		type: "GET", 
-		url: (alt ? "//api.hearty.app" : location.origin)+"/cdn-cgi/trace", 
+		url: (alt ? "//api.hearty.app" : "")+"/cdn-cgi/trace", 
 		async: true, 
 		crossDomain: true, 
 		dataType: "text"
@@ -830,7 +835,7 @@ function hj_localize_cn(){
 	if(sc){
 		hj_getScript_gh({
 			path: "js/diary.zhongwen.min.js", 
-			// commit: "40929"
+			// commit: "41214"
 		}, function(){
 			if(typeof zh_translatePage=="function") zh_translatePage();
 			ga_evt_push("zhSC");
