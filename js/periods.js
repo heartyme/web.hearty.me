@@ -30,20 +30,20 @@ function period_add(day_id, day_start, day_end, day_interval){
 					"data-dayid": day_id, 
 					"data-day": day_start==today2 ? _h("e-pd-8") : day_start_f, 
 					title: day_start_f, 
-					onclick: "period_editing_toggle(true,this.dataset.dayid,0)"
+					onclick: "period_editing_toggle(!0,this.dataset.dayid,0)"
 				}), 
 			td_inner: $("<div>", {onclick: "event.stopPropagation()"}), 
 			edit: $("<input>", {
 					type: "date", 
 					pattern: day_pattern, 
 					max: tomorrow, 
-					onchange: "if(!this.value) this.value='"+today2+"'; else period_update('start',"+day_id+",this.value)", 
+					oninput: "if(!this.value) this.value='"+today2+"'; else period_update('start',"+day_id+",this.value)", 
 					required: true, 
 					autofocus: !day_start
 				}).val(day_start), 
 			ok: $("<div>", {
 					class: "ok", 
-					onclick: "period_editing_toggle(false,"+day_id+")", 
+					onclick: "period_editing_toggle(!1,"+day_id+")", 
 					title: _h("e-ok-0")
 				})
 		}, 
@@ -53,27 +53,30 @@ function period_add(day_id, day_start, day_end, day_interval){
 					"data-dayid": day_id, 
 					"data-day": day_end==today2 ? _h("e-pd-8") : day_end_f, 
 					title: day_end_f, 
-					onclick: "period_editing_toggle(true,this.dataset.dayid,1)"
+					onclick: "period_editing_toggle(!0,this.dataset.dayid,1)"
 				}), 
 			td_inner: $("<div>", {onclick: "event.stopPropagation()"}), 
 			edit: $("<input>", {
 					type: "date", 
 					pattern: day_pattern, 
-					list: "ls_"+day_id, 
+
+					// Date-picker bug on some Chrome 131, Windows
+					// https://i.hearty.app/j/6768f963d041c.gif
+					list: check_OS("Windows") ? "" : "ls_"+day_id, 
 
 					// min: 經期起始後 2天
 					min: !day_start ? "" : period_add_days(day_start, 2), 
 
 					// max: 今天 & 經期起始後 14天，取其小
 					max: !day_start ? today2 : [today2, period_add_days(day_start, 14)].reduce(function(a, b){return a<b ? a:b}), 
-					onchange: "if(this.value!=='') period_update('end',"+day_id+",this.value)", 
+					oninput: "if(this.value!=='') period_update('end',"+day_id+",this.value)", 
 					title: day_end_f, 
 					disabled: !day_start
 				}).val(day_end), 
 			list: $("<datalist>", {id: "ls_"+day_id}), 
 			ok: $("<div>", {
 					class: "ok", 
-					onclick: "period_editing_toggle(false,"+day_id+")", 
+					onclick: "period_editing_toggle(!1,"+day_id+")", 
 					title: _h("e-ok-0")
 				})
 		};
@@ -211,7 +214,7 @@ function period_update(type, day_id, day){
 				else if(!day_id)
 					$pd.find("[data-dayid=0]").attr({
 						"data-dayid": day_id_new, 
-						onclick: "period_editing_toggle(true,"+day_id_new+",1)"
+						onclick: "period_editing_toggle(!0,"+day_id_new+",1)"
 					});
 
 				ga_evt_push("Period Day Updated", {

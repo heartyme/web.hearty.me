@@ -31,4 +31,4 @@ Hearty Journal is a beautiful diary and personal journal application with a focu
 ![Made with love in Taiwan](https://madewithlove.vercel.app/tw?heart=true&template=flat-square) 
 
 
-[Repository Link](https://github.com/heartyme/web.hearty.me) 
+[Repository Link](https://bit.ly/4fvemCc) 
