@@ -69,6 +69,7 @@ function period_add(day_id, day_start, day_end, day_interval){
 
 					// max: 今天 & 經期起始後 14天，取其小
 					max: !day_start ? today2 : [today2, period_add_days(day_start, 14)].reduce(function(a, b){return a<b ? a:b}), 
+
 					oninput: "if(this.value!=='') period_update('end',"+day_id+",this.value)", 
 					title: day_end_f, 
 					disabled: !day_start
@@ -81,7 +82,7 @@ function period_add(day_id, day_start, day_end, day_interval){
 				})
 		};
 
-	// Datepicker for iOS & Safari on macOS
+	// Datepicker polyfill for iOS < 18.2 & macOS Safari
 	// caniuse.com/input-datetime
 	// min & max NOT support natively
 	if(check_OS("iOS")||check_browser("Safari"))
@@ -89,9 +90,10 @@ function period_add(day_id, day_start, day_end, day_interval){
 			$(this).attr({
 				type: "text", 
 				pattern: day_pattern, 
+				onchange: $(this).attr("oninput"), // use "onchange" instead of "ininput"
 				onclick: "$(this).datepicker('show').select()", 
 				readonly: ""
-			}).datepicker({
+			}).removeAttr("oninput").datepicker({
 				dateFormat: "yy-mm-dd", 
 				changeMonth: true, 
 				showAnim: "slideDown", 
