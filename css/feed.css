@@ -395,7 +395,7 @@ a:active{
 
 .feed .page_back{
 	position: absolute;
-	display: inline-block;
+	display: none;
 	top: 0;
 	left: 0;
 	padding: .8em 1em;
@@ -702,6 +702,9 @@ a:active{
 	}
 	.feed .profile_btns{
 		font-size: small;
+	}
+	.feed .page_back{
+		display: block;
 	}
 	.desktop{
 		display: none;
