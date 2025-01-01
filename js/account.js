@@ -482,6 +482,9 @@ function email_editing(email){
 									$("[data-email-verify]").attr("data-email-verify", 0)
 										.find("[data-email]").attr("data-email", email_new);
 
+									// 同步更新至療癒商城
+									sync_wp_user({email: email_new});
+
 									ga_evt_push("Email", {
 										event_category: "Profile Update", 
 										event_label: "Email"
@@ -511,10 +514,21 @@ function email_editing(email){
 
 	alertify_input_custom({
 		type: "email", 
-		placeholder: email || "eg. nien@hearty.me", 
+		placeholder: email || "eg. my@hearty.me", 
 		maxlength: 64
 	});
 }
+	// 同步更新至療癒商城
+	function sync_wp_user(data){
+		return $.ajax({
+			url: "/life/api/sync_wp_user.php", 
+			type: "POST", 
+			dataType: "json", 
+			data: data, 
+			async: true
+		});
+	}
+
 	function email_verified(){
 		return $("[data-email-verify='1']").length>0;
 	}
@@ -806,6 +820,9 @@ function username_details(){
 						case 1:
 							msg('<i class="fal fa-check-circle"></i> '+_h("a-id_edited", {$id: new_username}), '<i class="fas fa-door-open"></i> '+_h("a-id_signout"), signout);
 							setcookie("hearty_account", new_username, 90);
+
+							// 同步更新至療癒商城
+							sync_wp_user({username: new_username});
 
 							// forms.gle/bG1EnEKeYyqv3BR88
 							gform_post("1FAIpQLScMUCYu17vjPovyr8Ywr9wbgfVxZ7E5FPYvqdpbPdlEw7TMVQ", {
