@@ -3,6 +3,9 @@
 home_init();
 
 function home_init(){
+	// 禁止嵌入 (同時確保療癒商城跳轉登入頁時，不會被嵌入)
+	if(window.top!=window.self) top.location.href=self.location.href;
+
 	$(function(){
 		browser_check();
 		os_targeting();
