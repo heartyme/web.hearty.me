@@ -1047,10 +1047,10 @@ function voucher_redeem(voucher){
 	alertify.prompt('<i class="far fa-gift-card"></i> '+_h("a-redeem-0"), function(e, voucher){
 		if(e){
 			voucher = (voucher || "").trim();
-			if(voucher.length<4){
+			if(voucher.length<3){
 				voucher_redeem(voucher); alertify_input_shake();
 			}
-			// 老用戶限定優惠：序號同為用戶 ID
+			// 1. 老用戶限定優惠：序號同為用戶 ID
 			else if(voucher.toLowerCase()==$(".hj_username").attr("title")||""){
 				alertify.set({labels: {ok: _h("a-no"), cancel: '<i class="fas fa-arrow-alt-circle-right"></i> '+_h("a-voucher_vvip-2")}, buttonReverse: true});
 				alertify.confirm('<img src="//i.hearty.app/i/vvip.png"><br><br><b>'+_h("a-voucher_vvip-0")+" ヽ(✿´･ヮ･)ﾉ♡</b><br>"+_h("a-voucher_vvip-1"), function(e){
@@ -1089,7 +1089,7 @@ function voucher_redeem(voucher){
 					}
 				});
 			}
-			// 外部合作專案
+			// 2. 外部合作專案
 			else if(/gift/i.test(voucher)){
 				msg('<i class="far fa-gift-card"></i> '+_h("a-coupon_ok-0", {$coupon: voucher})+' <i class="far fa-check-circle"></i><br>'+_h("a-coupon_ok-1"), '<i class="fas fa-thumbs-up"></i> '+_h("a-ok-0"), function(){
 					hj_href("d");
@@ -1107,7 +1107,74 @@ function voucher_redeem(voucher){
 				});
 				ga_evt_push(evt);
 			}
+			// 3. 2025/2/15 前可兌換全站序號
+			else if(/newyear/i.test(voucher) && parseInt(today(8).replace(/-/g,""))<20250215){
+				hj_loading(true);
+
+				$.ajax({
+					url: "/bd/api.php", 
+					type: "POST", 
+					dataType: "json", 
+					data: {
+						action: "use_global_voucher", 
+						voucher: "newyear"
+					}, 
+					async: true
+				}).then(function(r){
+					switch(r["Status"]){
+						case 1:
+							let v = r["Values"]||"", 
+								voucher_new = v["voucher"]||"";
+
+							$.ajax({
+								url: "/gift/"+voucher_new, 
+								type: "POST", 
+								dataType: "json", 
+								data: {
+									voucher: voucher_new
+								}, 
+								async: true
+							}).then(function(r){
+								if(r["Status"]==1){
+									let v = r["Values"]||"";
+
+									msg('<i class="far fa-gift"></i> '+_h("a-voucher_ok", {
+										$code: voucher, 
+										$days: v["dur"]||0, 
+										$exp: new Date(v["exp"]||"").toLocaleDateString()
+									})+' <i class="far fa-check-circle"></i>', '<i class="fas fa-thumbs-up"></i> '+_h("a-ok-0"), function(){
+
+										location.href = location.origin+"/account?tab=1";
+									});
+								}
+								else{
+									msg();
+								}
+							}).fail(function(){
+								msg();
+							}).always(function(){
+								hj_loading(false);
+							});
+						break;
+
+						case 3:
+							msg('<i class="fal fa-info-circle"></i> '+_h("a-voucher_disqualified"), _h("a-ok-0"));
+						break;
+
+						default:
+							msg();
+						break;
+					}
+				}).fail(function(){
+					msg();
+				}).always(function(){
+					hj_loading(false);
+				});
+			}
+			// 4. 標準序號
 			else{
+				hj_loading(true);
+
 				$.ajax({
 					url: "/gift/"+voucher, 
 					type: "POST", 
@@ -1149,6 +1216,8 @@ function voucher_redeem(voucher){
 					}
 				}).fail(function(){
 					msg();
+				}).always(function(){
+					hj_loading(false);
 				});
 			}
 		}
