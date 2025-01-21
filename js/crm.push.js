@@ -53,6 +53,11 @@ function get_recipients(){
 	$recipients.slideUp("fast");
 	$(".recipient_data .result").empty();
 
+	if(uid_interval[1]-uid_interval[0]>100000){
+		msg('<i class="far fa-exclamation-triangle"></i> 考量查詢量能，避免一次選擇超過 10萬位用戶'); return;
+	}
+
+	hj_loading(true);
 	hj_update__push({
 		action: "get_recipients", 
 		uid_interval: uid_selection==0 ? JSON.stringify(uid_interval) : "", 
@@ -98,6 +103,8 @@ function get_recipients(){
 		}
 	}).fail(function(e){
 		msg('<i class="far fa-exclamation-triangle"></i> 出錯了：<br>'+JSON.stringify(e));
+	}).always(function(){
+		hj_loading(false);
 	});
 }
 
@@ -173,7 +180,8 @@ function send_push(bulk, $btn){
 						});
 					}
 					else{
-						msg('<i class="far fa-exclamation-triangle"></i> 推播失敗<br>：'+JSON.stringify(r) );
+						alertify.error('<i class="far fa-exclamation-triangle"></i> 推播失敗<br>：'+JSON.stringify(r) );
+						console.error( JSON.stringify(r) );
 					}
 				break;
 			}
@@ -196,6 +204,9 @@ function send_push(bulk, $btn){
 			}
 			$btn.remove();
 
+			let $res = $(".result");
+			$res.children().slice(19).remove(); // 只留前 19個，減少 loading
+
 			$("<ol>", {
 				title: push["nickname"], 
 				onclick: "$(this).fadeOut('fast');", 
@@ -215,7 +226,7 @@ function send_push(bulk, $btn){
 						title: push["tag"], 
 						text: "🔖 "+push["tag"]
 					}))
-				}).prependTo(".result").fadeIn();
+			}).prependTo($res).fadeIn();
 		}).fail(function(e){
 			alertify.error('<i class="far fa-exclamation-triangle"></i> 異常：'+JSON.stringify(e));
 
@@ -231,6 +242,10 @@ function send_push(bulk, $btn){
 				}
 				else if($(".recipients li[data-sent_today='0']").length<=1){
 					get_sent_stats();
+
+					// 完成提醒
+					if($("input[name='done_dingdong']:checked").length) dingdong();
+
 					msg('<i class="far fa-comments-alt"></i> 推播群發完畢', "好耶", function(){
 						$(window).scrollTop(0);
 					});
@@ -401,4 +416,29 @@ function filter_all(max_user_id){
 function uid_toggle(mode, mode_text){
 	$(".user_data tr").attr("data-off", "").filter(".uid_"+mode).removeAttr("data-off");
 	alertify.success("<i class='fas fa-filter'></i> "+mode_text+"模式");
+}
+
+function dingdong(){
+	let context = new window.AudioContext(), 
+	playTone = (freq, startTime, duration) => {
+	let oscillator = context.createOscillator(), 
+		gainNode = context.createGain();
+
+		oscillator.type = 'sine';
+		oscillator.frequency.value = freq;
+
+		gainNode.gain.setValueAtTime(0, startTime);
+		gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.05); // 漸入
+		gainNode.gain.linearRampToValueAtTime(0, startTime + duration); // 漸出
+
+		oscillator.connect(gainNode);
+		gainNode.connect(context.destination);
+
+		oscillator.start(startTime);
+		oscillator.stop(startTime + duration);
+	};
+
+	let now = context.currentTime;
+	playTone(880, now, 0.4); // "叮" - 880Hz
+	playTone(660, now + 0.4, 0.6); // "咚" - 660Hz
 }

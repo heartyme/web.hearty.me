@@ -8,7 +8,7 @@ $(function(){
 	};
 
 	$(document).scroll(function(){
-		var $u = $(".notify .page_up");
+		let $u = $(".notify .page_up");
 		if($(this).scrollTop()>200) $u.stop().fadeIn("slow");
 		else $u.stop().fadeOut("slow");
 	});
@@ -19,13 +19,11 @@ $(function(){
 function hj_update__push(d){
 	return $.ajax({
 		url: location.href, 
-		type: "post", 
-		crossDomain: true, 
+		type: "POST", 
 		dataType: "json", 
 		data: d, 
 		async: true, 
-		timeout: 10000, 
-		xhrFields: {withCredentials: true}
+		timeout: 10000
 	});
 }
 
@@ -39,7 +37,7 @@ function get_sent_stats(){
 }
 
 function get_recipients(){
-	var $recipients = $(".recipients"), 
+	let $recipients = $(".recipients"), 
 		uid_selection = parseInt($("input[name='uid_selection']:checked").val() || 0), 
 		uid_interval = $("input[data-uid_interval]").map(function(){return parseInt(this.value || 1);}).get().sort(), 
 		uid_listed = $("textarea[data-uid_listed]").val().split(",").map(function(u){return parseInt(u.trim())||1}).sort();
@@ -47,6 +45,11 @@ function get_recipients(){
 	$recipients.slideUp("fast");
 	$(".recipient_data .result").empty();
 
+	if(uid_interval[1]-uid_interval[0]>100000){
+		msg('<i class="far fa-exclamation-triangle"></i> 考量查詢量能，避免一次選擇超過 10萬位用戶'); return;
+	}
+
+	hj_loading(true);
 	hj_update__push({
 		action: "get_recipients", 
 		uid_interval: uid_selection==0 ? JSON.stringify(uid_interval) : "", 
@@ -56,10 +59,10 @@ function get_recipients(){
 			case 1:
 				r = r["Values"];
 				$recipients.empty();
-				for(var user_id in r){
-					var u = r[user_id];
-					for(var t in u["tokens"]){
-						var username = u["username"], 
+				for(let user_id in r){
+					let u = r[user_id];
+					for(let t in u["tokens"]){
+						let username = u["username"], 
 							sent_today = parseInt(u["tokens"][t]["sent_today"]);
 
 						$("<li>", {
@@ -88,6 +91,8 @@ function get_recipients(){
 		}
 	}).fail(function(e){
 		msg("<i class='far fa-exclamation-triangle'></i> 發生異常：<br>"+JSON.stringify(e));
+	}).always(function(){
+		hj_loading(false);
 	});
 }
 
@@ -96,7 +101,7 @@ function send_push(bulk, $btn){
 	$btn = $btn==null ? $(".recipients li[data-sent_today='0']:first") : $btn;
 	if(!$btn.length) return false;
 
-	var d = $btn.get(0).dataset, 
+	let d = $btn.get(0).dataset, 
 		$push = $(".push_data"), 
 		push = {
 			body: ($push.find("[data-body]").val() || "").trim(), 
@@ -131,7 +136,7 @@ function send_push(bulk, $btn){
 			action: "send_push", 
 			push: JSON.stringify(push)
 		}).then(function(r){
-			var v = r["Values"];
+			let v = r["Values"];
 			switch(r["Status"]){
 /*
 {"Status":0,"Values":{"status":400,"message":"LINE Notify account doesn't join group which you want to send."}}
@@ -154,19 +159,26 @@ function send_push(bulk, $btn){
 			}
 
 			if(bulk){
-				var $btn_next = $btn.nextAll("[data-bulk='"+$btn.attr("data-bulk")+"']").eq(0);
+				let $btn_next = $btn.nextAll("[data-bulk='"+$btn.attr("data-bulk")+"']").eq(0);
 
 				if($btn_next.length>0){
 					send_push(bulk, $btn_next);
 				}
 				else if(!$(".recipients li[data-sent_today='0']").length){
 					get_sent_stats();
+
+					// 完成提醒
+					if($("input[name='done_dingdong']:checked").length) dingdong();
+
 					msg("<i class='far fa-comments-alt'></i> 批次推播完成", "好耶", function(){
 						$("html, body").scrollTop(0);
 					});
 				}
 			}
 			$btn.remove();
+
+			let $res = $(".result");
+			$res.children().slice(19).remove(); // 只留前 19個，減少 loading
 
 			$("<ol>", {
 				title: push["nickname"], 
@@ -175,14 +187,14 @@ function send_push(bulk, $btn){
 				"data-success": +(r["Status"]==1), 
 				html: $("<li>", {"data-device": 5, text: push["username"]})
 						.add($("<li>", {text: push["body"]}))
-			}).prependTo($(".result")).fadeIn();
+			}).prependTo($res).fadeIn();
 		}).fail(function(e){
 			msg("<i class='far fa-exclamation-triangle'></i> 發生異常：<br>"+JSON.stringify(e));
 		});
 	}
 
 	function send_push_bulk(){
-		var $d = $(".recipients li[data-sent_today='0']"), 
+		let $d = $(".recipients li[data-sent_today='0']"), 
 			d = $d.length;
 
 		if(d>0){
@@ -196,11 +208,11 @@ function send_push(bulk, $btn){
 			});
 		}
 		else{
-			msg("<i class='far fa-exclamation-triangle'></i> 沒有可發送的裝置，請先行查詢");
+			msg('<i class="far fa-exclamation-triangle"></i> 沒有可發送的裝置，請先行查詢');
 		}
 	}
 	function filter_finished(hide){
-		var $r = $(".recipients");
+		let $r = $(".recipients");
 		if(!hide) $r.removeClass("unfinished");
 		else $r.addClass("unfinished");
 	}
@@ -211,11 +223,36 @@ function empty_recipients(){
 	});
 }
 function filter_all(max_user_id){
-	var $u = $(".user_data [data-uid_interval]");
+	let $u = $(".user_data [data-uid_interval]");
 	$u.filter(":eq(0)").val(1).attr({max: max_user_id});
 	$u.filter(":eq(1)").val(max_user_id).attr({max: max_user_id});
 }
 function uid_toggle(mode, mode_text){
 	$(".user_data tr").attr("data-off", "").filter(".uid_"+mode).removeAttr("data-off");
 	alertify.success("<i class='fas fa-filter'></i> "+mode_text+"模式");
+}
+
+function dingdong(){
+	let context = new window.AudioContext(), 
+	playTone = (freq, startTime, duration) => {
+	let oscillator = context.createOscillator(), 
+		gainNode = context.createGain();
+
+		oscillator.type = 'sine';
+		oscillator.frequency.value = freq;
+
+		gainNode.gain.setValueAtTime(0, startTime);
+		gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.05); // 漸入
+		gainNode.gain.linearRampToValueAtTime(0, startTime + duration); // 漸出
+
+		oscillator.connect(gainNode);
+		gainNode.connect(context.destination);
+
+		oscillator.start(startTime);
+		oscillator.stop(startTime + duration);
+	};
+
+	let now = context.currentTime;
+	playTone(880, now, 0.4); // "叮" - 880Hz
+	playTone(660, now + 0.4, 0.6); // "咚" - 660Hz
 }

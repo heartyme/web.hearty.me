@@ -177,6 +177,11 @@ function get_recipients(){
 	$recipients.slideUp("fast");
 	$(".recipient_data .result").empty();
 
+	if(uid_interval[1]-uid_interval[0]>100000){
+		msg('<i class="far fa-exclamation-triangle"></i> 考量查詢量能，避免一次選擇超過 10萬位用戶'); return;
+	}
+
+	hj_loading(true);
 	hj_update__push({
 		action: "get_recipients", 
 		uid_interval: uid_selection==0 ? JSON.stringify(uid_interval) : "", 
@@ -186,8 +191,9 @@ function get_recipients(){
 		list_optin: $("input[name='list_optin']:checked").val()||0, 
 
 		// 進階條件
-		lang: $("input[name='chinese_only']:checked").length, 
-		birthmonth: $("input[name='birthmonth']:checked").length
+		lang: $("input[name='lang']:checked").val()||"", 
+		birthmonth: $("input[name='birthmonth']:checked").length, 
+		is_vip: $("input[name='is_vip']:checked").val()||0
 	}).then(function(r){
 		switch(r["Status"]){
 			case 1:
@@ -224,6 +230,8 @@ function get_recipients(){
 		}
 	}).fail(function(e){
 		msg('<i class="far fa-exclamation-triangle"></i> 喔不，<br>'+JSON.stringify(e));
+	}).always(function(){
+		hj_loading(false);
 	});
 }
 
@@ -242,7 +250,7 @@ function send_mail(bulk, $btn){
 		subject = ($push.find("[data-subject]").val() || "").trim(), 
 		mail = {
 			sender: {
-				name: ($push.find("[data-sender]").val() || "溫度日記").trim(), 
+				name: ($push.find("[data-sender]").val() || "Hearty Journal 溫度日記").trim(), 
 				email: username+"@"+domain, 
 				domain: domain, 
 				list: $("select[name='list']").val()||0
@@ -331,7 +339,7 @@ function send_mail(bulk, $btn){
 				}
 				else{
 					get_sent_stats();
-					msg('<i class="fal fa-envelope-open"></i> 批次寄送完成', "好耶", function(){
+					msg('<i class="fal fa-envelope-open"></i> 批次群發完成', "好耶", function(){
 						
 						$(window).scrollTop(0);
 					});
@@ -341,11 +349,18 @@ function send_mail(bulk, $btn){
 
 			if(bulk && $btn.next().length==0){
 				get_sent_stats();
-				msg('<i class="fal fa-envelope-open"></i> 批次寄送完成', "好耶", function(){
+				
+				// 完成提醒
+				if($("input[name='done_dingdong']:checked").length) dingdong();
+
+				msg('<i class="fal fa-envelope-open"></i> 批次群發完成', "好耶", function(){
 					$(window).scrollTop(0);
 				});
 			}
 			$btn.remove();
+
+			let $res = $(".result");
+			$res.children().slice(19).remove(); // 只留前 19個，減少 loading
 
 			$("<ol>", {
 				title: nickname, 
@@ -357,7 +372,7 @@ function send_mail(bulk, $btn){
 						.add($("<li>", {html: mail["content"]["body"]}))
 			}).data({
 				html: mail["content"]["body"]
-			}).prependTo(".result").fadeIn();
+			}).prependTo($res).fadeIn();
 		}).fail(function(e){
 			alertify.error('<i class="far fa-exclamation-triangle"></i> 糟了，<br>'+JSON.stringify(e).substr(0,20));
 		});
@@ -447,6 +462,33 @@ function filter_all(max_user_id){
 	$u.filter(":eq(1)").val(max_user_id).attr({max: max_user_id});
 }
 function uid_toggle(mode, mode_text){
-	$(".user_data tr").attr("data-off", "").filter(".uid_"+mode).removeAttr("data-off");
+	let mode_another = mode=="listed" ? "interval" : "listed";
+
+	$(".user_data tr").removeAttr("data-off").filter(".uid_"+mode_another).attr("data-off", "");
 	alertify.success('<i class="fas fa-filter"></i> '+mode_text+"模式");
+}
+
+function dingdong(){
+	let context = new window.AudioContext(), 
+	playTone = (freq, startTime, duration) => {
+	let oscillator = context.createOscillator(), 
+		gainNode = context.createGain();
+
+		oscillator.type = 'sine';
+		oscillator.frequency.value = freq;
+
+		gainNode.gain.setValueAtTime(0, startTime);
+		gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.05); // 漸入
+		gainNode.gain.linearRampToValueAtTime(0, startTime + duration); // 漸出
+
+		oscillator.connect(gainNode);
+		gainNode.connect(context.destination);
+
+		oscillator.start(startTime);
+		oscillator.stop(startTime + duration);
+	};
+
+	let now = context.currentTime;
+	playTone(880, now, 0.4); // "叮" - 880Hz
+	playTone(660, now + 0.4, 0.6); // "咚" - 660Hz
 }
