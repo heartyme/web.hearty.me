@@ -78,33 +78,6 @@ function hj_survey(uri, $selector, callback){
 			return $e.val();
 	}
 
-function hj_survey_subscriber(){
-	let $b = $(".btns_action li"); $b.removeAttr("data-active");
-	let r = hj_survey(
-		"1FAIpQLScZSsT5cp4Yf3B41LVbgD6sUMUpMqr6uXyVwR6Cx6Bf6C2l0A", 
-		$(".survey"), 
-		function(r){
-			switch(r){
-				case 1:
-					survey_modified(true);
-					msg('<i class="fas fa-check-circle"></i> 感謝您填寫分享', "不客氣", function(){
-						location.href = "//hearty.me";
-					});
-					fb_event_push(!1, "SubmitApplication");
-				break;
-
-				default:
-					msg();
-					$b.attr("data-active", "");
-				break;
-			}
-	});
-	if(r!==true){
-		survey_notice(true, "請填寫：「"+r+"」");
-		$b.attr("data-active", "");
-	}
-}
-
 function hj_survey_sortable_init($e){
 	$e["list"].sortable({
 		items: "> li", 
@@ -132,6 +105,14 @@ function hj_survey_sortable_init($e){
 			});
 		}
 	}).disableSelection();
+}
+
+function hj_survey_checkbox_limit($e, limit=3){
+	$e = $e || $("[data-checkboxes]");
+	let $boxes = $e.find("input[type='checkbox']"), 
+		count = $boxes.filter(":checked").length;
+
+	$boxes.not(":checked").prop("disabled", count>=limit);
 }
 
 function survey_notice(o, t){
@@ -162,5 +143,64 @@ function survey_unlock(o, n){
 	}
 	else{
 		for(let i=3; i>=n; i--) $s.find("[data-unlock='"+i+"']").fadeOut();
+	}
+}
+
+
+// VIP 知心小調查：forms.gle/t3dWZpGLPNDwtfC57
+function hj_survey_subscriber(){
+	let $b = $(".btns_action li"); $b.removeAttr("data-active");
+	let r = hj_survey(
+		"1FAIpQLScZSsT5cp4Yf3B41LVbgD6sUMUpMqr6uXyVwR6Cx6Bf6C2l0A", 
+		$(".survey"), 
+		function(r){
+			switch(r){
+				case 1:
+					survey_modified(true);
+					msg('<i class="fas fa-check-circle"></i> 感謝您的填寫與分享！ Thank you for filling it out and sharing!', "OK", function(){
+						self.location.href = "//hearty.me";
+					});
+					fb_evt_push(!1, "SubmitApplication");
+				break;
+
+				default:
+					msg();
+					$b.attr("data-active", "");
+				break;
+			}
+	});
+	if(r!==true){
+		survey_notice(true, "請填寫 Please check:「"+r+"」");
+		$b.attr("data-active", "");
+	}
+}
+
+// 2025 貼圖許願池：forms.gle/gBHsr9EUohbNo8ci9
+function hj_survey_stickers(){
+	let $b = $(".btns_action li"); $b.removeAttr("data-active");
+	let r = hj_survey(
+		"1FAIpQLSfGrKLagX6BTqzHZjhqplVmaJaEn8YrGQ-HYA9YqwExHD7SMQ", 
+		$(".survey"), 
+		function(r){
+			switch(r){
+				case 1:
+					survey_modified(true);
+
+					let t = '<i class="far fa-check-circle"></i> 感謝您的填寫與分享！ Thank you for filling it out and sharing!';
+					$(".survey").html(t); msg(t, "不客氣 OK");
+					$(window).scrollTop(0);
+
+					fb_evt_push(!1, "SubmitApplication");
+				break;
+
+				default:
+					msg();
+					$b.attr("data-active", "");
+				break;
+			}
+	});
+	if(r!==true){
+		survey_notice(true, "請填寫 Please fill:「"+r+"」");
+		$b.attr("data-active", "");
 	}
 }

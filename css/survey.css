@@ -12,7 +12,7 @@ html{
 body{
 	background: linear-gradient(135deg, #e2d1c3 0%, #fdfcfb 100%), #e2d1c3;
 	background-attachment: fixed;
-	height: 100vh;
+	min-height: 99vh;
 	scrollbar-width: none;
 	-webkit-overflow-scrolling: touch;
 	overscroll-behavior: none;
@@ -175,24 +175,18 @@ body{
 	cursor: pointer;
 	transition: filter .2s linear;
 }
-.survey .btns_action li[data-active]{
-	background-color: #F16D6E;
-}
-.survey .btns_action li[data-active]:hover{
-	filter: brightness(1.2);
-}
-.survey [data-fal]::before{
-	font-family: "Font Awesome 5 Pro";
-	font-weight: 300;
-	content: attr(data-fal);
-	margin-right: .4em;
-}
-.survey [data-fab]::before{
-	font-family: "Font Awesome 5 Pro";
-	font-weight: 300;
-	content: attr(data-fab);
-	margin-right: .4em;
-}
+	.survey .btns_action li[data-active]{
+		background-color: #f16d6e;
+		cursor: pointer;
+	}
+	.survey .btns_action li[data-active]:hover{
+		filter: brightness(1.2);
+	}
+	.survey .btns_action li[data-fal]:hover::before, 
+	.survey .btns_action li[data-far]:hover::before{
+		font-weight: 900;
+	}
+
 .survey .reminder{
 	font-size: x-small;
 	color: #888;
@@ -211,7 +205,6 @@ body{
 }
 
 @media screen and (max-width: 767px){
-
 	/* Android Keyboard Overlay Fix */
 	.survey{
 		margin-bottom: 10em;
