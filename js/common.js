@@ -730,34 +730,15 @@ function scroll2focused($e){
 }
 
 // 原生複製
-function hj_copy($e, t){
-	if($e.length>0){
-		select_input_text($e);
-		
-		let c = document.execCommand("Copy", false, null);
-		if(c) alertify.success('<i class="far fa-copy"></i> '+(t || _h("h-copy")));
-		$e.blur();
-		return c;
-	}
-	else{
-		return false;
-	}
+function hj_copy($e, msg){
+	hj_copy_text($e.val()||$e.text());
+	alertify.success('<i class="far fa-copy"></i> '+(msg || _h("h-copy")));
 }
 	function hj_copy_text(t){
-		t = t || "";
-		let $e = $("[data-clipboard]");
-		if(!$e.length){
-			$e = $("<input>", {
-				type: "text", 
-				value: t, 
-				"data-clipboard": ""
-			}).appendTo("body");
+		t = (t||"").trim();
+		if(t.length>0){
+			navigator.clipboard.writeText(t);
 		}
-		else{
-			$e.val(t);
-		}
-		hj_copy($e.show());
-		$e.hide();
 	}
 	function select_input_text($e){
 		if($e.length>0){
