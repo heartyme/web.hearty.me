@@ -1397,7 +1397,7 @@ function period__initialize(){
 			// Date-picker bug on some Chrome 131, Windows
 			// https://i.hearty.app/j/6768f963d041c.gif
 			path: "js/periods.min.js", 
-			commit: "9a0df7ac8443df55c57e96fd16c399e038d66bcb" // commit: "main"
+			commit: "6e0d162e6b0701660e74167510ed94eaacb3345f" // commit: "main"
 		}, function(){
 			$pd.slideDown("slow").data({loaded: true});
 		});
@@ -4713,6 +4713,13 @@ function post_revise(retry){
 		// 移除前後的空白行
 		// $e.text().replace(/^\s+|\s+$/g, "")+"\n"
 
+	// 超過字數上限，則儲存前 1萬字，並跳警告
+	let chars = post.length;
+	if(chars>10000){
+		post = post.slice(0, 10000);
+		msg(_h("e-chars_max-0", {$chars: numberWithCommas(chars)})+"<br>"+_h("e-chars_max-1")+" 🤔");
+	}
+
 	retry = Number(retry || 0); // 重試次數
 	clearTimeout(timer);
 
@@ -5105,19 +5112,8 @@ function open_external(l){
 	}
 
 function hj_fullscreen(el){
-	if((document.fullScreenElement && document.fullScreenElement!==null) || (!document.mozFullScreen && !document.webkitIsFullScreen)){
-		if(el.requestFullscreen) el.requestFullscreen();
-		else if(el.mozRequestFullScreen) el.mozRequestFullScreen();
-		else if(el.msRequestFullscreen) el.msRequestFullscreen();
-		else if(el.webkitRequestFullscreen) el.webkitRequestFullScreen();
-
-		ga_evt_push("Fullscreen", {event_category: "Posts", event_label: "Fullscreen"});
-	}
-	else{
-		if(document.exitFullscreen) document.exitFullscreen();
-		else if(document.mozCancelFullScreen) document.mozCancelFullScreen();
-		else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
-	}
+	if(!document.fullscreenElement) el.requestFullscreen();
+	else document.exitFullscreen();
 }
 
 // 更新失敗
