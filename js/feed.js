@@ -17,8 +17,13 @@ hj_getScript("//cdn.jsdelivr.net/combine/npm/@webcreate/infinite-ajax-scroll@3.1
 			}
 		});
 		ias.on("page", function(e){
-			document.title = e.title;
-			history.replaceState(history.state, e.title, e.url);
+			let page_no = e.pageIndex+1, 
+				title = _h("f-title", {$p: page_no})+" | 💝 Hearty Journal 溫度日記";
+			// let title = e.title; // 讀取從 AJAX取得的 <title></title>
+
+			document.title = title;
+			history.replaceState(history.state, title, location.pathname+"?pg="+page_no);
+			// e.url // 讀取從 AJAX取得的 URL (帶有時戳亂數)
 		});
 		ias.on("appended", function(e){
 			if(!e["items"].length) $(".no_more").fadeIn();
@@ -73,8 +78,6 @@ hj_getScript("//cdn.jsdelivr.net/combine/npm/@webcreate/infinite-ajax-scroll@3.1
 		feed_translate();
 		feed_hotkey_init();
 		hj_feed_history_init();
-
-		document.title = _h("f-title")+" | 💝 Hearty Journal 溫度日記";
 	});
 });
 leave_InAppBrowser();
@@ -158,7 +161,7 @@ function read_post(d){
 	let post_id = Number(d["post_id"]) || 0, 
 		$s = $(".page .story"), 
 		$p = $s.find("article"), 
-		$cov = $s.find(".covid19"), 
+		$r = $s.find(".reminder"), 
 		on_mobile = is_touch_device();
 
 	if(!on_mobile) $s.fadeOut("fast");
@@ -183,9 +186,9 @@ function read_post(d){
 				r["post"] = (r["post"]||"").trim();
 				$p.find("p").html(linkify(r["post"]));
 
-				// 檢查是否為 COVID-19 相關
-				if(/co(vid|ronavirus)|vaccin(e|ation)|(epi|pan)demic|delta|omicron|新冠|冠(狀|状)|病毒|肺炎|疫(情|苗)|(防|抗)疫|武(漢|汉)/i.test(r["title"]+r["post"])) $cov.show();
-				else $cov.hide();
+				// 檢查是否為疫情相關
+				if(/co(vid|ronavirus)|vaccin(e|ation)|(epi|pan)demic|delta|omicron|新冠|冠(狀|状)|病毒|肺炎|疫(情|苗)|(防|抗)疫|武(漢|汉)/i.test(r["title"]+r["post"])) $r.show();
+				else $r.hide();
 
 				$p.find(".published").attr({title: r["published"]});
 				$p.attr({
