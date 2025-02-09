@@ -82,9 +82,9 @@ body{
 		max-width: 92%;
 		max-height: 90vh;
 		cursor: pointer;
-		opacity: 0;
 	}
-	.alice_inner [data-quote] p{
+	/* SEO  */
+	.alice_inner article{
 		display: none;
 	}
 
@@ -437,7 +437,7 @@ body{
 			padding: .5em;
 			background: #aaa;
 			color: #fff;
-			opacity: 0.9;
+			opacity: .9;
 			border-radius: .8em;
 			cursor: not-allowed;
 			transition: all .2s linear;

@@ -2,73 +2,81 @@
 
 var btn_alias = "home";
 
-(function($){
-	$(document).ready(function(){
-		post_font();
-		alice_greeting_query(getUrlPara("g"));
-		hj_localize_cn();
-		hj_alice_history_init();
-		account_prefilling();
+$(function(){
+	post_font();
+	// alice_greeting_read(getUrlPara("g")); // 停用
+	hj_localize_cn();
+	hj_alice_history_init();
+	account_prefilling();
 
-		let $n = {
-			top: $(".directory .nav_btn[data-top]"), 
-			left: $(".directory .nav_btn[data-left]")
-		};
-		$n.top.hide();
-		$(".directory").scroll(function(){
-			if($(this).scrollTop()>200){
-				$n.left.stop().fadeOut("fast", function(){
-					$n.top.stop().fadeIn();
-				});
-			}
-			else{
-				$n.top.stop().fadeOut("slow", function(){
-					$n.left.stop().fadeIn();
-				});
-			}
-		});
-
-		$(".mh-head .left").on("click", function(){
-			nav_toggle($(".menu"), true);
-		});
-		$(".alice").find(".tabs,[data-opinions] ul").on("click", function(e){
-			e.stopPropagation();
-		});
-
-		let $p = $(".profile");
-		$p.on("click", function(){
-			profile_popup();
-		}).find(".avatar").on("click", function(){
-			$p.find("[data-link]:visible").click();
-		});
-		$p.find(".profile_btns").on("click", function(e){
-			e.stopPropagation();
-		}).find("[data-link]").on("click", function(){
-			open_url(location.origin+"/"+this.dataset.username+"?feed=1");
-		});
-		$p.find("[data-penpal_add]").on("click", function(){
-			penpal_add(this.dataset.username);
-		});
-
-		let $txt = $(".alice_inner textarea").on("input", function(){
-			let $t = $(this), 
-				$c = $(".alice_inner .comment");
-
-			// 中文輸入法還沒選字時，就會被算入字數，導致無法選字或截斷
-			// 故 JS限為 85字，maxlength 則設為 88字
-			if($t.val().length>=85) $c.addClass("invalid");
-			else $c.removeClass("invalid");
-		}).autogrow(); // stackoverflow.com/a/2948256
-
-		if(!user_verify()){
-			$txt.on("click", function(){
-				user_verify(true);
-			}).attr({readonly: ""});
+	let $n = {
+		top: $(".directory .nav_btn[data-top]"), 
+		left: $(".directory .nav_btn[data-left]")
+	};
+	$n.top.hide();
+	$(".directory").scroll(function(){
+		if($(this).scrollTop()>200){
+			$n.left.stop().fadeOut("fast", function(){
+				$n.top.stop().fadeIn();
+			});
+		}
+		else{
+			$n.top.stop().fadeOut("slow", function(){
+				$n.left.stop().fadeIn();
+			});
 		}
 	});
-})(jQuery);
+
+	$(".mh-head .left").on("click", function(){
+		nav_toggle($(".menu"), true);
+	});
+	$(".alice").find(".tabs,[data-opinions] ul").on("click", function(e){
+		e.stopPropagation();
+	});
+
+	let $p = $(".profile");
+	$p.on("click", function(){
+		profile_popup();
+	}).find(".avatar").on("click", function(){
+		$p.find("[data-link]:visible").click();
+	});
+	$p.find(".profile_btns").on("click", function(e){
+		e.stopPropagation();
+	}).find("[data-link]").on("click", function(){
+		open_url(location.origin+"/"+this.dataset.username+"?feed=1");
+	});
+	$p.find("[data-penpal_add]").on("click", function(){
+		penpal_add(this.dataset.username);
+	});
+
+	let $txt = $(".alice_inner textarea").on("input", function(){
+		let $t = $(this), 
+			$c = $(".alice_inner .comment");
+
+		// 中文輸入法還沒選字時，就會被算入字數，導致無法選字或截斷
+		// 故 JS限為 85字，maxlength 則設為 88字
+		if($t.val().length>=85) $c.addClass("invalid");
+		else $c.removeClass("invalid");
+	}).autogrow(); // stackoverflow.com/a/2948256
+
+	if(!user_verify()){
+		$txt.on("click", function(){
+			user_verify(true);
+		}).attr({readonly: ""});
+	}
+});
 
 leave_InAppBrowser();
+
+function alice_update(d){
+	return $.ajax({
+		url: location.href, 
+		type: "POST", 
+		dataType: "json", 
+		data: d, 
+		async: true
+	});
+}
 
 function user_verify(notice){
 	if(notice){
@@ -123,24 +131,6 @@ function hj_alice_history_init(){
 		history.pushState(null, document.title, location.href);
 	}
 
-/*
-	function hj_alice_history_init__legacy(){
-		if(typeof history.pushState=="function"){
-			history.pushState(null, document.title, location.href);
-			window.addEventListener("popstate", function(){
-				if($(".alice_inner [data-opinions]").is(":visible")){
-					alice_opinions_toggle();
-				}
-				else{
-					nav_goodnight(+($(".goodnight").scrollLeft()==0));
-					history.pushState(null, document.title, location.href);
-				}
-				if(!($("nav.menu").data("mmenu")==null)) $("nav.menu").data("mmenu").close();
-			}, false);
-		}
-	}
-*/
-
 function nav_goodnight(p, no_animation){
 	let $e = $(".goodnight");
 	if($e.length>0){
@@ -171,14 +161,13 @@ function alice_opinions_toggle(o){
 	}
 }
 
-function alice_greeting_query(greeting_id){
-	hj_update({
-		action: "alice_greeting", 
-		greeting_id: greeting_id || ""
+function alice_greeting_read(greeting_id){
+	alice_update({
+		greeting_id: greeting_id||""
 	}).then(function(r){
 		switch(r["Status"]){
 			case 0:
-				alice_greeting_query();
+				alice_greeting_read();
 				msg('<i class="fal fa-comment-exclamation"></i> '+_h("A-no_post"));
 			break;
 
@@ -186,25 +175,29 @@ function alice_greeting_query(greeting_id){
 				r = r["Values"];
 				greeting_id = r["greeting_id"];
 				let $g = $(".goodnight"), 
+					$a = $g.find("article"), 
 					$u = $g.find("[data-opinions] ul");
 
 				$g.find("[data-quote]").attr({title: r["greeting"]})
 					.find("img").attr({
-						// Safari 13 CDN switch
-						src: "//i.hearty.app/a/"+r["greeting_image"], 
+						src: "//i0.wp.com/storage.googleapis.com/hearty_photo_greetings/"+r["greeting_image"], 
 						alt: r["greeting"]
-					}).fadeTo("fast", 1);
+					});
 
-				$g.find("p").text(r["greeting_post"]||"");
-
-				document.title = r["greeting"]+" :: "+_h("A-title")+" | 💝 Hearty Journal 溫度日記";
+				/* SEO */
+				$a.find("h4").text(r["greeting"]||"");
+				$a.find("h5").text(r["greeting_title"]||"");
+				$a.find("p").text(r["greeting_post"]||"");
 
 				$u.attr({
-					title: "親愛的，"+r["greeting_title"], 
+					title: r["greeting_title"], 
 					"data-url": r["greeting_url"] || ""
 				}).find(".opinions").slice(1).remove(); // 清空
 
+				document.title = r["greeting"]+" - "+_h("A-title")+" | 💝 Hearty Journal 溫度日記";
+
 				$g.find(".comment [data-greeting_id]").attr("data-greeting_id", greeting_id);
+
 				if(r["comments"].length>0){
 					$u.find(".opinions:first").after(
 						r["comments"].map(function(c){
@@ -216,20 +209,20 @@ function alice_greeting_query(greeting_id){
 				$(".directory_inner [data-greeting_id]").removeAttr("data-active").filter("[data-greeting_id='"+greeting_id+"']").attr("data-active", "");
 
 				// 顯示加入筆友鈕
-				let $b = $(".profile [data-penpal_add],.profile [data-link]");
+				let $b = $(".profile .profile_btns");
 				if(greeting_id==31){
 					$b.show();
 
 					// 阻擋 7天內註冊的新用戶
-					hj_update({action: "signup_days"}).then(function(r){
-						let days = parseInt(r["Values"]["signup_days"] || 0);
+					alice_update({action: "signup_days"}).then(function(r){
+						let days = parseInt(r["Values"]["signup_days"]||0);
 						if(r["Status"]==1 && days<6){
 							days++;
 							msg('<i class="far fa-user-check"></i> '+_h("A-penpal_guest-0", {
 								$day: numberWithCommas(days), 
 								$th: nth(days)
 							}), _h("A-penpal_guest-1")+' <i class="fas fa-fist-raised"></i>', function(){
-									alice_greeting_query();
+									alice_greeting_read();
 							});
 							ga_evt_push("Penpal_not_allowed");
 						}
@@ -282,32 +275,10 @@ function alice_greeting_query(greeting_id){
 		});
 	}
 
-/*
-function alice_bookmark(post_id){
-	hj_update({
-		action: "bookmark", 
-		post_id: post_id
-	}).then(function(r){
-		switch(r["Status"]){
-			case 1:
-				ga_evt_push("Bookmark", {
-					event_category: "Posts", 
-					event_label: "Bookmark"
-				});
-			break;
-
-			case 2:
-				alice_signin_required();
-			break;
-		}
-	});
-}
-*/
-
 function alice_greeting_comment(greeting_id){
 	let $o = $(".goodnight [data-opinions]"), 
 		$c = $o.find(".comment textarea"), 
-		c = ($c.val() || "").trim().replace(/[\r\n]{2,}/g, "\n"); // stackoverflow.com/a/22962887
+		c = ($c.val()||"").trim().replace(/[\r\n]{2,}/g, "\n"); // stackoverflow.com/a/22962887
 
 	// 已留過言了
 	if($o.find("[data-comment_own='1']").length>1){
@@ -326,8 +297,8 @@ function alice_greeting_comment(greeting_id){
 			return false;
 		}
 
-		hj_update({
-			action: "alice_greeting_comment", 
+		alice_update({
+			action: "comment", 
 			greeting_id: greeting_id, 
 			comment: c
 		}).then(function(r){
@@ -420,8 +391,8 @@ function alice_comment_toggle(v, $c){
 		alertify.set({labels: {ok: _h("A-no"), cancel: '<i class="fas fa-pencil"></i> '+_h("A-comment_edit-1")}, buttonReverse: false});
 		alertify.confirm('<i class="fal fa-edit"></i> '+_h("A-comment_edit-0"), function(e){
 			if(!e){
-				hj_update({
-					action: "alice_greeting_comment_delete", 
+				alice_update({
+					action: "comment_delete", 
 					comment_id: comment_id, 
 				}).then(function(r){
 					switch(r["Status"]){
@@ -554,7 +525,7 @@ function penpal_waitlist(){
 }
 	function penpal_waitlist_redirect(){
 		$(".mask").hide();
-		alice_greeting_query(31);
+		alice_greeting_read(31);
 		alice_opinions_toggle();
 	}
 
