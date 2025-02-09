@@ -210,9 +210,9 @@ a:active{
 		word-break: break-word;
 		letter-spacing: 1px;
 	}
-	.story .covid19{
-		display: none;
-		font-size: small;
+	.story .reminder{
+		display: block;
+		font-size: x-small;
 		color: #cd5c5c;
 		text-overflow: ellipsis;
 		cursor: pointer;
