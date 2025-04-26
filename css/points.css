@@ -1,0 +1,345 @@
+@charset "UTF-8";
+
+*, 
+*::before, 
+*::after{
+	box-sizing: inherit;
+}
+html{
+	box-sizing: border-box;
+	appearance: none;
+}
+
+a:link, 
+a:visited, 
+a:hover, 
+a:active{
+	color: inherit;
+	text-decoration: none;
+}
+body{
+	display: flex;
+	flex-flow: column wrap;
+	margin: 0;
+	padding: 0 1em;
+	color: #444;
+	height: auto;
+	min-height: 99vh;
+	background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
+	-webkit-overflow-scrolling: touch;
+	overscroll-behavior: none;
+}
+	body.noscroll{
+		overflow: hidden;
+	}
+
+/* 覆寫 common.css  */
+body.loading::after{
+	z-index: 4;
+}
+
+h1, h2, h3, h4, h5{
+	margin: .4em 0;
+	letter-spacing: .2px;
+}
+
+header{
+	position: sticky;
+	top: 0;
+
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: center;
+	justify-content: space-between;
+
+	padding: .6em;
+	text-align: center;
+	background: rgba(255,255,255,.3);
+	background-image: linear-gradient(to bottom, rgba(255,255,255,1), rgba(255,255,255,0));
+	-webkit-backdrop-filter: blur(2px);
+	backdrop-filter: blur(2px);
+	z-index: 1;
+}
+	header h4:first-child{
+		padding-top: env(safe-area-inset-top, 0);
+		text-shadow: 0 0 5px #fff;
+	}
+	/* 未登入時隱藏 */
+	header [data-points]:empty{
+		visibility: hidden;
+		pointer-events: none;
+	}
+
+.topbar{
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: center;
+	justify-content: space-between;
+	margin: .4em .6em;
+}
+	.topbar a{
+		color: #222;
+		font-size: small;
+		cursor: pointer;
+	}
+	.topbar div{
+		padding: .6em .8em;
+		font-size: smaller;
+		border: 1px solid #ccc;
+		border-radius: .5em;
+		background: rgba(255,255,255,.7);
+		cursor: pointer;
+	}
+
+.pkgs{
+	display: flex;
+	flex-flow: row wrap;
+	align-items: stretch;
+	justify-content: flex-start;
+	width: 100%;
+	margin: 1em auto;
+	gap: 1em;
+}
+	.pkgs > div{
+		position: relative;
+		flex: 1 0 calc(20% - 2em); /* 5個一排 */
+		display: flex;
+		flex-flow: column nowrap;
+		align-items: center;
+		justify-content: flex-start;
+		max-width: calc(20%);
+		padding: 1em;
+		text-align: center;
+		line-height: 1.6;
+		background: #fff;
+		border-radius: .5em;
+		box-shadow: rgba(0,0,0,.1) 1px 1px 1em 1px;
+		overflow: hidden;
+	}
+	.pkgs h4{
+		margin-top: .6em;
+	}
+
+	.pkgs figure{
+		display: inline-block;
+		width: 100%;
+		height: 150px;
+	}
+		.pkgs figure img{
+			width: 100%;
+			height: 100%;
+			object-fit: contain;
+		}
+		.pkgs figure img.journal{
+			width: 90%;
+			transform: skewY(-3deg);
+		}
+
+	.pkgs .selected{
+		position: absolute;
+		right: -60px;
+		top: -60px;
+		width: 100px;
+		height: 100px;
+		background: #e5b2aa;
+		color: #fff;
+		font-size: x-small;
+		line-height: 2;
+		transform: rotate(45deg);
+	}
+		.pkgs .selected::before{
+			position: absolute;
+			left: 0;
+			bottom: 0;
+			width: 100%;
+			content: attr(title);
+			letter-spacing: 1px;
+			text-align: center;
+		}
+
+	.pkgs .selected ~ h4{
+		margin-top: 1.2em;
+	}
+
+	.pkgs .info{
+		display: flex;
+		flex-flow: row nowrap;
+		justify-content: space-between;
+		align-items: center;
+		width: 100%;
+	}
+	.pkgs .info > :nth-child(2){
+		color: #e08f79;
+	}
+
+
+small{
+	color: #e08f79;
+}
+
+/* popup */
+.popup{
+	position: fixed;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	padding-top: env(safe-area-inset-top, 0);
+	background: linear-gradient(to bottom, rgba(255,255,255,.6), rgba(255,255,255,.9));
+	-webkit-backdrop-filter: blur(5px);
+	backdrop-filter: blur(5px);
+	cursor: pointer;
+	overflow-y: auto; /* 垂直捲軸 */
+	z-index: 3;
+}
+	.popup[data-hidden]{
+		display: none;
+	}
+	.popup > div{
+		display: none;
+		position: relative;
+		width: calc(100% - 2em);
+		max-width: 720px;
+		margin: auto; /* 長內容，確保上方可顯示 */
+		padding: 1em;
+		color: #555;
+		border: 1px solid #ccc;
+		border-radius: .5em;
+		background: #fff;
+		text-align: justify;
+		line-height: 1.6;
+		cursor: auto;
+	}
+	.popup .fa-times-circle{
+		position: absolute;
+		top: -.1em;
+		right: -.3em;
+		font-size: 3em;
+		color: #999;
+		background: #fff;
+		border-radius: 50%;
+		cursor: pointer;
+	}
+	.popup h3{
+		text-align: center;
+	}
+	.popup img{
+		max-width: 100%;
+		max-height: 80vh;
+	}
+	.pkg ul, 
+	.pkg ol{
+		padding: 0 0 0 1em;
+	}
+	.pkg ul{
+		list-style: circle;
+	}
+		.pkg ul > li:not(:first-child){
+			margin-top: 1em;
+		}
+
+	.pkg a{
+		text-decoration: underline;
+	}
+	.pkg input[type="checkbox"]{
+		transform: scale(1.1);
+	}
+	.pkg input + label{
+		margin-left: .2em;
+		cursor: pointer;
+	}
+	.pkg .btns_action{
+		position: sticky;
+		bottom: .4em;
+	}
+
+.btns_action{
+	display: flex;
+	justify-content: space-evenly;
+	list-style: none;
+	padding: 0;
+	text-align: center;
+	margin: 1em 0;
+}
+	.btns_action li{
+		display: inline-flex;
+		letter-spacing: 2px;
+		margin: .4em auto;
+		padding: .8em 1em;
+		border-radius: .6em;
+		color: #fff;
+		background-color: #888;
+		background-image: linear-gradient(to bottom, rgba(255,255,255,.3), rgba(255,255,255,0));
+		cursor: pointer;
+		transition: filter .2s linear;
+		box-shadow: 0 1px 3px rgba(0,0,0,.1);
+	}
+		.btns_action li[data-active]{
+			background-color: #e5b2aa;
+		}
+
+table{
+	width: 100%;
+	max-width: 100%;
+	margin: 1.2em auto;
+	padding: 0 1em;
+	line-height: 1.8;
+}
+th{
+	text-align: center;
+	letter-spacing: .5px;
+	border-radius: .1em;
+	border-bottom: 1px solid #ccc;
+	background: rgba(0,0,0,.05);
+}
+th, td{
+	padding: .4em .6em;
+}
+	tr:nth-child(odd){
+		background: rgba(234,234,234,.4);
+	}
+td{
+	padding: 1em .4em;
+	vertical-align: middle;
+	font-size: small;
+	word-break: break-all;
+	word-wrap: break-word;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	text-align: center;
+}
+[data-cp]{
+	padding: 0 .4em;
+	cursor: pointer;
+}
+	[data-cp]::after, 
+	[data-used]::after{
+		font-family: "Font Awesome 5 Pro";
+		content: "\f0c5";
+		font-weight: 300;
+		padding: 0 0 0 .4em;
+	}
+	[data-cp]::after{
+		content: "\f0c5";
+	}
+	[data-used]::before{
+		content: attr(data-used);
+	}
+	[data-used]::after{
+		content: "\f336";
+	}
+
+/* 直立平板 & 手機 */
+@media only screen and (max-width: 1024px) and (orientation: portrait){
+	.pkgs{
+		gap: .4em;
+	}
+	.pkgs > div{
+		flex: 1 0 calc(50% - .4em); /* 2個一排 */
+		max-width: 50%;
+		padding: .4em;
+	}
+}

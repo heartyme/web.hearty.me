@@ -9,10 +9,10 @@ function account_init(){
 	if(!!m) msg('<i class="fal fa-info-circle"></i> '+decodeURIComponent(m));
 
 	if(!!getUrlPara("ev")){
-		if($("#email_resend[data-timeout='0']:visible").length==1) email_editing();
+		if($("#email_resend[data-timeout='0']:visible").length==1) email_edit();
 	}
 	else if(!!getUrlPara("pc")){
-		password_editing();
+		password_edit();
 	}
 	else if(v==1){
 		nav_account(1, true);
@@ -31,8 +31,8 @@ function account_init(){
 	birthday_init();
 	uploader_init();
 	account_area_calc();
-	account_usage();
-	language_editing();
+	account_stats();
+	language_edit();
 
 	window.addEventListener("resize", account_area_calc, {passive: true});
 
@@ -77,19 +77,40 @@ function account_area_calc(){
 	);
 }
 
-function account_usage(){
-	return hj_update({action: "account_usage"}).then(function(r){
+function account_stats(){
+	// 篇數字數
+	hj_update({action: "account_usage"}).then(function(r){
 		let $u = $(".usage");
 		if(r["Status"]==1){
-			let v = r["Values"], 
-				t = " "+_h("a-usage", {
-					$num: numberWithCommas(v["num"]||0), 
-					$chars: numberWithCommas(v["chars"]||0)
+			r = r["Values"];
+
+			let t = _h("a-usage", {
+					$num: numberWithCommas(parseInt(r["num"]||0)), 
+					$chars: numberWithCommas(parseInt(r["chars"]||0))
 				});
 			$u.text(t).attr({title: t});
 		}
 		else{
 			$u.remove();
+		}
+	});
+
+	// 小布點
+	hj_update({
+		action: "hearty_points", 
+		query: "balance_lookup"
+	}).then(function(r){
+		let $p = $(".points");
+		if(r["Status"]==1){
+			r = r["Values"];
+
+			let t = _h("a-points", {
+					$p: numberWithCommas(parseInt(r["points"]||0))
+				});
+			$p.text(t).attr({title: t});
+		}
+		else{
+			$p.remove();
 		}
 	});
 }
@@ -143,7 +164,7 @@ function birthday_init(){
 		});
 	}
 
-	function birthday_editing(bday){
+	function birthday_edit(bday){
 		if(bday==null) return;
 
 		alertify.set({labels: {ok: '<i class="fas fa-check-circle"></i> '+_h("a-ok-3"), cancel: _h("a-no")}, buttonReverse: false});
@@ -190,14 +211,14 @@ function birthday_init(){
 		return age;
 	}
 
-function password_editing(txt){
+function password_edit(txt){
 	if(!email_verified_required(_h("a-pwd_edit"))) return false;
 
 	alertify.set({labels: {ok: '<i class="fas fa-lock"></i> '+_h("a-pwd_apply-0"), cancel: _h("a-no")}, buttonReverse: false});
 	alertify.prompt('<i class="far fa-key"></i> '+(txt || _h("a-pwd_enter")), function(e, pwd){
 		if(e){
 			if(pwd.length<6 || pwd.length>20){
-				password_editing(_h("a-pwd_invalid"));
+				password_edit(_h("a-pwd_invalid"));
 				alertify_input_shake();
 				return false;
 			}
@@ -235,7 +256,7 @@ function password_editing(txt){
 						});
 					}
 					else{
-						password_editing(_h("a-pwd_mismatch"));
+						password_edit(_h("a-pwd_mismatch"));
 						alertify_input_shake();
 					}
 				}
@@ -291,14 +312,10 @@ function uploader_init(){
 				}, 
 				success: function(r){
 					if(r["status"]==1){ // 1: 成功; 0: 錯誤
-						let img = "s3.ap-northeast-1.wasabisys.com/hearty-users/"+r["basenames"][0];
-						img = [
-							"//i0.wp.com/"+img, 
-							"//"+img
-						];
+						let img = "//i.hearty.app/u/"+r["basenames"][0];
 
-						$("#profile_image img").attr({src: img[0]});
-						$(".profile_image div").css({"background-image": 'url("'+img[0]+'"),url("'+img[1]+'")'});
+						$("#profile_image img").attr({src: img});
+						$(".profile_image div").css({"background-image": 'url('+img+')'});
 
 						picture_rotate();
 						alertify.success('<i class="far fa-address-card"></i> '+_h("a-avatar-3"));
@@ -414,7 +431,7 @@ function picture_rotate(){
 	});
 }
 
-function nickname_editing(changed){
+function nickname_edit(changed){
 	let $n = $("#nickname"), 
 		$btn = $(".account_btn[data-nickname]");
 
@@ -454,7 +471,7 @@ function nickname_editing(changed){
 	}
 }
 
-function email_editing(email){
+function email_edit(email){
 	email = (email || $("[data-email]").attr("data-email") || "").toLowerCase();
 	alertify.set({labels: {ok: '<i class="fas fa-chevron-right"></i> '+_h("a-next"), cancel: _h("a-no")}, buttonReverse: false});
 	alertify.prompt('<i class="far fa-envelope"></i> '+_h("a-email_new"), function(e, email_new){
@@ -507,7 +524,7 @@ function email_editing(email){
 			}
 			else{
 				msg('<i class="fas fa-times"></i> '+_h("a-email_invalid"));
-				email_editing(email_new);
+				email_edit(email_new);
 			}
 		}
 	}, email);
@@ -538,7 +555,7 @@ function email_editing(email){
 		}
 		else{
 			msg('<i class="far fa-envelope-open"></i> '+_h("a-email_verify-0")+(fn || _h("a-email_verify-1")), _h("a-email_verify-2"), function(){
-				email_editing();
+				email_edit();
 			});
 			return false;
 		}
@@ -599,7 +616,7 @@ function email_editing(email){
 		}
 	}
 
-function gender_editing(gender){
+function gender_edit(gender){
 	hj_update({
 		action: "profile_update", 
 		field: "gender", 
@@ -720,7 +737,7 @@ function post_font_change(font_id, font_name){
 	});
 }
 
-function language_editing(lang, title){
+function language_edit(lang, title){
 	// 將帳號內的設定同步至 cookie
 	if(!lang){
 		let lang = parseInt($("#language").val())||1;
@@ -757,7 +774,7 @@ function language_editing(lang, title){
 	setcookie("hearty_language", lang, 730);
 }
 
-function timezone_editing(tz){
+function timezone_edit(tz){
 	hj_update({
 		action: "profile_update", 
 		field: "timezone", 
@@ -790,13 +807,13 @@ function username_details(){
 	let username = $(".hj_username").attr("title") || "";
 	alertify.set({labels: {ok: '<i class="fas fa-sync"></i> '+_h("a-id_edit"), cancel: '<i class="fas fa-hand-peace"></i> '+_h("a-back")}, buttonReverse: true});
 	alertify.confirm('<i class="fal fa-user"></i> '+_h("a-id")+"<u>"+username+'</u> <i class="far fa-globe-asia"></i><br>('+_h("a-id_public")+")", function(e){
-		if(e) username_editing(username);
+		if(e) username_edit(username);
 	});
 }
 	function username_validate(username){
 		return (username||"").toLowerCase().replace(/[\W_]+/g,"");
 	}
-	function username_editing(username, dialog){
+	function username_edit(username, dialog){
 		if(!email_verified_required(_h("a-id_edit"))) return false;
 
 		alertify.set({labels: {ok: '<i class="fas fa-check-circle"></i> '+_h("a-id_edit"), cancel: ""+_h("a-no")}, buttonReverse: true});
@@ -804,16 +821,16 @@ function username_details(){
 			if(e){
 				new_username = (new_username || "").trim().toLowerCase();
 				if(username==new_username){
-					username_editing(username, _h("a-id_same"));
+					username_edit(username, _h("a-id_same"));
 					alertify_input_shake(); return;
 				}
 				else if(new_username.length<4 || !isNaN(new_username) || !/^[a-z0-9]*$/.test(new_username)){
-					username_editing(username, _h("a-id_invalid"));
+					username_edit(username, _h("a-id_invalid"));
 					alertify_input_shake(); return;
 				}
 
 				hj_update({
-					action: "username_editing", 
+					action: "username_edit", 
 					username: new_username
 				}).then(function(r){
 					switch(r["Status"]){
@@ -841,7 +858,7 @@ function username_details(){
 						break;
 
 						default:
-							username_editing(username, _h("a-id_taken", {$id: new_username}));
+							username_edit(username, _h("a-id_taken", {$id: new_username}));
 							alertify_input_shake();
 							return;
 						break;
@@ -925,7 +942,7 @@ function export_txt(txt){
 							event_label: "Posts Exported"
 						});
 
-						msg('<i class="fab fa-wpforms"></i> '+_h("a-dl_pwd-4"), _h("a-ok-1"));
+						msg('<i class="fas fa-folder-download"></i> '+_h("a-dl_pwd-4"), _h("a-ok-1"));
 					});
 				}
 
@@ -1085,8 +1102,15 @@ function voucher_redeem(voucher){
 							currency: "TWD"
 						});
 
-						hj_href("//bit.ly/3Jbdfrx"); // hj_href("shop/vvip");
+						hj_href("shop/vvip");
 					}
+				});
+			}
+			// EC開頭，為療癒商城購物金序號
+			else if(voucher.toLowerCase().startsWith("ec-")){
+				alertify.set({labels: {ok: '<i class="fas fa-shopping-cart"></i> '+_h("a-voucher_ec-1"), cancel: _h("a-back")}, buttonReverse: false});
+				alertify.confirm('<i class="fal fa-info-circle"></i> '+_h("a-voucher_ec-0"), function(e){
+					if(e) location.href = "/life";
 				});
 			}
 			// 2. 外部合作專案
@@ -1123,8 +1147,8 @@ function voucher_redeem(voucher){
 				}).then(function(r){
 					switch(r["Status"]){
 						case 1:
-							let v = r["Values"]||"", 
-								voucher_new = v["voucher"]||"";
+							r = r["Values"]||[];
+							let voucher_new = r["voucher"]||"";
 
 							$.ajax({
 								url: "/gift/"+voucher_new, 
@@ -1136,15 +1160,15 @@ function voucher_redeem(voucher){
 								async: true
 							}).then(function(r){
 								if(r["Status"]==1){
-									let v = r["Values"]||"";
+									r = r["Values"]||[];
 
 									msg('<i class="far fa-gift"></i> '+_h("a-voucher_ok", {
 										$code: voucher, 
-										$days: v["dur"]||0, 
-										$exp: new Date(v["exp"]||"").toLocaleDateString()
+										$days: r["dur"]||0, 
+										$exp: new Date(r["exp"]||"").toLocaleDateString()
 									})+' <i class="far fa-check-circle"></i>', '<i class="fas fa-thumbs-up"></i> '+_h("a-ok-0"), function(){
 
-										location.href = location.origin+"/account?tab=1";
+										location.href = "/account?tab=1";
 									});
 								}
 								else{
@@ -1192,15 +1216,15 @@ function voucher_redeem(voucher){
 						break;
 
 						case 1:
-							let v = r["Values"]||"";
+							r = r["Values"]||[];
 
 							msg('<i class="far fa-gift"></i> '+_h("a-voucher_ok", {
 								$code: voucher, 
-								$days: v["dur"]||0, 
-								$exp: new Date(v["exp"]||"").toLocaleDateString()
+								$days: r["dur"]||0, 
+								$exp: new Date(r["exp"]||"").toLocaleDateString()
 							})+' <i class="far fa-check-circle"></i>', '<i class="fas fa-thumbs-up"></i> '+_h("a-ok-0"), function(){
 
-								location.href = location.origin+"/account?tab=1";
+								location.href = "/account?tab=1";
 								// location.reload();
 							});
 							ga_evt_push(evt);

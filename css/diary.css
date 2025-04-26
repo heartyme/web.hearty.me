@@ -131,7 +131,6 @@ a:active{
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	overflow: hidden;
-	overflow: clip;
 	user-select: all;
 	/* -webkit-text-stroke: .3px #ccc; macOS Safari 會醜醜 */
 	cursor: pointer;
@@ -1264,6 +1263,9 @@ a:active{
 		.popup.style [data-c="cfb3a4"]{
 			background-color: #cfb3a4;
 		}
+		.popup.style [data-c="3f3f3f"]{
+			background-color: #3f3f3f;
+		}
 		.popup.style a[target="_blank"]{
 			border-bottom: 1px solid #888;
 		}
@@ -1446,8 +1448,8 @@ a:active{
 	.popup.notice_checkin [data-shaking]{
 		animation: shake-slow 5s ease-in-out infinite;
 	}
-		.popup.notice_checkin [title][data-point][data-unit]::after{
-			content: attr(title) " " attr(data-point) " " attr(data-unit);
+		.popup.notice_checkin [title][data-points][data-unit]::after{
+			content: attr(title) " " attr(data-points) " " attr(data-unit);
 		}
 
 /* Rating */
@@ -1554,7 +1556,6 @@ a:active{
 		word-wrap: break-word;
 	text-overflow: ellipsis;
 	overflow: hidden;
-	overflow: clip;
 	outline: none;
 	-webkit-user-modify: read-write-plaintext-only;
 	cursor: copy;
@@ -1611,7 +1612,6 @@ a:active{
 		background: rgba(255,255,255,.8);
 		text-align: center;
 		overflow: hidden;
-		overflow: clip;
 	}
 
 .upgrade [data-due1]{
@@ -1697,7 +1697,8 @@ a:active{
 		width: inherit;
 	}
 	.upgrade a, 
-	.purchase a{
+	.purchase a, 
+	.notice_checkin a{
 		font-size: small;
 		color: #888;
 	}
@@ -1727,7 +1728,6 @@ a:active{
 	.popup.feedback .notice:hover, 
 	.popup .btns_action li:hover, 
 	.screenlock .cancel:hover{
-		-webkit-filter: brightness(1.2);
 		filter: brightness(1.2);
 	}
 	.purchase .price_selector{
@@ -2274,7 +2274,6 @@ a:active{
 	transform: translate3d(0,0,19px);
 	scroll-behavior: smooth;
 	overflow-x: hidden;
-	overflow-x: clip;
 	overflow-y: scroll;
 	touch-action: pan-y;
 
@@ -2347,7 +2346,6 @@ body.hj,
 	box-shadow: 10px 10px 30px rgba(0,0,0,.3);
 	cursor: pointer;
 	overflow: hidden;
-	overflow: clip;
 }
 	/* Firefox Bug Fixed: i.imgur.com/O1sFzx8.png
 	@supports (-moz-appearance: none){
@@ -2429,7 +2427,6 @@ body.hj,
 	border-radius: .6em;
 	background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 	overflow-x: hidden;
-	overflow-x: clip;
 	overflow-y: scroll;
 }
 .catalog[data-desktop] .tabs{
@@ -2525,7 +2522,6 @@ body.hj,
 		white-space: nowrap;
 		text-overflow: ellipsis;
 		overflow: hidden;
-		overflow: clip;
 		padding: .4em .2em;
 		letter-spacing: 1px;
 		line-height: 2;
@@ -2624,7 +2620,6 @@ diary.pagination.min.css
 	letter-spacing: 1px;
 	line-height: 1.8;
 	overflow: hidden;
-	overflow: clip;
 }
 .catalog[data-mobile] .diaries li{
 	cursor: pointer;
@@ -2790,7 +2785,6 @@ diary.pagination.min.css
 .bk-list .bk-cover, 
 .bk-list .bk_back{
 	overflow: hidden;
-	overflow: clip;
 }
 .bk-page .diary{
 	display: flex;
@@ -2879,7 +2873,7 @@ diary.pagination.min.css
 	transform: translateX(-50%);
 	padding: 0 1em;
 	background: rgba(255,255,255,.85);
-	background: linear-gradient(to bottom, rgba(255,255,255,.6) 0%,rgba(255,255,255,.9) 100%);
+	background: linear-gradient(to bottom, rgba(255,255,255,.6), rgba(255,255,255,.9));
 	box-shadow: 1px 1px 6px 2px rgba(204,204,204,.8);
 	border-radius: .6em .6em 0 0;
 	z-index: 2;
@@ -2979,7 +2973,6 @@ diary.pagination.min.css
 	padding: 56.25% 0 0 0; /* 16:9 */
 	cursor: pointer;
 	overflow: hidden;
-	overflow: clip;
 }
 	.bk-page .frame.uploading{
 		cursor: wait;
@@ -3595,7 +3588,6 @@ nav.stickerbook .mm-panel::before{
 	top: 1px; /* iOS Safari Bug Fix */
 	padding: 3em .5em;
 	overflow-x: hidden;
-	overflow-x: clip;
 	overflow-y: scroll; /* alt: visible */
 	-webkit-overflow-scrolling: touch;
 }

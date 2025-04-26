@@ -58,7 +58,6 @@ body{
 	background-position: center;
 	background-attachment: fixed;
 	overflow-y: hidden;
-	overflow-y: clip;
 }
 .nav_account{
 	position: sticky;
@@ -99,7 +98,6 @@ body{
 	margin-top: env(safe-area-inset-top, 0);
 	overflow-x: auto;
 	overflow-y: hidden;
-	overflow-y: clip;
 	-webkit-overflow-scrolling: touch;
 	scroll-snap-type: x mandatory;
 	scroll-behavior:smooth;
@@ -154,7 +152,6 @@ body{
 	border-radius: 50%;
 	cursor: n-resize;
 	overflow: hidden;
-	overflow: clip;
 }
 	/* Hover Shine */
 	#profile_image::before{
@@ -215,8 +212,14 @@ body{
 	display: none;
 }
 
+.usage, 
+.points{
+	display: block;
+	margin: .8em auto;
+}
 	.user_profile{
 		padding: .8em 0;
+		line-height: 2;
 	}
 		/* iOS Notch Fix */
 		.user_profile:nth-child(2){
@@ -314,6 +317,7 @@ label[title]::after{
 	border-radius: .5em;
 	letter-spacing: 1px;
 	margin: .5em;
+	line-height: 1.6;
 	cursor: pointer;
 }
 	.account_btn[title]::after{
@@ -355,7 +359,7 @@ label[title]::after{
 	max-width: 320px;
 	background: transparent;
 	border: none;
-	margin: .5em auto;
+	margin: .4em auto;
 	outline: 0;
 	border-bottom: 1px dashed #202020;
     line-height: 2;
@@ -551,7 +555,6 @@ label[title]::after{
 		max-width: 200px;
 		text-overflow: ellipsis;
 		overflow: hidden;
-		overflow: clip;
 	}
 
 .chat_btn{

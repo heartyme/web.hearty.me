@@ -928,9 +928,14 @@ function get_app(os, cp){
 		break;
 
 		case "Windows":
+			// 1.1.4 (Common 2025: Chrome > Brave > Edge)
 			hj_getFile(
-				"d.hearty.app/win/common/Hearty%20Journal.exe", fname+".exe", function(){
-					msg('<img src="//i0.wp.com/hearty.me/images/downloads.png" width="300">');
+				"d.hearty.app/win/Hearty%20Journal.exe", fname+".exe", function(){
+					msg(
+						check_browser("Edg") ? 
+						'<img src="//i0.wp.com/hearty.me/images/downloads.edge.webp">' : 
+						'<img src="//i0.wp.com/hearty.me/images/downloads.png" width="300">'
+					);
 			});
 
 			get_app_events(os, cp);
@@ -938,7 +943,7 @@ function get_app(os, cp){
 
 		case "Macintosh":
 			// 3.1.1 (Browser-Opener, Swift)
-			hj_getFile("cdn.jsdelivr.net/gh/chennien/d.hearty.app@1/mac/browser-opener/Hearty%20Journal.dmg", fname+".dmg");
+			hj_getFile("cdn.jsdelivr.net/gh/chennien/d.hearty.app@0/mac/opener/Hearty%20Journal.dmg", fname+".dmg");
 
 			get_app_events("macOS", cp);
 		break;

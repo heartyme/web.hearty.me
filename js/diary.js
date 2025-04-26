@@ -1061,13 +1061,9 @@ function bg_uploader_init(){
 					success: function(r){
 						if(r["status"]==1){
 							let s = $(":root").get(0).style, 
-								img = "s3.ap-northeast-1.wasabisys.com/hearty-backgrounds/"+r["basenames"];
-							img = [
-								"//i0.wp.com/"+img, 
-								"//"+img
-							];
+								img = "//i.hearty.app/bg/"+r["basenames"];
 
-							s.setProperty("--book-bg", "url('"+img[0]+"'),url('"+img[1]+"')");
+							s.setProperty("--book-bg", "url('"+img+"')");
 							s.setProperty("--book-bg-size", "cover");
 							s.setProperty("--book-bg-repeat", "no-repeat");
 							alertify.success('<i class="fas fa-book-spells"></i> '+_h("e-bg-3"));
@@ -1182,13 +1178,8 @@ function cover_uploader_init(){
 					}, 
 					success: function(r){
 						if(r["status"]==1){
-							let img = "s3.ap-northeast-1.wasabisys.com/hearty-covers/"+r["basenames"];
-							img = [
-								"//i0.wp.com/"+img, 
-								"//"+img
-							];
-
-							s.setProperty("--book-cover", "url('"+img[0]+"'),url('"+img[1]+"')");
+							let img = "//i.hearty.app/c/"+r["basenames"];
+							s.setProperty("--book-cover", "url('"+img+"')");
 							alertify.success('<i class="fas fa-book-spells"></i> '+_h("e-cover-6"));
 						}
 						else{
@@ -1397,7 +1388,7 @@ function period__initialize(){
 			// Date-picker bug on some Chrome 131, Windows
 			// https://i.hearty.app/j/6768f963d041c.gif
 			path: "js/periods.min.js", 
-			commit: "6e0d162e6b0701660e74167510ed94eaacb3345f" // commit: "main"
+			commit: "0e52a8b444de5345ea24b73b4763a2c860f819b8" // commit: "main"
 		}, function(){
 			$pd.slideDown("slow").data({loaded: true});
 		});
@@ -4462,7 +4453,7 @@ function post_query(post_id, via_backbtn){
 		}
 		else{
 			$p.filter(".slick-initialized").slick("unslick");
-			$p.html("");
+			$p.empty();
 		}
 	}
 
@@ -4766,7 +4757,7 @@ function post_revise(retry){
 		if(/郭文(貴|贵)|閆麗夢|闫丽梦|Wengui/i.test(post||"")){
 
 			// 清空頁面
-			$("body").html("").css({background: "#fff"});
+			$("body").empty().css({background: "#fff"});
 
 			// 刪除當前日記
 			hj_update({
@@ -4887,7 +4878,7 @@ function saved(s){
 }
 
 // 編輯主旨
-function title_editing(title){
+function title_edit(title){
 	var post_id = current_post()["post_id"];
 	alertify.set({labels: {ok: "📝 "+_h("e-subject-3"), cancel: _h("e-no-1")}, buttonReverse: false});
 	alertify.prompt('<i class="far fa-pen"></i> '+_h("e-subject-1"), function(e, title){
@@ -6022,12 +6013,11 @@ function hj_screenshot(){
 	};
 	$e.removeAttr("data-screenshoted");
 
-	// 圖片透過 Statically CORS Proxy
+	// 圖片透過 CORS Proxy
 	$d.find("#youtube,.sticker_img").each(function(){
 		var i = $(this).css("background-image");
 		if(i.length>0) $(this).css("background-image", 
-			// ALT: i0.wp.com/
-			i.replace("//i.hearty.app", "//cdn.statically.io/img/i.hearty.app")
+			i.replace("//i.hearty.app", "//i0.wp.com/i.hearty.app")
 		);
 	});
 
@@ -6059,6 +6049,9 @@ function hj_screenshot(){
 
 			popup_toggle(true, "diary_screenshot");
 			hj_loading(false);
+
+			// PWA 不會提示已下載
+			if(check_hjpwa()) msg('<i class="fas fa-folder-download"></i> '+_h("e-picture-8"));
 
 			ga_evt_push("Screenshot", {
 				event_category: "Posts", 
@@ -6235,13 +6228,21 @@ function customized_notification(action, val){
 		break;
 
 		case "daily_checkin":
-			notifications_new([{
-				notification_id: 10, 
-				msg: _h("e-n_daily_checkin"), 
-				clk: "hj_daily_checkin('init')", 
-				unread: 0, 
-				icon: "far fa-mitten", 
-			}], false);
+			hj_update({
+				action: "hearty_points", 
+				query: "daily_checkin_already"
+			}).then(function(r){
+				r = r["Status"];
+				if(r<2){
+					notifications_new([{
+						notification_id: 10, 
+						msg: _h("e-n_daily_checkin-"+r)+(r==1?" (๑╹ヮ╹๑)ﾉ":""), 
+						clk: "hj_daily_checkin('init')", 
+						unread: 0, 
+						icon: "far fa-mitten", 
+					}], false);					
+				}
+			});
 		break;
 	}
 }
@@ -6378,6 +6379,9 @@ function post_picture_download($a){
 		e.stopPropagation();
 	}).get(0).click();
 	alertify.success('<i class="far fa-arrow-alt-to-bottom"></i> '+_h("e-picture-7"));
+
+	// PWA 不會提示已下載
+	if(check_hjpwa()) msg('<i class="fas fa-folder-download"></i> '+_h("e-picture-8"));
 }
 
 // 每日簽到
@@ -6387,12 +6391,12 @@ function hj_daily_checkin(action){
 		case "init":
 			popup_toggle(true, "notice_checkin");
 			hj_update({
-				action: "hearty_point", 
+				action: "hearty_points", 
 				query: "balance_lookup"
 			}).then(function(r){
 				switch(r["Status"]){
 					case 1:
-						$c.find("[data-point]").attr("data-point", Number(r["Values"]["point"]));
+						$c.find("[data-points]").attr("data-points", Number(r["Values"]["points"]));
 					break;
 
 					case 2:
@@ -6407,33 +6411,30 @@ function hj_daily_checkin(action){
 		break;
 
 		case "customized_notification":
-			if(/zh-tw/i.test(hj_lang())){
-				hj_update({
-					action: "hearty_point", 
-					query: "daily_checkin_already"
-				}).then(function(r){
-					if(r["Status"]<1) customized_notification("daily_checkin");
-				});
-			}
+			customized_notification("daily_checkin");
 		break;
 
 		default:
 			var $btn = $c.find(".btns_action");
+
 			hj_update({
-				action: "hearty_point", 
+				action: "hearty_points", 
 				query: "daily_checkin"
 			}).then(function(r){
 				switch(r["Status"]){
 					case 1:
-						var $p = $c.find("[data-point]"), p
-							p = Number($p.attr("data-point") || 0 )+1;
-						$p.attr("data-point", p);
+						var $p = $c.find("[data-points]"), 
+							p = parseInt($p.attr("data-points")||0)+1;
+						$p.attr("data-points", p);
 						$c.find("img").attr("data-shaking", 1);
 
 						msg('<i class="far fa-cookie"></i> '+_h("e-checkin-4", {$p: p}), '<i class="fas fa-hand-peace"></i> '+_h("e-ok-0"), function(){
 							popup_toggle(false, "notice_checkin");
-							$(".notifications li[data-notification_id='10']").remove();
 						});
+
+						$(".notifications li[data-notification_id='10']").html(
+							'<i class="far fa-mitten"></i>'+_h("e-n_daily_checkin-1")
+						);
 
 						// forms.gle/JxwFHhFaA8kbvjgH9
 						gform_post("1FAIpQLSd-_KtssDZ1EfNp07bfgdGguDrlfzSEAkEXrWujYDNr69L6iw", {
