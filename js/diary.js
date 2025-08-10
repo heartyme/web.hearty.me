@@ -64,9 +64,6 @@ $(function(){
 	*/
 });
 
-// 愛諾園測試用 ### debug
-if(!!getcookie("hearty_loveuno")) hj_href("//demo.loveuno.com/?utm_source=hearty_journal&utm_medium=hearty_journal&utm_campaign=hearty_journal&utm_id=hearty_journal");
-
 // unhandledrejection
 window.addEventListener("unhandledrejection", function(e){
 	hj_update_failed({
@@ -784,7 +781,11 @@ function editor_include_once(){
 
 // 手機上，與游標同步下捲
 function editor_editable_scroll_to_bottom(e, el){
-	if(is_touch_device() && e.keyCode==13){
+	if(is_touch_device() && e.keyCode==13 && 
+		// Android App 彈出的鍵盤為絕對定位，會蓋住日記編輯器的下半部
+		// 保留預設行為，可在打字換行時，自動切至下一行
+		!check_hjapp("Android")
+	){
 		var $pg = $(".bk-page"), 
 			range = window.getSelection().getRangeAt(0), 
 			r = document.createRange(), 
@@ -795,7 +796,7 @@ function editor_editable_scroll_to_bottom(e, el){
 			if(check_OS("iOS")) $("body").scrollTop(editable_height-(
 				window.screen.availHeight>=812 ? 333 : 258 // iOS Keybaord Size
 			)); // ALT: $("body").scrollTop($("body").scrollTop()+20);
-			else $pg.scrollTop(editable_height); // Android
+			else $pg.scrollTop(editable_height); // Android Web，捲到底
 		}
 	}
 }
@@ -1388,7 +1389,7 @@ function period__initialize(){
 			// Date-picker bug on some Chrome 131, Windows
 			// https://i.hearty.app/j/6768f963d041c.gif
 			path: "js/periods.min.js", 
-			commit: "0e52a8b444de5345ea24b73b4763a2c860f819b8" // commit: "main"
+			commit: "2d82153af2b372ed363e90080a81d45ee20113ec" // commit: "main"
 		}, function(){
 			$pd.slideDown("slow").data({loaded: true});
 		});
@@ -3234,39 +3235,17 @@ function post_privacy_toggle(privacy, published){
 }
 	// 取得短網址
 	function post_sharable_url(){
-		var $q = $(".share .qrcode"), 
+		let $q = $(".share .qrcode"), 
 			$u = $(".share .sharable_url"), 
 			$i = $u.find("input"), 
 			url = $i.val() || "";
 
-		if(url.indexOf("hj.rs")<0){
-			url_shortener(
-				location.href, 
-				true, 
-				$(".bk-page #subject").text()||""
-			).then(function(url){
-				if(!!url){
-					hj_update({
-						action: "post_sharable_url", 
-						post_id: current_post()["post_id"], 
-						shortened_url: url
-					});
-					url = "https://hj.rs/"+url;
-					$i.val(url);
-					get_qrcode($q, url);
-				}
-			});
-		}
-		else{
-			get_qrcode($q, url);
-		}
+		get_qrcode($q, url);
 		$u.slideDown();
 	}
 
 function hj_native_share(){
-	var url = $(".share .sharable_url input").val() || location.href.replace(location.host, "hearty.app");
-	if(url.indexOf("hearty.app")>0)
-		url += (url.indexOf("?")>0?"&":"?")+"st="+encodeURIComponent($(".bk-page #subject").text()||"");
+	var url = $(".share .sharable_url input").val() || location.href.replace(location.hostname, "o.hearty.me");
 
 	if(/iOS|Android/i.test(check_hjapp())){
 		location.assign(
@@ -4362,16 +4341,11 @@ function post_query(post_id, via_backbtn){
 				);
 
 			// Privacy & Shortened URL
-			var $u = $(".share input");
-			if(!post["shortened_url"]){
-				let u = location.href.replace(location.host, "hearty.app");
-				$u.val(u).attr({placeholder: u});
-			}
-			else{
-				post["shortened_url"] = "https://hj.rs/"+post["shortened_url"];
-				$u.val(post["shortened_url"]).attr({placeholder: post["shortened_url"]});
-			}
-				post_privacy_toggle(post["privacy"], post["published"]);
+			let $u = $(".share input"), 
+				u = location.href.replace(location.hostname, "o.hearty.me");
+			$u.val(u).attr({placeholder: u});
+
+			post_privacy_toggle(post["privacy"], post["published"]);
 
 			if(post_writer==hj_username){
 				// 讀取筆友名單
