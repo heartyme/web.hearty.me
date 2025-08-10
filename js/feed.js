@@ -313,7 +313,7 @@ function profile_popup(username, nickname, profile_image, gender, post_id){
 }
 
 function feed_share_this(username, post_id){
-	let url = "https://hearty.app/"+username+"/"+post_id+"?st="+encodeURIComponent($(".story h2").attr("title")||"");
+	let url = "https://o.hearty.me/"+username+"/"+post_id+"?st="+encodeURIComponent($(".story h2").attr("title")||"");
 
 	if(/iOS|Android/i.test(check_hjapp())){
 		location.assign(

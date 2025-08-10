@@ -991,8 +991,8 @@ function vip_only(fn){
 }
 
 function account_suspend(){
-	alertify.set({labels: {ok: _h("a-no"), cancel: '<i class="fas fa-ban"></i> '+_h("a-suspend-2")}, buttonReverse: false});
-	alertify.confirm('<i class="far fa-exclamation-triangle"></i> '+_h("a-suspend-0")+'<br>(<a onclick="$(\'#alertify-ok\').click();username_details()" href="javascript:void(0)">'+_h("a-suspend-1")+"</a>)", function(e){
+	alertify.set({labels: {ok: '<i class="fas fa-check-circle"></i> '+_h("a-suspend-3"), cancel: _h("a-suspend-2")}, buttonReverse: false});
+	alertify.confirm(_h("a-suspend-0")+'<br>(<a onclick="$(\'#alertify-ok\').click();username_details()" href="javascript:void(0)">'+_h("a-suspend-1")+"</a>)", function(e){
 		if(!e) account_suspend2(false);
 	});
 	hj_vibrate(80);

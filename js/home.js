@@ -190,8 +190,7 @@ function alice_greeting_read(greeting_id){
 				$a.find("p").text(r["greeting_post"]||"");
 
 				$u.attr({
-					title: r["greeting_title"], 
-					"data-url": r["greeting_url"] || ""
+					title: r["greeting_title"]
 				}).find(".opinions").slice(1).remove(); // 清空
 
 				document.title = r["greeting"]+" - "+_h("A-title")+" | 💝 Hearty Journal 溫度日記";
@@ -345,14 +344,7 @@ function alice_greeting_comment(greeting_id){
 }
 
 function hj_share_page(){
-	let url = $(".alice_inner [data-opinions] ul").attr("data-url")||"";
-	if(!url){
-		url = location.href.replace(location.host, "hearty.app");
-		url += (url.indexOf("?")>0?"&":"?")+"st=Alice%20%E8%AA%AA%E6%99%9A%E5%AE%89";
-	}
-	else{
-		url = "https://hj.rs/"+url;
-	}
+	let url = location.href.replace(location.hostname, "o.hearty.me");
 
 	if(/iOS|Android/i.test(check_hjapp())){
 		location.assign("//hearty.me/wv?s="+encodeURIComponent(url.replace(/(^\w+:|^)\/\//, "")));

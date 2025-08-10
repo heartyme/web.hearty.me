@@ -23,7 +23,7 @@ function hj_preview(on, html){
 }
 
 function get_templates(k){
-	return $.getJSON("templates.json?"+"v="+new Date().toLocaleDateString("sv"), function(d){
+	return $.getJSON("templates.json?"+"v="+new Date().toISOString().slice(0,13).replace("T","-"), function(d){
 		return (k==null) ? d : (k in d ? d[k] : false);
 	});
 }
@@ -80,8 +80,8 @@ function editor_init(){
 		toolbar: "code preview fullscreen | undo redo | formatselect bold underline alignjustify aligncenter alignright | forecolor backcolor removeformatk | table image link emoticons | fontsizeselect save", 
 		toolbar_drawer: "sliding", 
 		link_list: [
-			{title: "溫度日記 首頁", value: "https://app.hearty.me/hj"}, 
-			{title: "溫度日記 用戶頁", value: "https://hearty.app/{{username}}"}
+			{title: "溫度日記 首頁", value: "https://o.hearty.me"}, 
+			{title: "溫度日記 用戶頁", value: "https://o.hearty.me/{{username}}"}
 		], 
 		image_list: [
 			{title: "溫度日記 Logo", value: "https://i.hearty.app/i/mailheader.png?o=1"}, 
@@ -329,6 +329,7 @@ function send_mail(bulk, $btn){
 
 				default:
 					alertify.error('<i class="far fa-exclamation-triangle"></i> 發信失敗：<br><b>'+username.substr(0,20)+"</b>");
+					console.error(r["Values"]);
 				break;
 			}
 
@@ -374,7 +375,9 @@ function send_mail(bulk, $btn){
 				html: mail["content"]["body"]
 			}).prependTo($res).fadeIn();
 		}).fail(function(e){
-			alertify.error('<i class="far fa-exclamation-triangle"></i> 糟了，<br>'+JSON.stringify(e).substr(0,20));
+			e = JSON.stringify(e);
+			console.error(e);
+			alertify.error('<i class="far fa-exclamation-triangle"></i> 糟了，<br>'+e.substr(0,20));
 		});
 	}
 

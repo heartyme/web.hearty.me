@@ -1,5 +1,9 @@
 "use strict";
 
+// GA init
+window.dataLayer = window.dataLayer || [];
+dataLayer.push({event: "custom", event_name: "hearty_test"});
+
 $.ajaxSetup({scriptCharset: "utf-8", cache: true});
 $.wait = function(ms){
 	var d = $.Deferred();
@@ -15,13 +19,6 @@ $(function(){
 });
 
 check_hostname();
-
-if(typeof dataLayer!="undefined"){
-	try{
-		dataLayer.push({"event": "hearty_test"});
-	}
-	catch(e){}
-}
 
 // 通用更新
 function hj_update(d){
@@ -370,97 +367,15 @@ function gform_post(uri, data){
 	}
 }
 
-// 短網址
-function url_shortener(path, is_short, title, img, desc){
-	path = (path || "").replace(location.origin+"/", ""); // 剔除域名
-
-	let host = "https://hearty.me/", 
-		utm = "utm_source=hj.rs&utm_medium=hj.rs&utm_campaign=hj.rs", 
-		uri = path+(path.indexOf("?")<0?"?":"&")+utm, 
-		url = encodeURIComponent(host+uri);
-
-	uri = encodeURIComponent(uri);
-	title = encodeURIComponent(title || document.title);
-	img = encodeURIComponent(img || "https://i.hearty.app/i/illustrations/sheara.jpg?o=1");
-	desc = encodeURIComponent(desc || "Hearty Journal 溫度日記："+host+path);
-
-	return $.ajax({
-		url: "//hj.rs/_/get", 
-		type: "POST", 
-		crossDomain: true, 
-		async: true, 
-		headers: {Accept: "application/json"}, 
-		contentType: "application/json", 
-		dataType: "json", 
-		data: JSON.stringify({
-			suffix: {option: is_short ? "SHORT" : "UNGUESSABLE"}, 
-			longDynamicLink: "https://app.hj.rs/?link="+host+"wv?p%3D"+uri+"&apn=com.hearty.me&amv=60&afl="+url+"&ibi=com.hearty.me&isi=1423459636&ifl="+url+"&st="+title+"&sd="+desc+"&si="+img+"&at=1010lPJU&ct=hj.rs&mt=8&pt=119194312&ofl="+url+"&"+utm
-		})
-	}).then(function(j){
-		if("shortLink" in j){
-			let shortened = (j["shortLink"]||"").split("/").slice(-1).toString();
-
-			// forms.gle/TnbqbGpguryiP6UR6
-			gform_post("1FAIpQLSdSBwn2jYQoGxa4_IavoY_PTzhEN-j7drarxHa9lYQSDNKVdQ", {
-				"entry.1786867398": "https://hj.rs/"+shortened, 
-				"entry.596740612": host+path, 
-				"entry.1965404500": check_browser()+", "+check_OS(), 
-				"entry.178006682": today(8)
-			});
-
-			/*
-			hj_update({
-				action: "gform_post", 
-				uri: "1FAIpQLSdSBwn2jYQoGxa4_IavoY_PTzhEN-j7drarxHa9lYQSDNKVdQ", 
-				data: $.param({
-					"entry.1179854838": "[hj_user_id]", 
-					"entry.1215682547": "[hj_username]", 
-					"emailAddress": "[hj_email]", 
-					"entry.1786867398": "https://hj.rs/"+shortened, 
-					"entry.596740612": host+path, 
-					"entry.1965404500": check_browser()+", "+check_OS(), 
-					"entry.178006682": new Date((new Date).getTime()+288e5).toISOString().split("T")[0]
-				})
-			});
-			*/
-			return shortened;
-		}
-		else{
-			return false;
-		}
-	});
-
-	/* ALT:
-	if("fetch" in window){
-		return fetch("//hj.rs/_/get", {
-			method: "POST", 
-			mode: "cors", 
-			cache: "no-cache", 
-			headers: {Accept: "application/json"}, 
-			body: JSON.stringify({
-				suffix: {option: is_short ? "SHORT" : "UNGUESSABLE"}, 
-				longDynamicLink: "https://app.hj.rs/?link=https://hearty.me/wv?p%3D"+uri+"&apn=com.hearty.me&amv=59&afl="+url+"&ibi=com.hearty.me&isi=1423459636&ifl="+url+"&st="+title+"&sd="+desc+"&si="+img+"&at=1010lPJU&ct=hj.rs&mt=8&pt=119194312&ofl="+url+"&"+utm
-			})
-		}).then((r) => {
-			return r.json();
-		}).then((j) => {
-			return ("shortLink" in j) ? (j["shortLink"]||"").replace("app.hj.rs","hj.rs") : false;
-		}).catch((e) => {
-			console.warn("😵 Error: "+JSON.stringify(e));
-		});
-	}
-	*/
-}
-
 // QRcode
 function get_qrcode($qr, url, fn){
 	$qr = $qr || $(".qrcode");
 
 	if("QRCode" in window){
-		let icon = "//i.hearty.app/b/images/qrcode.icon.png?o=1";
+		let icon = "https://i.hearty.app/b/images/qrcode.icon.png?o=1";
 
 		new QRCode($qr.empty().get(0), {
-			text: url || location.href.replace("//hearty.me", "//hearty.app"), 
+			text: url || location.href.replace("//hearty.me", "//o.hearty.me"), 
 			width: 180, 
 			height: 180, 
 			dotScale: 0.8, 
@@ -493,7 +408,7 @@ function get_qrcode($qr, url, fn){
 		hj_getScript_gh({
 			repo: "ushelp/EasyQRCodeJS", 
 			path: "dist/easy.qrcode.min.js", 
-			commit: "4.6.1"
+			commit: "4.6.2"
 		}, function(){
 			get_qrcode($qr, url, fn);
 		});
@@ -610,20 +525,16 @@ function ga_evt_push(evt, val){
 	if(!evt) return;
 
 	// GA
-	if(typeof gtag!="undefined"){
-		try{
-			gtag("event", evt, val);
-		}
-		catch(e){}
-	}
-	/* GA 4
 	if(typeof dataLayer!="undefined"){
 		try{
-			window.dataLayer.push({"event": evt});
+			window.dataLayer.push({
+				event: "custom", 
+				event_name: evt, 
+				event_value: val
+			});
 		}
 		catch(e){}
 	}
-	*/
 
 	// Mixpanel
 	if(typeof mixpanel!="undefined"){
@@ -690,7 +601,7 @@ function ln_evt_push(evt){
 		try{
 			_lt("send", "cv", {
 				type: evt
-			},["91b6ece5-a435-4ac9-9119-d8973be6322e"]);
+			},["857c4e83-2167-46be-b91d-f5434a205e64"]);
 
 			if(evt=="CompleteRegistration") ln_evt_push("Conversion");
 		}
@@ -856,7 +767,7 @@ function hj_rate(){
 				a = ((check_hjapp()||"").match(/iOS|Android/)||[])[0];
 
 			if(!is_touch_device()){ // 電腦網頁
-				open_url("//bit.ly/3WCa2e9");
+				open_url("//www.google.com/search?q=%e6%ba%ab%e5%ba%a6%e6%97%a5%e8%a8%98&ludocid=5960759452335430689#lrd=0x3442aa2ea286a223:0x52b8df23f4015c21,3,5");
 				msg('<i class="fal fa-flower"></i> '+_h("h-rate-2"), _h("h-rate-3")+' <i class="fas fa-kiss-wink-heart"></i>');
 			}
 			else if(!a){ // 手機網頁
