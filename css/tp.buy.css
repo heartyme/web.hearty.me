@@ -325,7 +325,7 @@ main{
 #gpay button{
 	max-width: 120px;
 }
-#alipay{
+.ezpay{
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -337,15 +337,18 @@ main{
 	border-radius: 4px;
 	cursor: pointer;
 }
-	#alipay::before{
-		color: #1373fc;
+	.ezpay:hover{
+		background: #f8f8f8;
 	}
-	#alipay[title]::after{
+	.ezpay[title]::after{
 		content: attr(title);
 		font-size: smaller;
 	}
-	#alipay:hover{
-		background: #f8f8f8;
+	#alipay::before{
+		color: #1373fc;
+	}
+	#wechat::before{
+		color: #09b83e;
 	}
 
 footer{

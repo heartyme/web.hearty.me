@@ -5724,19 +5724,7 @@ function hj_purchase(d){
 	// 藍新 (已停用)
 	function hj_purchase_np(d){
 		if(d==null) return false;
-
-		if(hj_lang_zhcn() && 
-				"recurring" in d && d["recurring"]==0 // 限定為儲值方案
-			){
-			alertify.set({labels: {ok: '<i class="fal fa-credit-card"></i> 银行卡、银联卡丶其他…', cancel: '<i class="fab fa-alipay"></i> 支付宝'}, buttonReverse: false});
-			alertify.confirm('<i class="fal fa-gift"></i> 选择支付方式', function(e){
-				if(!e) d["alipay"] = 1;
-				hj_href("shop/np.buy?"+$.param(d));
-			});
-		}
-		else{
-			hj_href("shop/np.buy?"+$.param(d));
-		}
+		hj_href("shop/np.buy?"+$.param(d));
 
 		let pkg_id = d["pkg"], 
 			pkg = pkg_info(pkg_id);

@@ -23,6 +23,7 @@ var _h$ = {tp: [
 		], 
 		mpay: "Or use mobile payment", 
 		alipay: "Alipay", 
+		wechat: "WeChat Pay", 
 		footer: "This site uses TapPay SSL 2048-bit payment system. Your payment is securely processed by the bank and we never handle your credit card information. TapPay is PCI-DSS compliant, ensuring the safety of your data.", 
 
 		// JS
@@ -65,6 +66,7 @@ var _h$ = {tp: [
 		], 
 		mpay: "或使用行動支付", 
 		alipay: "支付寶", 
+		wechat: "微信支付", 
 		footer: "本站採⽤喬睿科技(TapPay) SSL 2048-bit 交易系統。刷卡時，將於銀⾏端完成交易，本站絕不會經手您的信⽤卡資料。TapPay系統亦通過 PCI-DSS安全稽核，保障您的資料安全無虞。", 
 
 		// JS
@@ -107,6 +109,7 @@ var _h$ = {tp: [
 		], 
 		mpay: "或使用移动支付", 
 		alipay: "支付宝", 
+		wechat: "微信支付", 
 		footer: "本站採⽤乔睿科技(TapPay) SSL 2048-bit 交易系统。刷卡时，将于银⾏端完成交易，本站绝不会经手您的银行卡数据。TapPay系统亦通过 PCI-DSS安全稽核，保障您的数据安全无虞。", 
 
 		// JS
@@ -139,7 +142,7 @@ $(function(){
 		// 非手機 APP，才啟用 GP
 		if(!tp_isapp()) tp_init_gpay(); // GP
 		tp_init_apay(); // AP
-		np_init_alipay(); // 支付寶
+		np_init_ezpay(); // ezPay
 
 		$(".mobile").add($("#agree").parent()).remove(); // 移除手機號碼+續扣同意
 	}
@@ -546,12 +549,11 @@ function tp_pay(payvia, prime, card_country){ // eg. card_country = TW
 			});
 		}
 
-// 藍新支付寶
-function np_init_alipay(){
-	$("#alipay").on("click", function(){
+// ezPay 直連閘道 (支付寶&微信)
+function np_init_ezpay(){
+	$(".ezpay").on("click", function(){
 		tp_loading(true);
-		top.location.href = location.origin+"/shop/np.buy?alipay=1&"+tp_params(true);
-		// top.location.href = location.origin+"/robots.txt?"+tp_params(true)+"&alipay=1";
+		top.location.href = location.origin+"/shop/np.buy?ezpay=1&"+tp_params(true);
 	}).show();
 }
 
@@ -617,12 +619,14 @@ function tp_back(){
 	tp_loading(true);
 	top.location.href = "//bitly.com/3fmoEYD";
 	// a[href] 有 bug 無法轉頁，原因不明
+	// iOS App 2.5.4 後修復
 }
 
 // 開新頁至客服信箱
 function tp_support(){
 	window.open("//hearty.me/d?f=2", "_blank");
 	// a[href] 有 bug 無法轉頁，原因不明
+	// iOS App 2.5.4 後修復
 
 	/*
 	$("<a>", {
