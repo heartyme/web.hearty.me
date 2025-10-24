@@ -85,7 +85,7 @@ function menu_init(){
 			});
 
 			if(!/zh/i.test(hj_lang()) || getcookie("hearty_children")=="1") 
-				$(".menu [data-btn='home'],.menu [data-btn='feed'],.menu [data-btn='life']").remove();
+				$(".menu [data-btn='home'],.menu [data-btn='feed'],.menu [data-btn='blog'],.menu [data-btn='life']").remove();
 
 			fb_deferred_load();
 		});

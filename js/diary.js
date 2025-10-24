@@ -58,8 +58,8 @@ $(function(){
 
 	/* 維修預告
 	scheduled_maintenance(true, [
-		1656795600, // 2022/7/3 @ 5:00am
-		1656799200 // 2022/7/3 @ 6:00am
+		1761249600, // 2025/10/24 @ 4:00am
+		1761253200 // 2025/10/24 @ 5:00am
 	]);
 	*/
 });
@@ -665,7 +665,7 @@ function datepicker_init(){
 
 function editor_include_once(){
 	// 已編輯
-	var $e = $("#editor_editable"), 
+	let $e = $("#editor_editable"), 
 		post_modified = new MutationObserver(function(m){
 			m.forEach(saved);
 		}).observe(
@@ -744,7 +744,7 @@ function editor_include_once(){
 		}
 	});
 
-	var $btn = $(".image-zoom .img_btns");
+	let $btn = $(".image-zoom .img_btns");
 	$btn.find("[data-rotate]").on("click", post_picture_rotate);
 	$btn.find("[data-cssgram]").on("click", post_picture_cssgram);
 	$btn.find("[data-remove]").on("click", post_picture_remove);
@@ -762,13 +762,19 @@ function editor_include_once(){
 	// 平板 App 中，不顯示全螢幕功能
 	if(check_hjapp()) $(".kit.fa-expand-wide").remove();
 
-	// 已給評者，不出現給評提醒 (1個月內)
-	if(!!getcookie("hearty_rated"))
-		$(".notifications li[data-notification_id='6']").remove();
+	let $n = $(".notifications"); // 小鈴鐺
 
-	// 英文版停用投稿功能
-	if(!/zh/i.test(hj_lang())) 
+	// 英文版停用的功能
+	if(!/zh/i.test(hj_lang())){
+		// 投稿功能
 		$(".privacy_selector [data-publish]").remove();
+
+		// 小鈴鐺：療癒商城
+		$n.find("[data-notification_id='21'],[data-notification_id='22']").remove();
+	}
+
+	// 已給評者，不出現給評提醒 (1個月內)
+	if(!!getcookie("hearty_rated")) $n.find("[data-notification_id='6']").remove();
 
 	// 保持螢幕長亮
 	if(check_OS("Android") && "wakeLock" in navigator){
