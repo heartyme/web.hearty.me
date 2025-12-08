@@ -1787,6 +1787,7 @@ a:active{
 		font-size: 4em;
 		vertical-align: middle;
 	}
+		/* 預設台幣 */
 		.purchase .price_unit::before{
 			content: "NT$";
 			color: #777;
@@ -1795,6 +1796,11 @@ a:active{
 			vertical-align: super;
 			margin-right: 1em;
 		}
+			/* 以其他幣種覆寫 */
+			.purchase .price_unit[data-cur]::before{
+				content: attr(data-cur);
+			}
+
 		.purchase .price_unit::after{
 			content: "/ " attr(data-unit);
 			color: #555;

@@ -5386,6 +5386,7 @@ function pricing(on){
 
 		price_selector(4);
 		hj_upgrade_toggle(false);
+		pricing_giap();
 		ga_evt_push("view_item_list");
 		fb_evt_push("ViewContent");
 	}
@@ -5639,6 +5640,31 @@ function price_selector(pkg_id){
 			currency: "TWD"
 		});
 	}
+}
+
+// 取得 Google Play 內購當地價格
+function pricing_giap(){
+	if(!check_hjapp("Android") || 
+		typeof hj_IapInterface=='undefined' || 
+		typeof hj_IapInterface.getIapPrice!='function'
+	) return;
+
+	try{
+		let plan_id = "sub-1m", // base_plan
+			g = JSON.parse(hj_IapInterface.getIapPrice(plan_id)), 
+			price = parseFloat((g.amount_micros/1000000)||'');
+
+		$(".price_unit[data-giap]").text(price.toString()).attr({"data-cur": g.currency||""});
+
+		/* App 端回傳：
+		{
+			"price": "$100.00", // 含符號的貨幣格式，但有小數點
+			"currency": "TWD", // 幣值
+			"amount_micros": 99000000 // 微單位數值
+		}
+		*/
+	}
+	catch(e){}
 }
 
 function hj_purchase(d){
