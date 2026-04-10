@@ -2384,7 +2384,7 @@ function sticker__createDOM(bundle_id, bundle, default_pos){
 
 		$a = $(".hj-sample .asset").clone().attr({
 				title: asset["item_name"], 
-				"data-editing": true, 
+				"data-editing": 1, 
 				"data-bundle_id": bundle_id, 
 				"data-asset_id": asset_id
 			})
@@ -2882,7 +2882,7 @@ function sticker__cut(d){
 	$("#editor .bundle .sticker_static").fadeTo("fast", 0.5);
 
 	// 剪下鈕
-	$a.attr("data-editing", true);
+	$a.attr("data-editing", 1);
 
 	// 工具列鈕
 	$(".editor_toolbelt #paste,#editor").attr({onclick: "sticker__paste("+JSON.stringify({bundle_id: bundle_id, asset_id: asset_id})+",true);saved(false)"});
@@ -3016,7 +3016,7 @@ function sticker__paste(d, scrollintoview){
 	sticker__rotation_margin_fixes(bundle_id, asset_id);
 
 	// 編輯器
-	$a.attr("data-editing", false).css({top: 0, left: 0});
+	$a.attr("data-editing", 0).css({top: 0, left: 0});
 	$i.children(".ui-resizable-handle,.ui-rotatable-handle").hide();
 	if(current_post()["editable"]){
 		$a.draggable("disable");
@@ -4422,14 +4422,12 @@ function post_query(post_id, via_backbtn){
 				}).find(".dots").on("click", function(e){
 					e.stopPropagation();
 				});
-
-				// 電腦上，只要拖曳過，即啟動自動播放
-				if(!is_touch_device()){
-					$p.on("swipe", function(){
-						$(this).slick("slickPlay");
-					});
-				}
 			}
+
+			// Safari 26 Bug Workaround 臨時修復
+			// 以 JS 強制重申 width: 100%，修正 background-size 未套用，而導致封面圖片未縮放至滿版的問題
+			// https://i.hearty.app/j/69bca222ae510.png
+			if(check_browser("Safari")) $(".bk-page figure div").css({width:"100%"});
 		}
 		else{
 			$p.filter(".slick-initialized").slick("unslick");
