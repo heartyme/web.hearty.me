@@ -1,6 +1,6 @@
 @charset "UTF-8";
 
-@import url(//cdn.jsdelivr.net/combine/gh/heartyme/web.hearty.me@41214/css/jquery.ui.resizable.min.css,npm/cropperjs@1.6.2/dist/cropper.min.css,npm/cssgram@0.1.3/source/css/cssgram.min.css,npm/slick-carousel@1.8.1/slick/slick.min.css,gh/heartyme/web.hearty.me@41214/css/diary.pagination.min.css,gh/heartyme/web.hearty.me@41214/css/periods.min.css,gh/heartyme/web.hearty.me@41214/css/ytbox.min.css);
+@import url(//cdn.jsdelivr.net/combine/gh/heartyme/web.hearty.me@41214/css/jquery.ui.resizable.min.css,npm/cropperjs@1.6.2/dist/cropper.min.css,npm/cssgram@0.1.3/source/css/cssgram.min.css,npm/slick-carousel@2.0.0/slick/slick.min.css,gh/heartyme/web.hearty.me@41214/css/diary.pagination.min.css,gh/heartyme/web.hearty.me@41214/css/periods.min.css,gh/heartyme/web.hearty.me@41214/css/ytbox.min.css);
 @import url(//cdn.jsdelivr.net/gh/erikflowers/weather-icons@2.0.10/css/weather-icons.min.css); /* dont use combine */
 
 :root{

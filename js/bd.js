@@ -47,8 +47,9 @@ $(function(){
 	var slide_num = $("body").width()>767 ? 5 : 3;
 	$(".bd_brands div").delay(100).queue(function(){
 		$(this).slick({
-			autoplay: true, 
-			autoplaySpeed: 1500, 
+			rows: 0, 
+			autoplay: true,
+			autoplaySpeed: 1800, 
 			infinite: true, 
 			slidesToShow: slide_num, 
 			slidesToScroll: slide_num, 
@@ -95,7 +96,7 @@ function contact(v){
 	else{
 		$("#alertify-ok").click();
 
-		var m = "jwbzgjx2@nien.co";
+		var m = "oz3dbksu@nien.co";
 		alertify.set({labels: {ok: '<i class="fas fa-copy"></i> '+_h("i-copy-0"), cancel: _h("i-no-0")}, buttonReverse: false});
 		alertify.prompt('<i class="fal fa-envelope"></i> '+_h("i-chat-3"), function(e){
 			if(e){

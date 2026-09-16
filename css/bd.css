@@ -212,7 +212,6 @@ section{
 		transition: filter .2s linear;
 		filter: contrast(1.2) grayscale(1);
 		overflow: hidden;
-		overflow: clip;
 	}
 		.bd_brands > div:hover{
 			filter: contrast(1) grayscale(0);
@@ -440,7 +439,6 @@ footer{
 .tr-widget{
 	margin: 1em auto;
 	overflow: hidden;
-	overflow: clip;
 	cursor: pointer;
 }
 	.tr-widget > a{

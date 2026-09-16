@@ -6,7 +6,7 @@ var timer; // 自動儲存重試 timeout
 $(function(){
 	$d1 = $.when(
 		$d0, // book init
-		hj_getScript("//cdn.jsdelivr.net/combine/gh/godswearhats/jquery-ui-rotatable@1.1.1/jquery.ui.rotatable.min.js,npm/jquery-ui-touch-punch@0.2.3/jquery.ui.touch-punch.min.js,npm/interactjs@1.10.27/dist/interact.min.js"+(!getUrlPara("retry") ? "" : "?"))
+		hj_getScript("//cdn.jsdelivr.net/combine/gh/godswearhats/jquery-ui-rotatable@1.1.1/jquery.ui.rotatable.min.js,npm/jquery-ui-touch-punch@0.2.3/jquery.ui.touch-punch.min.js,npm/interactjs@1.10.28/dist/interact.min.js"+(!getUrlPara("retry") ? "" : "?"))
 	).then(function(){
 		editor_include_once();
 		editor_enable();
@@ -182,6 +182,7 @@ function hj_firstrun(){
 
 				// github.com/kenwheeler/slick/
 				$s.slick({
+					rows: 0, 
 					infinite: false, 
 					arrows: !is_touch_device(), 
 					dots: true, 
@@ -4394,6 +4395,7 @@ function post_query(post_id, via_backbtn){
 				$p.find("figure").length>1
 			){
 				$p.slick({
+					rows: 0, 
 					autoplaySpeed: 1500, 
 					infinite: true, 
 					dots: true, 
@@ -4591,7 +4593,7 @@ function post_create(pos, $btn){
 				// 字數限制
 				if(!hj_membership()[0]){
 					var chars = Number(r["chars"]) || 0, 
-						char_limit = Number(r["char_limit"]) || 5785;
+						char_limit = Number(r["char_limit"]) || 5786;
 					if(chars>char_limit){
 						chars = numberWithCommas(chars);
 						alertify.set({labels: {ok: _h("e-chars-2"), cancel: '<i class="fas fa-star"></i> '+_h("e-chars-1")}, buttonReverse: true});
