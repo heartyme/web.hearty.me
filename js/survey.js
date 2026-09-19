@@ -48,7 +48,7 @@ function hj_survey(uri, $selector, callback){
 
 	if($f_invalid.length>0){
 		shake($f_invalid[0].e);
-		$f_invalid[0].e.focus();
+		$f_invalid[0].e[0]?.focus();
 		return $f_invalid[0].t;
 	}
 
@@ -170,7 +170,7 @@ function hj_survey_subscriber(){
 			}
 	});
 	if(r!==true){
-		survey_notice(true, "請填寫 Please check:「"+r+"」");
+		survey_notice(true, "請填寫 Please fill:「"+r+"」");
 		$b.attr("data-active", "");
 	}
 }

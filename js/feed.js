@@ -45,7 +45,7 @@ hj_getScript("//cdn.jsdelivr.net/combine/npm/@webcreate/infinite-ajax-scroll@3.1
 		let post_assigned = Number(getUrlPara("post") || 0);
 		if(post_assigned>0) focus_active_post(post_assigned).attr("data-active", "");
 
-		$(".page .story").scroll(function(){
+		$(".page .story").on("scroll", function(){
 			let $u = $(".nav_btn.fa-chevron-up");
 			if($(this).scrollTop()>200) $u.stop().fadeIn("slow");
 			else $u.stop().fadeOut("slow");
@@ -98,7 +98,7 @@ function feed_hotkey_init(){
 							$a.filter("[data-active]").next().get(0)
 						) || $a.eq(0).get(0);
 					$a.click();
-					$f.scrollTop($a.offsetTop || $f.get(0).scrollHeight);
+					$f.scrollTop($a.offsetTop || $f.get(0)?.scrollHeight);
 				}
 			}
 		});
@@ -150,7 +150,7 @@ function hj_feed_history_init(){
 function nav_feed(p, no_animation){
 	let $e = $(".feed");
 	if($e.length>0){
-		$e.get(0).scroll({
+		$e.get(0)?.scroll({
 			left: $e.width()*(p||0), 
 			behavior: !no_animation ? "smooth" : "instant"
 		});
@@ -251,7 +251,7 @@ function focus_active_post(post_id){
 	nav_feed(0);
 
 	let $p = $(".feed_wall article"+(post_id==null ? "[data-active]" : "[data-post_id='"+post_id+"']"));
-	if("scrollIntoView" in document.documentElement && $p.length>0) $p.get(0).scrollIntoView();
+	if("scrollIntoView" in document.documentElement && $p.length>0) $p.get(0)?.scrollIntoView();
 
 	$p.delay(400).animate({zoom: 1.1}, 300, function(){
 		$(this).animate({zoom: 1}, 300);

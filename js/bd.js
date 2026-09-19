@@ -94,7 +94,7 @@ function contact(v){
 		});
 	}
 	else{
-		$("#alertify-ok").click();
+		$("#alertify-ok").trigger("click");
 
 		var m = "oz3dbksu@nien.co";
 		alertify.set({labels: {ok: '<i class="fas fa-copy"></i> '+_h("i-copy-0"), cancel: _h("i-no-0")}, buttonReverse: false});
@@ -193,7 +193,7 @@ function hj_share_page(){
 	else{
 		alertify.set({labels: {ok: '下載 <i class="fas fa-qrcode"></i>', cancel: '<i class="fas fa-copy"></i> 複製連結'}, buttonReverse: true});
 		alertify.prompt('<i class="fal fa-link"></i> 本頁網址/QRcode：<br><br><a href="'+qrcode+'" download="合作夥伴服務中心 QRcode"><img src="'+qrcode+'"></a>', function(e){
-			if(e) $("#alertify img").get(0).click();
+			if(e) $("#alertify img").get(0)?.click();
 			else hj_copy($("#alertify .alertify-text"));
 		}, url);
 

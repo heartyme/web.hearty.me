@@ -58,8 +58,7 @@ function ytbox_toggle(o, yt){
 				autoplay: 0, 
 				playsinline: 1
 			}), 
-			allow: "autoplay;encrypted-media;picture-in-picture", 
-			allowfullscreen: ""
+			allow: "fullscreen;autoplay;encrypted-media;picture-in-picture"
 		}).appendTo(".yt_player>div:first-child");
 		hj_video("load_player_api");
 
@@ -175,7 +174,7 @@ function ytbox_add(yt){
 								)
 							);
 							
-							$yt.scrollTop(0); // 加在最後：$yt.scrollTop($yt.get(0).scrollHeight);
+							$yt.scrollTop(0); // 加在最後：$yt.scrollTop($yt.get(0)?.scrollHeight);
 
 							alertify.success('<i class="far fa-play"></i> '+title);
 
@@ -206,7 +205,7 @@ function ytbox_add(yt){
 		/* Autosave after Pasting
 		onpaste: "$.wait(50).then(function(){$('.alertify-text').blur()})", // trigger onchange
 		*/
-		oninput: "if(!!YoutubeURLparser(this.value))$('.alertify-button-ok').click()"
+		oninput: "if(!!YoutubeURLparser(this.value))$('.alertify-button-ok').trigger('click')"
 	});
 
 	ytbox_delete_btns(false);
@@ -317,7 +316,7 @@ function ytbox_lightoff(){
 	if(!$(".mask").length){
 		$("<div>", {class: "mask"}).on("click", function(){
 			$(this).hide();
-		}).appendTo($("body")).get(0).addEventListener("touchmove", function(){
+		}).appendTo($("body")).get(0)?.addEventListener("touchmove", function(){
 			$(this).hide();
 		}, {passive: true})
 	}

@@ -67,11 +67,13 @@ function phone_firebase_init(){
 							"entry.352107652": no, 
 							"entry.1205631750": u.uid, 
 							"entry.1460125899": today(8), 
-							"entry.1757674378": (navigator.userAgent || "")
-						});						
+							"entry.1757674378": (navigator.userAgent||"")
+						});
 
 						window.phone_firebase_result = null;
-						firebase.auth().signOut().then(phone_firebase_verified).catch(function(e){
+						firebase.auth().signOut().then(function(){
+							hj_href("account");
+						}).catch(function(e){
 							msg();
 							location.reload(true);
 						});
@@ -110,7 +112,7 @@ function phone_firebase(){
 
 	if(phone.length<3){
 		msg('<i class="far fa-exclamation-triangle"></i> '+_h("pv-format-0"), _h("pv-ok"), function(){
-			shake($phone.parent()); $phone.focus();
+			shake($phone.parent()); $phone[0]?.focus();
 		});
 		resetReCaptcha();
 		return false;
@@ -122,7 +124,7 @@ function phone_firebase(){
 		switch(e.code){
 			case "auth/invalid-phone-number":
 				msg('<i class="far fa-times"></i> '+_h("pv-format-1"), _h("pv-ok"), function(){
-					shake($phone); $phone.focus();
+					shake($phone); $phone[0]?.focus();
 				});
 			break;
 
@@ -186,7 +188,7 @@ function phone_firebase_verify(code, sms_sent){
 		placeholder: _h("pv-code-0"), 
 		minlength: 1, 
 		maxlength: 6, 
-		onkeyup: "if(this.value.length==6)$('.alertify-button-ok').click()"
+		onkeyup: "if(this.value.length==6)$('.alertify-button-ok').trigger('click')"
 	}, {
 		"letter-spacing": "3px"
 	});
@@ -215,18 +217,6 @@ function phone_not_loaded(){
 function resetReCaptcha(){
 	if(typeof grecaptcha!="undefined" && typeof window.recaptchaWidgetId!="undefined")
 		grecaptcha.reset(window.recaptchaWidgetId);
-}
-
-function phone_firebase_verified(){
-	if(/8(1|86)|66/.test($("#country-code").val())){ // 台日泰
-		alertify.set({labels: {ok: _h("pv-no"), cancel: '<i class="fas fa-hand-point-right"></i> '+_h("pv-ok")}, buttonReverse: true});
-		alertify.confirm('<i class="fab fa-line"></i> '+_h("pv-line"), function(e){
-			hj_href("account"+(e ? "" : "?line=1"));
-		});
-	}
-	else{
-		hj_href("account");
-	}
 }
 
 function phone_manual_verify(username){

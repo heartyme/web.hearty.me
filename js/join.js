@@ -57,17 +57,17 @@ function apply(){
 
 		if($e.val().length<6 || !/@/.test($e.val())){
 			notice(true, "Email 格式不正確");
-			$e.focus(); shake($e);
+			$e[0]?.focus(); shake($e);
 			return false;
 		}
 		else if($p.val().length<10 || $p.val().substr(0,2)!=="09"){
 			notice(true, "手機格式不符合");
-			$p.focus(); shake($p);
+			$p[0]?.focus(); shake($p);
 			return false;
 		}
 		else if($i.val().length<20){
 			notice(true, "報名原因多填一些，讓我們進一步了解你");
-			$i.focus(); shake($i);
+			$i[0]?.focus(); shake($i);
 			return false;
 		}
 
@@ -120,7 +120,7 @@ function examine(){
 	$a.find("input[type='text'][required]").each(function(){
 		if($(this).val().length<1){
 			notice(true, "「"+$(this).attr("title")+"」尚未填寫");
-			$(this).focus(); shake($(this));
+			this.focus(); shake($(this));
 			e = !1; return e;
 		}
 	}); if(!e){return;}
@@ -128,7 +128,7 @@ function examine(){
 	$a.find("input[type='url'][required]").each(function(){ 
 		if($(this).val().length<10){
 			notice(true, "「"+$(this).attr("title")+"」尚未填寫");
-			$(this).select(); shake($(this));
+			$(this).trigger("select"); shake($(this));
 			e = !1; return e;
 		}
 	}); if(!e){return;}

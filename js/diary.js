@@ -21,8 +21,8 @@ $(function(){
 
 	// YTbox
 	hj_getScript_gh({
-		path: "js/ytbox.min.js"
-		// commit: "main"
+		path: "js/ytbox.min.js", 
+		commit: "main"
 	});
 
 	// 網路及電量
@@ -423,7 +423,7 @@ function hj_editor_history_init(){
 
 					// indexOf checks Strings Only
 					case v.indexOf("editable_blur")>0:
-						$e.blur();
+						$e[0]?.blur();
 						return;
 					break;
 
@@ -434,7 +434,7 @@ function hj_editor_history_init(){
 					break;
 
 					case v.indexOf("editable_focus")>0:
-						$e.get(0).focus({preventScroll: false});
+						$e.get(0)?.focus({preventScroll: false});
 					break;
 				}
 			}
@@ -496,7 +496,7 @@ function editor_enable(on){
 			// 相片上傳
 			hj_getScript_gh({
 				path: "js/jquery.uploadfile.min.js", 
-				// commit: "main"
+				commit: "main"
 			}, image_uploader_init);
 
 			$e.data({editor_loaded: true});
@@ -578,11 +578,11 @@ function vip_fn(f, param){
 			break;
 
 			case "cover":
-				$("#cover_upload").click();
+				$("#cover_upload").trigger("click");
 			break;
 
 			case "bg":
-				$("#bg_upload").click();
+				$("#bg_upload").trigger("click");
 			break;
 
 			case "color":
@@ -603,10 +603,10 @@ function vip_fn(f, param){
 function hj_rmenu_init($l){
 	var $r = $(".hj_rmenu");
 	if(!is_touch_device() && $r.length>0){
-		$l.get(0).addEventListener("contextmenu", function(e){
+		$l.get(0)?.addEventListener("contextmenu", function(e){
 			hj_rmenu_toggle(e, true, $l);
 		}, {passive: false});
-		$r.get(0).addEventListener("mouseleave", function(e){
+		$r.get(0)?.addEventListener("mouseleave", function(e){
 			hj_rmenu_toggle(e, false, $l);
 		}, {passive: true});
 	}
@@ -674,7 +674,7 @@ function editor_include_once(){
 			{characterData: true, subtree: true}
 		);
 
-	$e.get(0).addEventListener("paste", saved, {passive: true});
+	$e.get(0)?.addEventListener("paste", saved, {passive: true});
 
 	autosaver_30s();
 
@@ -737,7 +737,7 @@ function editor_include_once(){
 	}).find("img").on("click", function(e){
 		var $s = $(".bk-page .pictures.slick-initialized");
 		if($s.length>0){
-			$s.slick("slickNext").find(".slick-active").click();
+			$s.slick("slickNext").find(".slick-active").trigger("click");
 			$(this).fadeTo("fast", 0.2, function(){
 				$(this).fadeTo("normal", 1);
 			});
@@ -839,16 +839,16 @@ function sticker__draggable_handle(bundle_id, asset_id){
 		$i = $a.children(".sticker_img"), 
 		editor_width = $("#editor").width(), 
 		editor_scrolled = $(".bk-page").scrollTop() || 0, 
-		editor_topmargin = $("#editor").get(0).offsetTop, 
+		editor_topmargin = $("#editor").get(0)?.offsetTop, 
 		top = $a.position().top + editor_scrolled - editor_topmargin, // + 已滾動區域 - #editor 與 .bk-page 的高度差
-		left = $a.get(0).offsetLeft, // $a.position().left
+		left = $a.get(0)?.offsetLeft, // $a.position().left
 		right = editor_width-(left+$i.width())-30;
 
 	// 已旋轉項之右邊界修正
 	if(right>0 && $i.length>0){
 		right = Math.max(
 			0, 
-			Math.ceil(right+$i.width()-$i.get(0).getBoundingClientRect().width)
+			Math.ceil(right+$i.width()-$i.get(0)?.getBoundingClientRect()?.width)
 		);
 	}
 
@@ -923,7 +923,7 @@ function sticker__editor_hotkeys(on, bundle_id, asset_id){
 			$a.animate(current, 25);
 
 			// 保持在視窗內
-			var view = parseInt($a.get(0).offsetTop-$(".bk-page").height()*2/5);
+			var view = parseInt($a.get(0)?.offsetTop-$(".bk-page").height()*2/5);
 			if(view<$(".bk-page").height()+100)
 				$(".bk-page").animate({scrollTop: view}, 60);
 		});
@@ -992,7 +992,7 @@ function style_change(evt){ // ?style=1 網址會觸發
 	}
 
 	function style_color(color){
-		let s = $(":root").get(0).style, 
+		let s = $(":root").get(0)?.style, 
 			$c = $(".colors");
 
 		if(!color){ // 書本初始化
@@ -1019,7 +1019,7 @@ function style_change(evt){ // ?style=1 網址會觸發
 			category: category
 		}).then(function(r){
 			if(r["Status"]==1){
-				let s = $(":root").get(0).style;
+				let s = $(":root").get(0)?.style;
 
 				// 封面 (2)
 				if(category==2){
@@ -1068,7 +1068,7 @@ function bg_uploader_init(){
 					}, 
 					success: function(r){
 						if(r["status"]==1){
-							let s = $(":root").get(0).style, 
+							let s = $(":root").get(0)?.style, 
 								img = "//i.hearty.app/bg/"+r["basenames"];
 
 							s.setProperty("--book-bg", "url('"+img+"')");
@@ -1158,7 +1158,7 @@ function cover_uploader_init(){
 			let cropped = cropper.getCroppedCanvas(), 
 				cropped_b64 = cropped.toDataURL('image/jpeg'), // image/png
 				$cropped = $(".crop canvas").get(0), 
-				s = $(":root").get(0).style;
+				s = $(":root").get(0)?.style;
 
 			s.setProperty("--book-cover", "url("+cropped_b64+")");
 
@@ -1269,7 +1269,7 @@ function network_status(issues, status){
 
 // 翻面
 function flip_book(){
-	$(".bk-flip").click();
+	$(".bk-flip").trigger("click");
 }
 
 function book__initialize(open){
@@ -1346,7 +1346,7 @@ function book__initialize(open){
 	});
 
 	// stickerbook 至頂鈕
-	$(".stickerbook .stickerlist .stickerdir").scroll(function(){
+	$(".stickerbook .stickerlist .stickerdir").on("scroll", function(){
 		if($(this).scrollTop()>200) $(".stickerbook .fa-chevron-square-up").fadeIn();
 		else $(".stickerbook .fa-chevron-square-up").fadeOut();
 
@@ -1360,14 +1360,14 @@ function book__initialize(open){
 	});
 
 	// M$ Edge Dirty Fix (Div Scroll Overflow Issue)
-	if(check_browser("Edge")) $(".bk-cover-back .catalog").scrollTop($(".bk-cover-back .catalog").get(0).scrollHeight);
+	if(check_browser("Edge")) $(".bk-cover-back .catalog").scrollTop($(".bk-cover-back .catalog").get(0)?.scrollHeight);
 }
 
 // 啟動：編輯區
 function editable__initialize(){
 	// Prevent Page Scroll while Moving Stickers: stackoverflow.com/a/27286193 
 	if(is_touch_device()){
-		$(".bk-page").get(0).addEventListener("touchmove", function(e){
+		$(".bk-page").get(0)?.addEventListener("touchmove", function(e){
 			if(e.cancelable) return true;
 		}, {passive: true});
 	}
@@ -1396,7 +1396,7 @@ function period__initialize(){
 			// Date-picker bug on some Chrome 131, Windows
 			// https://i.hearty.app/j/6768f963d041c.gif
 			path: "js/periods.min.js", 
-			commit: "2d82153af2b372ed363e90080a81d45ee20113ec" // commit: "main"
+			commit: "main"
 		}, function(){
 			$pd.slideDown("slow").data({loaded: true});
 		});
@@ -1614,13 +1614,13 @@ function catalog_query(keyword, pg){
 			$(".bk-cover-back .fa-chevron-square-up"), 
 			$(".catalog[data-mobile] .fa-chevron-square-up")
 		];
-		if($(".catalog[data-desktop]").get(0).scrollHeight>$(".bk-cover-back>div").height()){
-			$(".catalog[data-desktop]").scroll(function(){
+		if($(".catalog[data-desktop]").get(0)?.scrollHeight>$(".bk-cover-back>div").height()){
+			$(".catalog[data-desktop]").on("scroll", function(){
 				if($(this).scrollTop()>10) $u[0].fadeIn();
 				else $u[0].fadeOut();
 			});
 		}
-		$(".catalog[data-mobile]>div>div").scroll(function(){
+		$(".catalog[data-mobile]>div>div").on("scroll", function(){
 			if($(this).scrollTop()>10) $u[1].fadeIn();
 			else $u[1].fadeOut();
 		});
@@ -2032,7 +2032,7 @@ function sticker__editor_initialize(bundle_id, asset_id, sticker){
 		$i.append(se);
 
 	// Event Binding
-	$i.find("div[class*='ui-rotatable-handle-']").bind("mousedown", function(e){
+	$i.find("div[class*='ui-rotatable-handle-']").on("mousedown", function(e){
 		$i.rotatable("instance").startRotate(e);
 	});
 	// # OFF: $i.rotatable("disable");
@@ -2076,7 +2076,7 @@ function sticker__editor_initialize(bundle_id, asset_id, sticker){
 		$(".ui-resizable-n,.ui-resizable-e,.ui-resizable-s").remove();
 
 		// # Rotatable
-		$i.get(0).addEventListener("touchmove", function(e){
+		$i.get(0)?.addEventListener("touchmove", function(e){
 			if("touches" in e){
 				var dist = {x: 0, y: 0, sum: 0}, 
 					sum = hj__cache({bucket: "hearty_sticker_finger_gap"}) || null, 
@@ -2139,7 +2139,7 @@ function sticker__editor_initialize(bundle_id, asset_id, sticker){
 
 		}, {passive: true});
 
-		$i.get(0).addEventListener("touchend", function(e){
+		$i.get(0)?.addEventListener("touchend", function(e){
 			hj__cache({set: true, bucket: "hearty_sticker_finger_gap"});
 
 			$i.removeClass("resizing");
@@ -2180,8 +2180,8 @@ function sticker__editor_initialize(bundle_id, asset_id, sticker){
 		// # OFF: interact(".bundle .asset_"+asset_id+" .sticker_img").gesturable({enabled: false});
 
 		/* Click-Twice Issue Solved ( www.sitepoint.com/community/t/what-is-best-mouse-event-for-click-on-mobile-devices/263472/4 )
-			$a.mouseover(function(){
-				$(this).click();
+			$a.on("mouseover", function(){
+				$(this).trigger("click");
 			});
 		*/
 
@@ -2252,7 +2252,7 @@ function sticker__create(item, bundle_id){
 				width: $("#editor").width() || 0, 
 				height: $(".bk-page").height() || 0
 			}, 
-			editor_topmargin = $("#editor").get(0).offsetTop;
+			editor_topmargin = $("#editor").get(0)?.offsetTop;
 
 		// 視窗定焦
 		if(editor_scrolled<editor_topmargin){
@@ -2398,7 +2398,7 @@ function sticker__createDOM(bundle_id, bundle, default_pos){
 			"background-image": "url('//i.hearty.app/b/images/stickers/"+asset["set_alias"]+"/"+asset["item_num"]+".png')"
 		});
 		if(is_touch_device()){
-			$i.children(".detach").get(0).addEventListener("touchmove", function(e){
+			$i.children(".detach").get(0)?.addEventListener("touchmove", function(e){
 				e.stopPropagation();
 			}, {passive: true});
 		}
@@ -2422,8 +2422,8 @@ function sticker__rotation_margin_fixes(bundle_id, asset_id){
 		$i = $a.children(".sticker_img");
 
 	if($i.length<1) return;
-	var bundle_width = Math.floor($i.get(0).getBoundingClientRect().width*0.9), 
-		bundle_height = Math.floor($i.get(0).getBoundingClientRect().height*0.9);
+	var bundle_width = Math.floor($i.get(0)?.getBoundingClientRect()?.width*0.9), 
+		bundle_height = Math.floor($i.get(0)?.getBoundingClientRect()?.height*0.9);
 
 	hj_log("貼紙尺寸："+bundle_width+" x "+bundle_height);
 	if(!bundle_width || !bundle_height) return false;
@@ -2686,7 +2686,7 @@ function sticker__top_edge(bundle){
 		var $a = $(".bundle:first .asset");
 		if($a.length>0)
 			$("#editor_editable").css({
-				"padding-top": Math.ceil($a.get(0).getBoundingClientRect().height)+"px"
+				"padding-top": Math.ceil($a.get(0)?.getBoundingClientRect()?.height)+"px"
 				// ALT: (bundle["position"]["top"]+bundle["size"]["height"]+10)+"px"
 			});
 	}
@@ -2849,7 +2849,7 @@ function sticker__cut(d){
 		// 左右
 		var px = !pos.align_right ? 
 			pos["left"] : // L
-			-1*(pos["right"]+Math.floor($i.get(0).getBoundingClientRect().width*1.05)); // R
+			-1*(pos["right"]+Math.floor($i.get(0)?.getBoundingClientRect()?.width*1.05)); // R
 		$a.animate({left: px}, 0);
 	}
 	else{
@@ -2898,7 +2898,7 @@ function sticker__cut(d){
 	if(touch_device){
 		$(".bk-page").find("header,.frame").hide();
 
-		$(".bk-page").css({"border-top": "none"}).get(0).scroll({
+		$(".bk-page").css({"border-top": "none"}).get(0)?.scroll({
 			top: Math.floor(pos["top"]-$(".bk-page").height()*1/4), 
 			behavior: "instant"
 		});
@@ -2989,7 +2989,7 @@ function sticker__paste(d, scrollintoview){
 	// 顯示日記上方
 	if(touch_device){
 		$(".bk-page").find("header,.frame").show();
-		var editor_topmargin = $("#editor").get(0).offsetTop, 
+		var editor_topmargin = $("#editor").get(0)?.offsetTop, 
 			editor_scrolled = $(".bk-page").scrollTop() || 0, 
 			$p = $(".bk-page");
 
@@ -3006,11 +3006,11 @@ function sticker__paste(d, scrollintoview){
 
 	// 聚焦於貼圖
 	if(scrollintoview){
-		var editor_topmargin = $("#editor").get(0).offsetTop, 
+		var editor_topmargin = $("#editor").get(0)?.offsetTop, 
 			editor_scrolled = $(".bk-page").scrollTop() || 0;
 
-		if("scrollIntoViewIfNeeded" in $i.get(0)) $i.get(0).scrollIntoViewIfNeeded();
-		else if("scrollIntoView" in $i.get(0)) $i.get(0).scrollIntoView();
+		if("scrollIntoViewIfNeeded" in $i.get(0)) $i.get(0)?.scrollIntoViewIfNeeded();
+		else if("scrollIntoView" in $i.get(0)) $i.get(0)?.scrollIntoView();
 		else $(".bk-page").scrollTop(editor_scrolled+editor_topmargin);
 	}
 */
@@ -3522,7 +3522,7 @@ function post_penpal_add(user){
 
 // 封存筆友
 function post_penpal_delete(penpal_id, penpal_nickname, penpal_username){
-	$("#alertify-ok").click();
+	$("#alertify-ok").trigger("click");
 
 	var $s = $(".penpals select");
 	// 1. 說明+顯示驗證
@@ -3742,15 +3742,15 @@ function hj_feedback(){
 
 	if(name.length<2){
 		$s.attr({title: _h("e-feedback-1")});
-		shake($n.focus()); return false;
+		shake($n.trigger("focus")); return false;
 	}
 	else if(!/@/.test(email)){
 		$s.attr({title: _h("e-feedback-2")});
-		shake($e.focus()); return false;
+		shake($e.trigger("focus")); return false;
 	}
 	else if(ticket.length<5){
 		$s.attr({title: _h("e-feedback-3")});
-		shake($t.focus()); return false;
+		shake($t.trigger("focus")); return false;
 	}
 	hj_loading();
 
@@ -3765,7 +3765,7 @@ function hj_feedback(){
 			membership: membership
 		}).then(function(r){
 			if(r["Status"]==1){
-				$f.find("form").get(0).reset();
+				$f.find("form").get(0)?.reset();
 				hj_feedback_toggle(false);
 				$s.attr({title: _h("e-feedback-0", {$no: ticket_no})});
 
@@ -3898,7 +3898,7 @@ function sticker__list(set_num, set_alias){
 
 			var scrolled = $dir.data("scrolled");
 			if(!!scrolled) 
-				$dir.get(0).scroll({
+				$dir.get(0)?.scroll({
 					top: scrolled, 
 					behavior: "instant"
 				});
@@ -3968,8 +3968,8 @@ function sticker__list(set_num, set_alias){
 function editor_focus_zoomin(){
 	var is_mobile = is_touch_device() || $(window).width()<=767, 
 		is_iOS = check_OS("iOS"), 
-		editor_topmargin = $("#editor").get(0).offsetTop;
-	$("#editor_editable").focus(function(){
+		editor_topmargin = $("#editor").get(0)?.offsetTop;
+	$("#editor_editable").on("focus", function(){
 		$(".mh-head .left,.mh-head .right:first>div,.bk-underlayer").hide();
 
 		$(".bk-page").find("header,.frame").slideUp(80);
@@ -3988,7 +3988,7 @@ function editor_focus_zoomin(){
 				let cursor_pos = get_cursor_position($("#editor_editable"));
 				if(cursor_pos<100) ios_body_position_fix(); // $(window).scrollTop(0);
 
-				// ALT: $("#editor_editable").get(0).scrollIntoView();
+				// ALT: $("#editor_editable").get(0)?.scrollIntoView();
 			}, 400); // 實測 400ms 才能確保 iOS鍵盤完全載入
 		}
 		else{
@@ -3997,7 +3997,7 @@ function editor_focus_zoomin(){
 			// Add: Back to Blur
 			hj_editor_history("add", "[editable_blur]");
 		}
-	}).blur(function(){
+	}).on("blur", function(){
 		$(".mh-head .left,.bk-underlayer,.bk-page header,.bk-page .frame,.mh-head .right:first > div").show();
 		$(".bk-page").find("header,.frame").slideDown(80);
 
@@ -4011,7 +4011,7 @@ function editor_focus_zoomin(){
 		$("#editor .bundle").css({"pointer-events": "auto"}).fadeTo("fast", 1);
 
 		if($(".bk-page").scrollTop()<editor_topmargin)
-			$(".bk-page").get(0).scroll({
+			$(".bk-page").get(0)?.scroll({
 				top: editor_topmargin, 
 				behavior: "instant"
 			});
@@ -4154,9 +4154,9 @@ function hj_video(action, yt){
 				onclick: "select_input_text($(this))", 
 
 				/* Autosave after Pasting
-				onpaste: "$.wait(50).then(function(){$('.alertify-text').blur()})", // trigger onchange
+				onpaste: "$.wait(50).then(function(){$('.alertify-text').trigger('blur')})", // trigger onchange
 				*/
-				oninput: "if(!!YoutubeURLparser(this.value))$('.alertify-button-ok').click()"
+				oninput: "if(!!YoutubeURLparser(this.value))$('.alertify-button-ok').trigger('click')"
 			});
 
 			// 1st Click to Select for URL Input on iOS (# not work)
@@ -4446,7 +4446,7 @@ function post_query(post_id, via_backbtn){
 			$e = $e.filter("[data-editable='1']").eq(0);
 
 			if($e.length>0){
-				$e.click(); toolbelt_btn_clicked($btn);
+				$e.trigger("click"); toolbelt_btn_clicked($btn);
 				ga_evt_push("Post "+act, {event_category: "Posts"});
 				return true;
 			}
@@ -4572,7 +4572,7 @@ function post_create(pos, $btn){
 		switch(r["Status"]){
 			case 1:
 				$mask.hide();
-				$(".alertify-button-ok").click(); // Hide Dialogs
+				$(".alertify-button-ok").trigger("click"); // Hide Dialogs
 
 				r = r["Values"];
 				var post_id = r["post_id"];
@@ -4991,7 +4991,7 @@ function open_external(l){
 	});
 
 	$i.hide();
-	if("naturalWidth" in $i.get(0)){
+	if($i.get(0) && "naturalWidth" in $i.get(0)){
 		var retry_intervals = [3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 		(function refetch(){
 			var t = retry_intervals.length;
@@ -4999,7 +4999,7 @@ function open_external(l){
 				$i.attr({
 					src: src+"&t="+t
 				}).on("load", function(){
-					if(t>0 && $(this).get(0).naturalWidth==400){
+					if(t>0 && $(this).get(0)?.naturalWidth==400){
 						$(this).off("load");
 						$.wait(retry_intervals.shift()*1000).then(refetch);
 					}
@@ -5030,7 +5030,7 @@ function open_external(l){
 
 
 	popup_toggle(true, "external_link");
-	$("#editor_editable").blur(); // if Editing on Mobile
+	$("#editor_editable")[0]?.blur(); // if Editing on Mobile
 
 	ga_evt_push("Open External URL", {
 		event_category: "Posts", 
@@ -5121,7 +5121,7 @@ function screenlock(action, para){
 				});
 				open_book(false);
 
-				$sl.slideDown("fast").find("input:first").focus();
+				$sl.slideDown("fast").find("input:first")[0]?.focus();
 			}
 		break;
 
@@ -5268,11 +5268,11 @@ function screenlock(action, para){
 			else if(val.length>0){
 				var $n = $e.nextAll("input:first");
 				if($n.length>0){
-					$n.focus();
+					$n[0]?.focus();
 				}
 				else{
 					screenlock();
-					$e.blur();
+					$e[0]?.blur();
 				}
 			}
 		break;
@@ -5335,7 +5335,7 @@ function screenlock(action, para){
 					}
 				}
 			}
-			$sl.find("input:first").focus();
+			$sl.find("input:first")[0]?.focus();
 	}
 }
 
@@ -5802,7 +5802,7 @@ function post_picture(ask){
 		}).attr({
 			accept: "image/jpeg,image/png,image/gif,image/bmp,image/webp,image/avif,image/heic,image/heif"
 		});
-	if($f.length>0) $f.get(0).click();
+	if($f.length>0) $f.get(0)?.click();
 }
 	// 副檔名檢查 (Safari)
 	// caniuse.com/input-file-accept
@@ -5989,7 +5989,7 @@ function hj_screenshot(){
 		$d = $pg.find(".diary"), 
 		$e = $pg.find("#editor_editable");
 
-		$pg.get(0).scroll({
+		$pg.get(0)?.scroll({
 			top: 0, 
 			left: 0, 
 			behavior: "instant"
@@ -6002,8 +6002,8 @@ function hj_screenshot(){
 
 	// 取得適配 html2canvas 的高度
 	var d = {
-		width: $d.get(0).scrollWidth+20, 
-		height: $d.get(0).scrollHeight
+		width: $d.get(0)?.scrollWidth+20, 
+		height: $d.get(0)?.scrollHeight
 	};
 	$e.removeAttr("data-screenshoted");
 
@@ -6034,7 +6034,7 @@ function hj_screenshot(){
 				rel: "noopener", 
 				onclick: "hj_screenshot_share($(this));event.stopPropagation()", 
 				html: $("<img>", {src: b64})
-			}).appendTo($ss).get(0).click();
+			}).appendTo($ss).get(0)?.click();
 
 			// Resume
 			$d.removeAttr("data-screenshoted");
@@ -6371,7 +6371,7 @@ function post_picture_download($a){
 		download: ($(".bk-page #subject").text() || _h("e-file")).replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, "")
 	}).on("click", function(e){
 		e.stopPropagation();
-	}).get(0).click();
+	}).get(0)?.click();
 	alertify.success('<i class="far fa-arrow-alt-to-bottom"></i> '+_h("e-picture-7"));
 
 	// PWA 不會提示已下載

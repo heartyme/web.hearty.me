@@ -160,7 +160,7 @@ function birthday_init(){
 			maxDate: $d.attr("max") || "", 
 			showButtonPanel: true
 		}).on("click", function(){
-			$(this).datepicker("show").select();
+			$(this).datepicker("show").trigger("select");
 		});
 	}
 
@@ -388,7 +388,7 @@ function hj_picture(ask){
 		});
 		return;
 	}
-	$("#profile_uploader").get(0).click();
+	$("#profile_uploader").get(0)?.click();
 }
 	function hj_picture_onselect(f){
 		if(!f || !f[0]) return;
@@ -698,10 +698,10 @@ function support_pincode(reissue){
 					$("<a>", {
 						href: "data:text/plain;charset=utf-8,"+encodeURIComponent(pin), 
 						download: "Hearty-PINcode.txt"
-					}).get(0).click();
+					}).get(0)?.click();
 				}
 				let $s = $("#Smallchat iframe");
-				if($s.length>0 && !is_touch_device()) $s.contents().find(".Launcher").click();
+				if($s.length>0 && !is_touch_device()) $s.contents().find(".Launcher").trigger("click");
 			});
 		}
 	}).fail(function(){
@@ -885,8 +885,8 @@ function username_details(){
 function nav_account(p, no_animation){
 	let $e = $(".account");
 	if($e.length>0){
-		$e.get(0).scroll({
-			left: $e.children().eq(p||0).get(0).offsetLeft, // $e.width()*(p||0)
+		$e.get(0)?.scroll({
+			left: $e.children().eq(p||0).get(0)?.offsetLeft, // $e.width()*(p||0)
 			behavior: !no_animation ? "smooth" : "instant" // CSS scroll-behavior
 		});
 	}
@@ -930,7 +930,7 @@ function export_txt(txt){
 								value: pwd
 							})
 						)
-					}).appendTo("body").submit();
+					}).appendTo("body").trigger("submit");
 
 					alertify.success('<i class="far fa-arrow-to-bottom"></i> '+_h("a-dl_pwd-3"));
 
@@ -992,7 +992,7 @@ function vip_only(fn){
 
 function account_suspend(){
 	alertify.set({labels: {ok: '<i class="fas fa-check-circle"></i> '+_h("a-suspend-3"), cancel: _h("a-suspend-2")}, buttonReverse: false});
-	alertify.confirm(_h("a-suspend-0")+'<br>(<a onclick="$(\'#alertify-ok\').click();username_details()" href="javascript:void(0)">'+_h("a-suspend-1")+"</a>)", function(e){
+	alertify.confirm(_h("a-suspend-0")+'<br>(<a onclick="$(\'#alertify-ok\').trigger(\'click\');username_details()" href="javascript:void(0)">'+_h("a-suspend-1")+"</a>)", function(e){
 		if(!e) account_suspend2(false);
 	});
 	hj_vibrate(80);
@@ -1013,7 +1013,7 @@ function account_suspend(){
 			// open_url will be blocked by Safari here (due to no user interaction detected)
 			hj_href("//docs.google.com/forms/d/e/1FAIpQLSfVJkAOUtBdmwXo6Hc7GBoCRnXBk41PRdcutHnHfgkrBBL3oA/viewform?embedded=true&emailAddress="+$("[data-email]").attr("data-email")+"&entry.537131775="+$(".hj_username").attr("title")+"&entry.1511837812="+check_browser()+", "+check_OS());
 
-			$("#alertify-ok").click();
+			$("#alertify-ok").trigger("click");
 		}
 	}
 

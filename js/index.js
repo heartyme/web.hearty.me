@@ -219,12 +219,12 @@ function signin(para){
 	if(account.length<3){
 		shake($f);
 		toast(_h("i-signin-2"));
-		$a.focus(); return;
+		$a[0]?.focus(); return;
 	}
 	else if($p.val().length<6){
 		shake($f);
 		toast(_h("i-signin-8"));
-		$p.focus(); return;
+		$p[0]?.focus(); return;
 	}
 
 	hj_update({
@@ -292,7 +292,7 @@ function signin(para){
 			case 2:
 				shake($f);
 				toast(_h("i-signin-"+(account.indexOf("@")<0 ? 3 : 4), {$user: account}));
-				$a.focus();
+				$a[0]?.focus();
 			break;
 
 			case 3:
@@ -304,7 +304,7 @@ function signin(para){
 			default:
 				shake($f);
 				toast(_h("i-signin-7"));
-				$p.val("").focus();
+				$p.val("").trigger("focus");
 			break;
 		}
 	}).fail(function(){
@@ -348,38 +348,38 @@ function signup(){
 	if(!isNaN(account)){
 		shake($f);
 		toast(_h("i-signup-0"));
-		$a.focus(); return;
+		$a[0]?.focus(); return;
 	}
 	else if(account.length<4 || account.length>20){
 		shake($f);
 		toast(_h("i-signup-1"));
-		$a.focus();
+		$a[0]?.focus();
 		return;
 	}
 	else if(email.length<6 || !/@/.test(email)){
 		shake($f);
 		toast(_h("i-signup-2"));
-		$e.focus();
+		$e[0]?.focus();
 		return;
 	}
 	else if(/relay\.firefox|nien\.co|heart/.test(email_domain)||email_domain=="email.com"){
 		shake($f);
 		toast(_h("i-signup-3"));
-		$e.val("").focus();
+		$e.val("").trigger("focus");
 		return;
 	}
 	else if(password.length<6 || password.length>20){
 		shake($f);
 		toast(_h("i-signup-4"));
 		$p2.val("");
-		$p.val("").focus();
+		$p.val("").trigger("focus");
 		return;
 	}
 	else if(password!=password2){
 		shake($f);
 		toast(_h("i-signup-5"));
 		$p2.val("");
-		$p.val("").focus();
+		$p.val("").trigger("focus");
 		return;
 	}
 	// 不建議使用 Yahoo! 信箱
@@ -422,7 +422,7 @@ function signup(){
 	});
 	if(disposable){
 		toast(_h("i-signup-14"));
-		shake($f); $e.val(""); $e.focus();
+		shake($f); $e.val("").trigger("focus");
 		return;
 	}
 
@@ -448,7 +448,7 @@ function signup(){
 		switch(r["Status"]){
 			case 0:
 				msg(_h("i-signup-7"));
-				$a.focus();
+				$a[0]?.focus();
 			break;
 
 			case 1:
@@ -485,25 +485,25 @@ function signup(){
 			case 2:
 				box("signin");
 				toast(_h("i-signup-10")); shake($f);
-				$a.focus();
+				$a[0]?.focus();
 			break;
 
 			case 3:
 				box("signin");
 				toast(_h("i-signup-11")); shake($f);
-				$a.val(email).focus();
+				$a.val(email).trigger("focus");
 			break;
 
 			case 4:
 				toast(_h("i-signup-12"));
 				shake($f);
-				$a.focus();
+				$a[0]?.focus();
 			break;
 
 			case 5:
 				toast(_h("i-signup-13"));
 				shake($f);
-				$e.focus();
+				$e[0]?.focus();
 			break;
 
 			case 9:
@@ -527,7 +527,7 @@ function hj_reset(){
 	if(account.length<3){
 		shake($(".authform"));
 		toast(_h("i-reset-3"));
-		$("#account").focus(); return;
+		$("#account")[0]?.focus(); return;
 	}
 
 	hj_update({
@@ -553,7 +553,7 @@ function hj_reset(){
 			default:
 				shake($(".authform"));
 				toast(_h("i-reset-7"));
-				$("#account").focus();
+				$("#account")[0]?.focus();
 			break;
 		}
 	}).fail(function(){
@@ -641,7 +641,7 @@ function box(toggle){
 		reg = toggle=="signup" ? "/[^a-z0-9]/g" : "/[^a-z0-9-_.@]/g", 
 		oninput = "this.value=(this.value||'').toLowerCase().replace("+reg+",'')";
 
-	$a.focus().attr({title: title, 
+	$a.trigger("focus").attr({title: title,
 		placeholder: title, 
 		maxlength: maxlength, 
 		oninput: oninput
@@ -725,7 +725,7 @@ function language_switch(lang, title){
 	// 切換
 	else{
 		setcookie("hearty_language", lang, 730);
-		$(".alertify-button-ok").click();
+		$(".alertify-button-ok").trigger("click");
 		msg($icon+_h("i-lang", {$lang: title}));
 		location.reload(true);
 	}
@@ -831,9 +831,9 @@ function chat_notice(){
 			});
 		}
 		else{
-			$("#alertify-ok").click();
+			$("#alertify-ok").trigger("click");
 
-			var m = "yv1u2s51@nien.co";
+			var m = "z4ibbfah@nien.co";
 			alertify.set({labels: {ok: '<i class="fas fa-copy"></i> '+_h("i-copy-0"), cancel: _h("i-no-0")}, buttonReverse: false});
 			alertify.prompt('<i class="fal fa-envelope"></i> '+_h("i-chat-3"), function(e){
 				if(e){

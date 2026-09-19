@@ -2,9 +2,6 @@
 
 var btn_alias = "award";
 
-if(/Edge|Trident|MSIE/i.test(check_browser())) 
-	msg('<i class="fal fa-exclamation-circle"></i> IE 太舊囉，請改用其他瀏覽器<br>建議使用：<i class="fab fa-chrome"></i> Google Chrome');
-
 $(function(){
 	post_font();
 	new SlideNav({changeHash: true});
@@ -32,7 +29,7 @@ $(function(){
 
 	$(".nav_btn.fa-share-alt").on("click", hj_share_page);
 	let $u = $(".nav_btn.fa-chevron-up");
-	$(document).scroll(function(){
+	$(document).on("scroll", function(){
 		if($(this).scrollTop()>200) $u.stop().fadeIn("fast");
 		else $u.stop().fadeOut("fast");
 	});
@@ -199,7 +196,7 @@ function cert_generate(evt_no, name, subject){
 		d.addImage("https://i.hearty.app/SJyu20Y.jpg", "JPEG", 0, 0, w, h);
 		d.addImage("https://hearty.me/award/img/cert_hr.png", "PNG", 10, 10, 190, 3.25);
 
-		d.addFont("https://cdn.jsdelivr.net/gh/lxgw/LxgwWenKaiTC@v1.501/fonts/TTF/LXGWWenKaiTC-Regular.ttf", "wenkai", "normal");
+		d.addFont("https://cdn.jsdelivr.net/gh/lxgw/LxgwWenKaiTC@v1.510/fonts/TTF/LXGWWenKaiTC-Regular.ttf", "wenkai", "normal");
 		/* old: 
 		d.addFont("https://cdn.jsdelivr.net/gh/lxgw/LxgwWenKai@d7d3617f8a15832fba7963549928f5855ab97932/TTF/LXGWWenKai-Regular.ttf", "wenkai", "normal");
 		*/
@@ -261,7 +258,7 @@ function hj_share_page(){
 	else{
 		alertify.set({labels: {ok: '下載 <i class="fas fa-qrcode"></i>', cancel: '<i class="fas fa-copy"></i> 複製連結'}, buttonReverse: true});
 		alertify.prompt('<i class="fal fa-link"></i> 分享連結/QRcode：<br><br><a href="'+qrcode+'" download="溫度日記徵文活動 QRcode"><img src="'+qrcode+'"></a>', function(e){
-			if(e) $("#alertify img").get(0).click();
+			if(e) $("#alertify img").get(0)?.click();
 			else hj_copy($("#alertify .alertify-text"));
 		}, url);
 
@@ -289,9 +286,9 @@ function hj_email(v){
 		});
 	}
 	else{
-		$("#alertify-ok").click();
+		$("#alertify-ok").trigger("click");
 
-		let m = "bxejz9a7@nien.co";
+		let m = "pbqexp1z@nien.co";
 		alertify.set({labels: {ok: '<i class="fas fa-copy"></i> 複製', cancel: "否"}, buttonReverse: false});
 		alertify.prompt('<i class="fal fa-envelope"></i> 連絡 Email：<br><small>(如為辦法中敘明之資訊，將不再特別回覆)</small>', function(e){
 			if(e){

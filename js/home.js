@@ -14,7 +14,7 @@ $(function(){
 		left: $(".directory .nav_btn[data-left]")
 	};
 	$n.top.hide();
-	$(".directory").scroll(function(){
+	$(".directory").on("scroll", function(){
 		if($(this).scrollTop()>200){
 			$n.left.stop().fadeOut("fast", function(){
 				$n.top.stop().fadeIn();
@@ -38,7 +38,7 @@ $(function(){
 	$p.on("click", function(){
 		profile_popup();
 	}).find(".avatar").on("click", function(){
-		$p.find("[data-link]:visible").click();
+		$p.find("[data-link]:visible").trigger("click");
 	});
 	$p.find(".profile_btns").on("click", function(e){
 		e.stopPropagation();
@@ -134,7 +134,7 @@ function hj_alice_history_init(){
 function nav_goodnight(p, no_animation){
 	let $e = $(".goodnight");
 	if($e.length>0){
-		$e.get(0).scroll({
+		$e.get(0)?.scroll({
 			left: $e.width()*(p||0), 
 			behavior: !no_animation ? "smooth" : "instant"
 		});
@@ -358,7 +358,7 @@ function hj_share_page(){
 	else{
 		alertify.set({labels: {ok: _h("A-url-2")+' <i class="fas fa-qrcode"></i>', cancel: '<i class="fas fa-copy"></i> '+_h("A-url-0")}, buttonReverse: true});
 		alertify.prompt('<i class="fal fa-link"></i> '+_h("A-url-1")+'<br><br><a class="qrcode"></a>', function(e){
-			if(e) $("#alertify .qrcode").get(0).click();
+			if(e) $("#alertify .qrcode").get(0)?.click();
 			else hj_copy($("#alertify .alertify-text"));
 		}, url);
 
@@ -392,7 +392,7 @@ function alice_comment_toggle(v, $c){
 							let $i = $(".comment textarea");
 							$i.val(
 								($c.text()+" "+($i.val()||"")).trim()
-							).focus();
+							)[0]?.focus();
 
 							$c.parent().slideUp(400, function(){
 								$(this).remove();

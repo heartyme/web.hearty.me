@@ -7,13 +7,13 @@ $(function(){
 		return false;
 	};
 
-	$(document).scroll(function(){
+	$(document).on("scroll", function(){
 		let $u = $(".notify .page_up");
 		if($(this).scrollTop()>200) $u.stop().fadeIn("slow");
 		else $u.stop().fadeOut("slow");
 	});
 
-	if(!!getUrlPara("order_id")) $("select[data-template]").val("unpaid_order").change();
+	if(!!getUrlPara("order_id")) $("select[data-template]").val("unpaid_order").trigger("change");
 });
 
 function hj_update__push(d){
@@ -80,7 +80,7 @@ function get_recipients(){
 				}
 
 				$recipients.slideDown("fast", function(){
-					$("html, body").scrollTop($recipients.get(0).offsetTop-50);
+					$("html, body").scrollTop($recipients.get(0)?.offsetTop-50);
 				});
 			break;
 
@@ -101,7 +101,7 @@ function send_push(bulk, $btn){
 	$btn = $btn==null ? $(".recipients li[data-sent_today='0']:first") : $btn;
 	if(!$btn.length) return false;
 
-	let d = $btn.get(0).dataset, 
+	let d = $btn.get(0)?.dataset, 
 		$push = $(".push_data"), 
 		push = {
 			body: ($push.find("[data-body]").val() || "").trim(), 

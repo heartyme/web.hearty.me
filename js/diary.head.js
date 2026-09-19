@@ -3,7 +3,7 @@ function open_book(o){
 		o = o || !opened, 
 		$t = $(".editor_toolbelt");
 	if(o!==opened){
-		$(".bk-read").click();
+		$(".bk-read").trigger("click");
 		if(is_touch_device()){
 			if(o) $t.slideDown("normal");
 			else $t.slideUp("fast");

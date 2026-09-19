@@ -59,7 +59,7 @@ function get_templates(k){
 		$("<a>", {
 			href: "data:"+(t||"text/plain")+";charset=utf-8,"+encodeURIComponent(tinymce.activeEditor.getContent()||""), 
 			download: "信件模板_"+new Date().toLocaleDateString("sv")+".html"
-		}).get(0).click();
+		}).get(0)?.click();
 		alertify.success('<i class="fas fa-arrow-to-bottom"></i> 開始下載');
 	}
 
@@ -136,7 +136,7 @@ function editor_init(){
 					cb(blobInfo.blobUri(), {title: file.name});
 				};
 				reader.readAsDataURL(file);
-			}).click();
+			}).trigger("click");
 		} 
 		*/
 	});
@@ -215,7 +215,7 @@ function get_recipients(){
 						});
 					})
 				).slideDown("fast", function(){
-					$(window).scrollTop($recipients.get(0).offsetTop-50);
+					$(window).scrollTop($recipients.get(0)?.offsetTop-50);
 				});
 			break;
 
@@ -240,12 +240,13 @@ function send_mail(bulk, $btn){
 	$btn = $btn==null ? $(".recipients li[data-sent_today='0']:first") : $btn;
 	if(!$btn.length) return false;
 
-	let d = $btn.get(0).dataset, 
+	let d = $btn.get(0)?.dataset, 
 		$push = $(".push_data"), 
 		user_id = (d["user_id"] || "").trim(), 
 		username = (d["username"] || "").trim(), 
 		nickname = (d["nickname"] || username || "").trim(), 
 		email = (d["email"] || "").trim(), 
+		month = new Date().getMonth()+1, 
 		domain = $push.find("[data-sender_domain]").val() || "notify.heartymail.com", 
 		subject = ($push.find("[data-subject]").val() || "").trim(), 
 		mail = {
@@ -279,13 +280,15 @@ function send_mail(bulk, $btn){
 		.replace(/\{{user_id}}/g, user_id)
 		.replace(/\{{username}}/g, username)
 		.replace(/\{{nickname}}/g, nickname)
-		.replace(/\{{email}}/g, email);
+		.replace(/\{{email}}/g, email)
+		.replace(/\{{month}}/g, month);
 	mail["content"]["body"] = c["body"]
 		.replace(/\{{subject}}/g, subject)
 		.replace(/\{{user_id}}/g, user_id)
 		.replace(/\{{username}}/g, username)
 		.replace(/\{{nickname}}/g, nickname)
-		.replace(/\{{email}}/g, email);
+		.replace(/\{{email}}/g, email)
+		.replace(/\{{month}}/g, month);
 
 	if(bulk){
 		send_mail_exec(mail, bulk, $btn);

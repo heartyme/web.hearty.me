@@ -199,7 +199,7 @@ function tp_params(get){
 	}
 	// get
 	else{
-		return $.param($b.get(0).dataset);
+		return $.param($b.get(0)?.dataset);
 	}
 }
 
@@ -632,7 +632,7 @@ function tp_support(){
 	$("<a>", {
 		target: "_blank", 
 		href: "//hearty.me/d?f=2"
-	}).get(0).click();
+	}).get(0)?.click();
 	*/
 }
 
@@ -641,14 +641,14 @@ function tp_kyc(phone){
 	// 驗證前提醒
 	if(!phone){
 		tp_msg('<i class="far fa-mobile"></i> '+_h("tp-kyc-0"), function(){
-			$phone_no.focus();
+			$phone_no[0]?.focus();
 		});
 	}
 	// 驗證失敗後訊息
 	else{
 		tp_msg('<i class="far fa-info-circle"></i> '+_h("tp-kyc-1", {$no: phone||""}), 
 			function(){
-			$phone_no.val("").focus();
+			$phone_no.val("").trigger("focus");
 		});
 	}
 }
@@ -669,7 +669,7 @@ function tp_lang(){
 function _h_init(){
 	if(typeof _h$=="object" && $("[data-h]").length>0){
 		$("body *,title").each(function(){
-			let o = Object.assign({}, $(this).get(0).dataset);
+			let o = Object.assign({}, $(this).get(0)?.dataset);
 
 			for(let k in o){
 				// 文字

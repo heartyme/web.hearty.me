@@ -4,7 +4,7 @@ function bill(order_no){
 	if(order_no==null || order_no=="")
 		msg('<i class="fal fa-gift-card"></i>'+_h("o-plan-2"));
 	else
-		hj_href("shop/bill?o="+order_no);
+		hj_href("shop/np.bill?o="+order_no);
 }
 
 function bill_reload(){
@@ -63,14 +63,14 @@ function bill_screenshot($e, orderno){
 		window.html2canvas($e.get(0), {
 			useCORS: true, 
 			scale: window.devicePixelRatio, 
-			width: $e.get(0).offsetWidth, 
-			height: $e.get(0).offsetHeight
+			width: $e.get(0)?.offsetWidth, 
+			height: $e.get(0)?.offsetHeight
 		}).then(function(c){
 			$(".btn_screenshot_download").removeAttr("onclick").attr({
 				target: "_blank", 
 				href: c.toDataURL("image/png"), // b64
 				download: "Hearty-Journal_"+orderno+".png"
-			}).get(0).click();
+			}).get(0)?.click();
 		}).finally(function(){
 			hj_loading(false);
 		});
@@ -88,8 +88,8 @@ function bill_screenshot($e, orderno){
 			window.html2canvas($e.get(0), {
 				useCORS: true, 
 				scale: window.devicePixelRatio, 
-				width: $e.get(0).offsetWidth, 
-				height: $e.get(0).offsetHeight
+				width: $e.get(0)?.offsetWidth, 
+				height: $e.get(0)?.offsetHeight
 			}).then(function(c){
 				// canvas 轉 base64 (原圖)，備用
 				let b64 = c.toDataURL("image/png"), 
@@ -115,14 +115,14 @@ function bill_screenshot($e, orderno){
 								$a.attr({ 
 									href: b64_compressed, 
 									download: "Hearty-Journal_"+orderno+".jpg"
-								}).get(0).click();
+								}).get(0)?.click();
 							};
 						}, 
 						error(e){
 							// 下載原圖 (base64)
 							$a.attr({ 
 								href: b64, 
-							}).get(0).click();
+							}).get(0)?.click();
 						}
 					});
 

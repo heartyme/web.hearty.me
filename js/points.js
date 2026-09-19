@@ -156,7 +156,7 @@ function pt_redeem(pkg, points){
 			let $c = $('input[type="checkbox"]:visible');
 			if($c.length>0 && !$c.is(':checked')){
 				msg('<i class="fal fa-check-circle"></i> '+_h("pt-agree"));
-				$c.focus().get(0).scrollIntoViewIfNeeded();
+				$c.focus().get(0)?.scrollIntoViewIfNeeded();
 
 				shake($c);
 				return;

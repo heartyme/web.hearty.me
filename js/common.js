@@ -91,7 +91,7 @@ function hj_getScript(url, onsuccess, onerror, attrs){
 	});
 }
 	function hj_getScript_npm(path, onsuccess, onerror){
-		path = path || "jquery@3.7.1/dist/jquery.min.js";
+		path = path || "jquery@4.0.0/dist/jquery.min.js";
 		onsuccess = onsuccess || {};
 		onerror = onerror || {};
 
@@ -103,7 +103,7 @@ function hj_getScript(url, onsuccess, onerror, attrs){
 		p = p || {};
 			p["repo"] = "repo" in p ? p["repo"] : "heartyme/web.hearty.me";
 			p["path"] = "path" in p ? p["path"] : "";
-			p["commit"] = "commit" in p ? p["commit"] : 41214; // "main"
+			p["commit"] = "commit" in p ? p["commit"] : "main"; // "main"
 
 		onsuccess = onsuccess || {};
 		onerror = onerror || {};
@@ -142,7 +142,7 @@ function hj_getFile(url, filename, callback){
 			$("<a>", {
 				href: u, 
 				download: decodeURIComponent(filename || url.split("/").slice(-1)[0] || "")
-			}).get(0).click();
+			}).get(0)?.click();
 			(window.URL||window.webkitURL).revokeObjectURL(u);
 
 			if(typeof callback=="function") callback();
@@ -165,7 +165,7 @@ function hj_jsdelivr(){
 function _h_init(){
 	if(typeof _h$=="object" && $("[data-h]").length>0){
 		$("body *,title").each(function(){
-			let o = Object.assign({}, $(this).get(0).dataset);
+			let o = Object.assign({}, $(this).get(0)?.dataset);
 
 			for(let k in o){
 				// 文字
@@ -629,7 +629,7 @@ function ln_evt_push(evt){
 function scroll2focused($e){
 	$e = $e || $("body");
 
-	$e.find("input").filter("[type='text'],[type='email'],[type='number'],[type='date'],[type='tel'],[type='url']").add($e.find("textarea")).focus(function(){
+	$e.find("input").filter("[type='text'],[type='email'],[type='number'],[type='date'],[type='tel'],[type='url']").add($e.find("textarea")).on("focus", function(){
 		/*
 		if("scrollIntoViewIfNeeded" in document.activeElement)
 			document.activeElement.scrollIntoViewIfNeeded();
@@ -654,11 +654,11 @@ function hj_copy($e, msg){
 	function select_input_text($e){
 		if($e.length>0){
 			if($e.is("input") && check_OS("iOS")){ // iOS Polyfill
-				$e.get(0).focus();
-				$e.get(0).setSelectionRange(0,9999);
+				$e.get(0)?.focus();
+				$e.get(0)?.setSelectionRange(0,9999);
 			}
 			else{
-				$e.select();
+				$e.trigger("select");
 			}
 		}
 	}

@@ -251,7 +251,7 @@ function count_vouchers(get_months){ // get_months = 回溯月份數
 				}
 				$t.append($tb);
 
-				msg('<h3><i class="fal fa-chart-bar"></i> 我近期取得的序號張數<h3>'+$t.get(0).outerHTML);
+				msg('<h3><i class="fal fa-chart-bar"></i> 我近期取得的序號張數<h3>'+$t.get(0)?.outerHTML);
 			break;
 
 			default:
@@ -642,7 +642,7 @@ function get_link($e){
 	alertify.set({labels: {ok: '下載 QRcode <i class="fas fa-qrcode"></i>', cancel: '<i class="fas fa-copy"></i> 複製連結'}, buttonReverse: true});
 	alertify.prompt('<i class="fal fa-link"></i> 專屬兌換連結<br><br><a class="qrcode"></a>', function(e){
 		if(e){
-			$("#alertify .qrcode").get(0).click();
+			$("#alertify .qrcode").get(0)?.click();
 		}
 		else{
 			hj_copy($("#alertify .alertify-text"));
@@ -918,7 +918,7 @@ function bd_export(){
 		$("<a>", {
 			href: csvData, 
 			download: filename
-		}).get(0).click();
+		}).get(0)?.click();
 
 		function formatRows(rows){
 			return rows.get().join(tmpRowDelim)
@@ -989,7 +989,7 @@ function bd_mark(){
 					src: "https://"+img, 
 					alt: title[0]
 				})
-			}).get(0).outerHTML, 
+			}).get(0)?.outerHTML, 
 
 			// 顯示+下載用 (HTML物件)
 			$("<a>", {
@@ -1018,7 +1018,7 @@ function bd_mark(){
 					rows: 6, 
 					// cols: 50, 
 					onclick: "hj_copy($(this))"
-				}).get(0).outerHTML
+				}).get(0)?.outerHTML
 			, '<i class="fas fa-copy"></i> 複製 HTML程式碼', function(){
 				hj_copy_text($e[0]);
 			});

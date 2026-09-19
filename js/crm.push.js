@@ -7,13 +7,13 @@ $(function(){
 		return false;
 	};
 
-	$(document).scroll(function(){
+	$(document).on("scroll", function(){
 		let $u = $(".notify .page_up");
 		if($(this).scrollTop()>200) $u.stop().fadeIn("slow");
 		else $u.stop().fadeOut("slow");
 	});
 
-	if(!!getUrlPara("order_id")) $("select[data-template]").val("unpaid_order").change();
+	if(!!getUrlPara("order_id")) $("select[data-template]").val("unpaid_order").trigger("change");
 });
 
 function hj_update__push(d){
@@ -92,7 +92,7 @@ function get_recipients(){
 				}
 
 				$recipients.slideDown("fast", function(){
-					$(window).scrollTop($recipients.get(0).offsetTop-50);
+					$(window).scrollTop($recipients.get(0)?.offsetTop-50);
 				});
 			break;
 
@@ -113,7 +113,7 @@ function send_push(bulk, $btn){
 	$btn = $btn==null ? $(".recipients li[data-sent_today='0']:first") : $btn;
 	if(!$btn.length) return false;
 
-	let d = $btn.get(0).dataset, 
+	let d = $btn.get(0)?.dataset, 
 		$push = $(".push_data"), 
 		push = {
 			title: ($push.find("[data-title]").val() || "").trim(), 
@@ -282,12 +282,21 @@ function send_push(bulk, $btn){
 function template_prefill(n){
 	switch(n){
 		case "greeting":
-			hj_update({action: "alice_greeting"}).then(function(r){
+			$.ajax({
+				url: "//hearty.me/home", 
+				type: "POST", 
+				dataType: "json", 
+				data: {
+					action: "greeting", 
+					greeting_id: 0
+				}, 
+				async: true
+			}).then(function(r){
 				r = r["Values"];
 				if("greeting_title" in r){
 					template_prefilling({
 						title: "{{nickname}}晚安", 
-						body: "親愛的，"+r["greeting_title"].trim(), // 換行： .split("？").join("？\n").trim(), 
+						body: r["greeting_title"].trim(), // 換行： .split("？").join("？\n").trim(), 
 						url: "https://hearty.me/{{username}}?a={{username}}&link=bitly.com/3I8Kc7x", 
 						// ALT: url: "https://hearty.me/{{username}}?link=hearty.me/home?a={{username}}", 
 						tag: "hj-greeting"

@@ -91,7 +91,7 @@ function period_add(day_id, day_start, day_end, day_interval){
 				type: "text", 
 				pattern: day_pattern, 
 				onchange: $(this).attr("oninput"), // use "onchange" instead of "ininput"
-				onclick: "$(this).datepicker('show').select()", 
+				onclick: "$(this).datepicker('show').trigger('select')",
 				readonly: ""
 			}).removeAttr("oninput").datepicker({
 				dateFormat: "yy-mm-dd", 
@@ -180,7 +180,7 @@ function period_editing_toggle(on, day_id, i){
 	var $pd = $(".periods");
 	$pd.find("[data-dayid]").addClass("display");
 	if(on){
-		$pd.find("[data-dayid='"+day_id+"']").removeClass("display").find("input").eq(i==null ? 0 : i).focus();
+		$pd.find("[data-dayid='"+day_id+"']").removeClass("display").find("input").eq(i==null ? 0 : i)[0]?.focus();
 		period_remove_btn(false);
 	}
 }
