@@ -1104,7 +1104,7 @@ a:active{
 			}
 			.popup.share .penpals select{
 				display: block;
-				min-height: 150px; /* 修復特有 bug：在 Chrome 動態加載時，元素高度為 0 問題 */
+				min-height: 150px; /* 修復特有 bug：Chrome 動態加載時，元素高度為 0問題 */
 				margin: .5em auto;
 				border: 1px dotted #bc8f8f;
 				color: #bc8f8f;
@@ -1125,13 +1125,20 @@ a:active{
 					cursor: pointer;
 					scroll-snap-align: start;
 				}
-					.popup.share .penpals select option:hover{
-						background: #f8f3f3;
-					}
 					.popup.share .penpals select option[disabled]{
 						color: #ccc;
 						background: transparent;
 						cursor: not-allowed;
+					}
+
+					/* Web & Android (iOS <select> 採系統原生彈窗)
+						Android Fix: 覆寫原生 <select> 選中項的藍色高亮樣式
+						https://i.imgur.com/Vcmoagn.mp4
+					*/
+					.popup.share .penpals select option:checked{
+						color: #fff;
+						background: #bc8f8f linear-gradient(0deg, #bc8f8f 0%, #bc8f8f 100%);
+						font-weight: bold;
 					}
 
 	/* 自訂封面 */
