@@ -144,15 +144,15 @@ function sales_tracking(evt, pkg_id, order_no){
 			if(!getUrlPara("pay")) return;
 			affiliates_cps(pkg_id, order_no, pkg["subtotal"]);
 
-			evt = {g: "purchase", f: "Purchase"};
+			evt = {g: "purchase", f: "Purchase", o: "order_created"};
 		break;
 
 		case "checkout":
-			evt = {g: "begin_checkout", f: "InitiateCheckout"};
+			evt = {g: "begin_checkout", f: "InitiateCheckout", o: "checkout_started"};
 		break;
 
 		default: // remove_from_cart
-			evt = {g: "remove_from_cart", f: "RemoveFromCart"};
+			evt = {g: "remove_from_cart", f: "RemoveFromCart", o: "items_removed"};
 		break;
 	}
 	ga_evt_push(evt["g"], {
@@ -164,6 +164,7 @@ function sales_tracking(evt, pkg_id, order_no){
 			price: pkg["unit"]
 		}]
 	});
+	oa_evt_push(evt["o"], "contents");
 	fb_evt_push(evt["f"], {
 		content_type: "product", 
 		content_name: "VIP Premium", 

@@ -103,7 +103,7 @@ function hj_getScript(url, onsuccess, onerror, attrs){
 		p = p || {};
 			p["repo"] = "repo" in p ? p["repo"] : "heartyme/web.hearty.me";
 			p["path"] = "path" in p ? p["path"] : "";
-			p["commit"] = "commit" in p ? p["commit"] : "main"; // "main"
+			p["commit"] = "commit" in p ? p["commit"] : "a5f0aaafbca69d621830c6279f6969a2d9508c32"; // "main"
 
 		onsuccess = onsuccess || {};
 		onerror = onerror || {};
@@ -595,6 +595,23 @@ function fb_evt_push(evt, val){
 		}
 	}
 }
+
+// OpenAI Pixel
+function oa_evt_push(evt, type){
+	if(!evt) return;
+
+	if(typeof oaiq!="undefined"){
+		try{
+			oaiq(
+				"measure", 
+				evt, 
+				{type: !type ? "customer_action" : type}
+			);		
+		}
+		catch(e){}
+	}
+}
+
 // LINE Tag
 function ln_evt_push(evt){
 	if(typeof _lt!="undefined"){

@@ -478,6 +478,7 @@ function signup(){
 					event_label: "Sign Up"
 				});
 				fb_evt_push("CompleteRegistration");
+				oa_evt_push("registration_completed", "customer_action");
 				ln_evt_push("CompleteRegistration");
 				ga_evt_push("conversion", {send_to: "AW-1027812032/VU59COmFmNIBEMDVjOoD"});
 			break;
