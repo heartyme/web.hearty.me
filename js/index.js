@@ -639,7 +639,7 @@ function box(toggle){
 
 	var title = _h("i-box-"+(toggle=="signup" ? 6 : 7)), 
 		maxlength = toggle== "signup" ? 20 : 64, 
-		reg = toggle=="signup" ? "/[^a-z0-9]/g" : "/[^a-z0-9-_.@]/g", 
+		reg = toggle=="signup" ? "/[^a-z0-9]/g" : "/[^a-z0-9_.@-]/g", 
 		oninput = "this.value=(this.value||'').toLowerCase().replace("+reg+",'')";
 
 	$a.trigger("focus").attr({title: title,
