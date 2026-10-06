@@ -74,6 +74,9 @@ hj_getScript("//cdn.jsdelivr.net/combine/npm/@webcreate/infinite-ajax-scroll@3.1
 			window.open(location.origin+"/"+this.dataset.username+"/"+this.dataset.post_id+"?feed=1", "_blank");
 			profile_popup();
 		});
+		$(".profile_btns").on("click", function(){
+			profile_popup();
+		});
 
 		feed_translate();
 		feed_hotkey_init();
