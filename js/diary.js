@@ -22,7 +22,7 @@ $(function(){
 	// YTbox
 	hj_getScript_gh({
 		path: "js/ytbox.min.js", 
-		commit: "883114b1aec28b15845ab1a7df75bd10370ccab3"
+		commit: "099b50da61ca5d5b267b98807e2901d0c0c00ac9"
 	});
 
 	// 網路及電量
@@ -496,7 +496,7 @@ function editor_enable(on){
 			// 相片上傳
 			hj_getScript_gh({
 				path: "js/jquery.uploadfile.min.js", 
-				commit: "883114b1aec28b15845ab1a7df75bd10370ccab3"
+				commit: "099b50da61ca5d5b267b98807e2901d0c0c00ac9"
 			}, image_uploader_init);
 
 			$e.data({editor_loaded: true});
@@ -1396,7 +1396,7 @@ function period__initialize(){
 			// Date-picker bug on some Chrome 131, Windows
 			// https://i.hearty.app/j/6768f963d041c.gif
 			path: "js/periods.min.js", 
-			commit: "883114b1aec28b15845ab1a7df75bd10370ccab3"
+			commit: "099b50da61ca5d5b267b98807e2901d0c0c00ac9"
 		}, function(){
 			$pd.slideDown("slow").data({loaded: true});
 		});
@@ -4928,7 +4928,7 @@ function post_archive(){
 				switch(r["Status"]){
 					case 1:
 						catalog_page({page: 1});
-						$page.find(".diary").attr("data-hidden", ""); $page.find(".prologue").slideDown();
+						$page.find(".diary").attr("data-hidden", ""); $page.find(".prologue").slideDown(); toolbelt_toggle(false);
 						$(".catalog .diaries li[data-post_id='"+post_id+"']").remove();
 						alertify.error('<i class="far fa-trash-alt"></i> '+_h("e-archive-2", {$title: subject}));
 
