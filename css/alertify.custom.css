@@ -9,7 +9,6 @@
 /* default.css */
 .alertify{
 	background: #fff;
-	border: 10px solid #333;
 	border: 10px solid rgba(0,0,0,.5);
 	border-radius: 8px;
 	box-shadow: 0 3px 3px rgba(0,0,0,.3);
@@ -70,7 +69,6 @@
 		}
 
 .alertify-log{
-	background: #1f1f1f;
 	background: rgba(0,0,0,.9);
 	padding: 15px;
 	border-radius: 4px;
@@ -78,11 +76,9 @@
 	text-shadow: -1px -1px 0 rgba(0,0,0,.5);
 }
 	.alertify-log-error{
-		background: #f9614a;
 		background: rgba(249,97,74,.9);
 	}
 	.alertify-log-success{
-		background: #d1c1a5;
 		background: rgba(209,193,165,.9);
 		color: #222;
 	}

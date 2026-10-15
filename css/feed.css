@@ -48,9 +48,7 @@ a:active{
 	height: auto;
 	overflow-x: auto;
 	overflow-y: hidden;
-	overflow-y: clip;
 	margin: 0 auto;
-	-webkit-overflow-scrolling: touch;
 	scroll-snap-type: x mandatory;
 	scroll-behavior: smooth;
 	scrollbar-width: none;
@@ -191,7 +189,6 @@ a:active{
 		white-space: nowrap;
 		text-overflow: ellipsis;
 		overflow: hidden;
-		overflow: clip;
 		margin: .2em auto;
 	}
 	*/
@@ -491,7 +488,6 @@ a:active{
 	position: relative;
 	align-items: center;
 	overflow: hidden;
-	overflow: clip;
 	text-overflow: ellipsis;
 }
 .feed .article_buttom .avatar{
@@ -591,7 +587,6 @@ a:active{
 		letter-spacing: 2px;
 		text-overflow: ellipsis;
 		overflow: hidden;
-		overflow: clip;
 	}
 		.feed .profile .avatar [data-a]{
 			width: 8em;

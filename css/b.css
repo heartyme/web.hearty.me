@@ -16,7 +16,6 @@ body{
 	background-position: center center;
 	scrollbar-width: none;
 	overscroll-behavior: none;
-	-webkit-overflow-scrolling: touch;
 	-webkit-touch-callout: none;
 }
 

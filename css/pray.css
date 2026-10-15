@@ -12,10 +12,8 @@ body.pray{
 	background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 	background-attachment: fixed;
 	overflow-x: hidden;
-	overflow-x: clip;
 	scroll-behavior: smooth;
 	scrollbar-width: none;
-	-webkit-overflow-scrolling: touch;
 	overscroll-behavior: none;
 }
 .pray_mobile{
@@ -135,7 +133,6 @@ body.pray{
 	min-height: 100vh;
 	line-height: 1.6;
 	overflow-x: hidden;
-	overflow-x: clip;
 	overflow-y: scroll;
 	scroll-behavior: smooth;
 	scrollbar-width: none;
@@ -349,7 +346,7 @@ body.pray{
 		background-attachment: fixed;
 	}
 		/* iOS Fix */
-		@supports(-webkit-overflow-scrolling: touch){
+		@supports (-webkit-touch-callout: none){
 			.pray_mobile{
 				background-attachment: scroll !important;
 			}

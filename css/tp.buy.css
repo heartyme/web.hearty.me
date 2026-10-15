@@ -27,9 +27,7 @@ body{
 body{
 	font-family: "Comfortaa", "Taipei Sans TC", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "\5FAE\8EDF\6B63\9ED1\9AD4", "Microsoft JhengHei", "\5FAE\8F6F\96C5\9ED1", "Microsoft Yahei";
 	font-size: medium;
-	font-smooth: always;
 	text-rendering: optimizeSpeed;
-	-webkit-overflow-scrolling: touch;
 	-webkit-touch-callout: none;
 }
 	body.loading::after{

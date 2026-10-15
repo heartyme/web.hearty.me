@@ -5,7 +5,6 @@
 	font-family: "Taipei Sans TC", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "\5FAE\8EDF\6B63\9ED1\9AD4", "Microsoft JhengHei", "\5FAE\8F6F\96C5\9ED1", "Microsoft Yahei";
 	font-size: medium;
 	font-display: fallback;
-	font-smooth: always;
 	text-rendering: optimizeSpeed;
 	line-height: 1.6;
 	caret-color: rosybrown;

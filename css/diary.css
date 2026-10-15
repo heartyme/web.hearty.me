@@ -63,7 +63,7 @@ a:active{
 	cursor: pointer;
 	color: inherit;
 }
-::-webkit-input-placeholder{
+::placeholder{
 	font-style: italic;
 }
 .blur{
@@ -89,7 +89,7 @@ a:active{
 	top: 0;
 	width: 100%;
 	background: rgba(255,255,255,.95);
-	background: linear-gradient(bottom,rgba(255,255,255,.8),rgba(255,255,255,1));
+	background: linear-gradient(to top,rgba(255,255,255,.8),rgba(255,255,255,1));
 	z-index: 2;
 }
 .bk-page .bookmark{
@@ -259,7 +259,6 @@ a:active{
 	cursor: crosshair;
 }
 #editor_editable.tbrl{
-	-webkit-writing-mode: vertical-rl;
 	writing-mode: vertical-rl;
 	letter-spacing: 1.5px;
 	color: #222;
@@ -921,7 +920,6 @@ a:active{
 	}
 
 .popup-underlayer{
-	-webkit-overflow-scrolling: touch;
 	overflow: auto;
 }
 .popup-underlayer > div{
@@ -1528,8 +1526,7 @@ a:active{
 	#post_created::-webkit-calendar-picker-indicator{
 		outline: none;
 	}
-	#post_created::-webkit-inner-spin-button, 
-	#post_created::-webkit-clear-button{
+	#post_created::-webkit-inner-spin-button{
 		display: none;
 	}
 
@@ -2503,10 +2500,6 @@ body.hj,
 		justify-content: flex-start;
 		width: 1em;
 		height: 300px;
-		/*
-		height: -webkit-fill-available;
-		*/
-		height: fill-available;
 		color: #c68e78;
 		margin: 0 auto;
 		font-size: 3em;
@@ -3215,7 +3208,7 @@ diary.pagination.min.css
 }
 
 
-@supports (-webkit-overflow-scrolling: touch){
+@supports (-webkit-touch-callout: none){
 	@media screen and (orientation: portrait){
 		.mh-head .fa-bell{
 			order: 1;
@@ -3601,7 +3594,6 @@ nav.stickerbook .mm-panel::before{
 	padding: 3em .5em;
 	overflow-x: hidden;
 	overflow-y: scroll; /* alt: visible */
-	-webkit-overflow-scrolling: touch;
 }
 	.stickerbook .stickerlist .stickerdir:empty{
 		align-items: center;

@@ -30,10 +30,8 @@ body{
 	color: #fff;
 	scrollbar-width: none;
 	font-family: "GenYoMin TW Web", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "\5FAE\8EDF\6B63\9ED1\9AD4", "Microsoft JhengHei";
-	font-smooth: always;
 	text-rendering: optimizeLegibility;
 	overscroll-behavior: none;
-	-webkit-overflow-scrolling: touch;
 	-webkit-touch-callout: none;
 }
 	body::-webkit-scrollbar{

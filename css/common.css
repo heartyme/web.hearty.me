@@ -18,7 +18,7 @@
 /* git.io/JJiY0 
 @font-face{
 	font-family: notoserif-tc;
-	src: url(//cdn.jsdelivr.net/gh/googlefonts/chinese@f8be900af3e1ce347e45cee888d89ed57aef675f/fonts/NotoSerif/NotoSerifCJKtc-Medium.woff2) format("woff2"), url(//cdn.jsdelivr.net/gh/CodePlayer/webfont-noto@7af038d32866b387c64ef8e644abf5c303e48db6/dist/NotoSerif/NotoSerifCJKtc-hinted/subset/NotoSerifCJKtc-hinted-standard/NotoSerifCJKtc-Medium.woff) format("woff");
+	src: url(//cdn.jsdelivr.net/gh/googlefonts/chinese@f8be900af3e1ce347e45cee888d89ed57aef675f/fonts/NotoSerif/NotoSerifCJKtc-Medium.woff2) format("woff2");
 }
 */
 
@@ -39,7 +39,6 @@ body{
 body{
 	font-family: "Comfortaa", "Taipei Sans TC", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "\5FAE\8EDF\6B63\9ED1\9AD4", "Microsoft JhengHei", "\5FAE\8F6F\96C5\9ED1", "Microsoft Yahei";
 	font-size: medium;
-	font-smooth: always;
 	text-rendering: optimizeSpeed;
 	margin: 0 auto;
 	padding: 0;
@@ -100,7 +99,7 @@ body{
 @font-face{
 	font-family: openhuninn;
 	/* v1.20 */
-	src: url(//cdn.jsdelivr.net/gh/max32002/FakePearl@1.1/webfont/FakePearl-Regular.woff2) format("woff2"), url(//cdn.jsdelivr.net/gh/max32002/FakePearl@1.1/webfont/FakePearl-Regular.woff) format("woff");
+	src: url(//cdn.jsdelivr.net/gh/max32002/FakePearl@1.1/webfont/FakePearl-Regular.woff2) format("woff2");
 	font-display: fallback;
 }
 @font-face{
@@ -112,7 +111,7 @@ body{
 @font-face{
 	font-family: jinxuan;
 	/* v2.4 */
-	src: url(//s.hearty.app/fonts/jinxuan/jf-jinxuan-medium.woff2) format("woff2"), url(//cdn.jsdelivr.net/gh/relabcc/ntb-invoice@692266bc195ebeb79b71c50c047634fb362abc5e/src/web-font/minified/jf-jinxuan-fresh2.2-regular.woff) format("woff");
+	src: url(//s.hearty.app/fonts/jinxuan/jf-jinxuan-medium.woff2) format("woff2");
 	font-display: swap;
 }
 @font-face{
@@ -132,7 +131,7 @@ body{
 	font-family: naikai;
 
 	/* v1.89 */
-	src: url(//cdn.jsdelivr.net/gh/max32002/naikaifont@1.89/webfont/NaikaiFont-Regular-Lite.woff2) format("woff2"), url(//cdn.jsdelivr.net/gh/max32002/naikaifont@1.89/webfont/NaikaiFont-Regular-Lite.woff) format("woff");
+	src: url(//cdn.jsdelivr.net/gh/max32002/naikaifont@1.89/webfont/NaikaiFont-Regular-Lite.woff2) format("woff2");
 	font-display: swap;
 }
 /*
@@ -142,24 +141,24 @@ git.io/JJKKc
 @font-face{
 	font-family: jasonwriting2;
 	/* v1.6 */
-	src: url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting2-Medium.woff2) format("woff2"), url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting2-Medium.woff) format("woff");
+	src: url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting2-Medium.woff2) format("woff2");
 	font-display: swap;
 }
 @font-face{
 	font-family: jasonwriting1;
 	/* v1.48 */
-	src: url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting1-Medium.woff2) format("woff2"), url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting1-Medium.woff) format("woff");
+	src: url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting1-Medium.woff2) format("woff2");
 	font-display: swap;
 }
 @font-face{
 	font-family: jasonwriting4;
 	/* v1.01.21 */
-	src: url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting4-Medium.woff2) format("woff2"), url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting4-Medium.woff) format("woff");
+	src: url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting4-Medium.woff2) format("woff2");
 	font-display: swap;
 }
 @font-face{
 	font-family: jasonwriting5;
-	src: url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting5-Medium.woff2) format("woff2"), url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting5-Medium.woff) format("woff");
+	src: url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting5-Medium.woff2) format("woff2");
 	/* v1.01.21 
 	src: url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20220828/webfont/JasonHandwriting5.woff2) format("woff2");
 	*/
@@ -167,7 +166,7 @@ git.io/JJKKc
 }
 @font-face{
 	font-family: jasonwriting6;
-	src: url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting6-Medium.woff2) format("woff2"), url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting6-Medium.woff) format("woff");
+	src: url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting6-Medium.woff2) format("woff2");
 	/* 2022/12/25 v1.00
 	src: url(//cdn.jsdelivr.net/gh/chennien/f.hearty.app@1/jasonhandwriting6.woff2) format("woff2");
 	*/
@@ -176,14 +175,14 @@ git.io/JJKKc
 @font-face {
 	/* v1.071 */
 	font-family: kurewa;
-	src: url(//cdn.jsdelivr.net/gh/max32002/kurewa-gothic@1.071/webfont/CJK%20TC/KurewaGothicCjkTc-SemiBold.woff2) format("woff2"), url(//cdn.jsdelivr.net/gh/max32002/kurewa-gothic@1.071/webfont/CJK%20TC/KurewaGothicCjkTc-SemiBold.woff) format("woff");
+	src: url(//cdn.jsdelivr.net/gh/max32002/kurewa-gothic@1.071/webfont/CJK%20TC/KurewaGothicCjkTc-SemiBold.woff2) format("woff2");
 	font-display: swap;
 }
 /* git.io/JmzMm */
 @font-face{
 	font-family: nanifont;
-	/* v1.036 */
-	src: url(//cdn.jsdelivr.net/gh/max32002/nanifont@1.036/webfont/NaniFont-Regular.woff2) format("woff2"), url(//cdn.jsdelivr.net/gh/max32002/nanifont@1.036/webfont/NaniFont-Regular.woff) format("woff");
+	/* v1.046 */
+	src: url(//cdn.jsdelivr.net/gh/max32002/nanifont@1.046/webfont/NaniFont-Regular.woff2) format("woff2");
 	font-display: swap;
 }
 /* git.io/J1uSc */
@@ -231,7 +230,7 @@ git.io/JJKKc
 @font-face{
 	font-family: jasonwriting3;
 	/* v1.24 */
-	src: url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting3-Regular.woff2) format("woff2"), url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting3-Regular.woff) format("woff");
+	src: url(//cdn.jsdelivr.net/gh/max32002/JasonHandWritingFonts@20240409/webfont/JasonHandwriting3-Regular.woff2) format("woff2");
 	font-display: swap;
 }
 /* maoken.com/freefonts/8199.html */
@@ -245,7 +244,7 @@ git.io/JJKKc
 	font-family: bakudai;
 
 	/* v1.49 */
-	src: url(//cdn.jsdelivr.net/gh/max32002/bakudaifont@1.49/webfont/Bakudai-Medium.woff2) format("woff2"), url(//cdn.jsdelivr.net/gh/max32002/bakudaifont@1.49/webfont/Bakudai-Medium.woff) format("woff");
+	src: url(//cdn.jsdelivr.net/gh/max32002/bakudaifont@1.49/webfont/Bakudai-Medium.woff2) format("woff2");
 	font-display: swap;
 }
 @font-face{
@@ -420,7 +419,8 @@ git.io/JJKKc
 	[data-far]::before, 
 	[data-fas]::before, 
 	[data-fad]::before, 
-	[data-fab]::before{
+	[data-fab]::before, 
+	[data-fab7]::before{
 		margin-right: .4em;
 	}
 	[data-falr]::after, 
@@ -465,6 +465,21 @@ git.io/JJKKc
 	content: attr(data-fasr);
 	font-weight: 900;
 }
+
+/* 額外引入 FA7 Brands */
+@font-face{
+	font-family: "Font Awesome 7 Brands";
+	src: url(//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7/webfonts/fa-brands-400.woff2) format("woff2");
+	font-display: block;
+}
+	.fab.fa7, 
+	[data-fab7]::before{
+		font-family: "Font Awesome 7 Brands", "openhuninn";
+		font-weight: 400;
+	}
+	[data-fab7]::before{
+		content: attr(data-fab7);
+	}
 
 /* Firefox */
 input[type="email"], 

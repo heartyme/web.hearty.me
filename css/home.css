@@ -36,8 +36,6 @@ body{
 	height: 100vh;
 	overflow-x: auto;
 	overflow-y: hidden;
-	overflow-y: clip;
-	-webkit-overflow-scrolling: touch;
 	scroll-snap-type: x mandatory;
 	scroll-behavior: smooth;
 	scrollbar-width: none;
@@ -418,7 +416,6 @@ body{
 		letter-spacing: 2px;
 		text-overflow: ellipsis;
 		overflow: hidden;
-		overflow: clip;
 	}
 		.goodnight .profile li[data-gender="1"]::before{
 			content: "\f222";
@@ -592,7 +589,6 @@ body{
 
 		text-overflow: ellipsis;
 		overflow: hidden;
-		overflow: clip;
 
 		text-align: center;
 		background: rgba(255,255,255,.6);

@@ -15,7 +15,6 @@ body{
 	background-repeat: repeat;
 	background-position: center;
 	overscroll-behavior: none;
-	-webkit-overflow-scrolling: touch;
 	scrollbar-width: none;
 }
 	body.loading::after{

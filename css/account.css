@@ -25,8 +25,6 @@ body{
 	background-repeat: repeat;
 	background-position: center;
 	background-attachment: fixed;
-	overscroll-behavior: none;
-	font-smooth: always;
 	text-rendering: optimizeLegibility;
 }
 	body, 
@@ -98,7 +96,6 @@ body{
 	margin-top: env(safe-area-inset-top, 0);
 	overflow-x: auto;
 	overflow-y: hidden;
-	-webkit-overflow-scrolling: touch;
 	scroll-snap-type: x mandatory;
 	scroll-behavior:smooth;
 }
@@ -119,7 +116,6 @@ body{
 			position: absolute;
 			top: 0;
 			margin: auto;
-			-webkit-overflow-scrolling: touch;
 		}
 
 .nav_account, 
@@ -397,8 +393,7 @@ label[title]::after{
 		cursor: pointer;
 		outline: none;
 	}
-	#birthday::-webkit-inner-spin-button, 
-	#birthday::-webkit-clear-button{
+	#birthday::-webkit-inner-spin-button{
 		display: none;
 	}
 	#birthday:invalid{
@@ -617,7 +612,6 @@ label[title]::after{
 		border-radius: 50%;
 		top: .1em;
 		right: .1em;
-		color: #999;
 		background: #eaeaea;
 		padding: 0 2px;
 		cursor: pointer;

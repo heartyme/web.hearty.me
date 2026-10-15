@@ -26,7 +26,6 @@ body{
 	height: auto;
 	min-height: 99vh;
 	background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
-	-webkit-overflow-scrolling: touch;
 	overscroll-behavior: none;
 }
 	body.noscroll{

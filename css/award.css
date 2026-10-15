@@ -15,7 +15,6 @@ body{
 	overscroll-behavior: none;
 	scrollbar-width: none;
 	background: url(//i.hearty.app/HyCw2lg.png) repeat center center;
-	-webkit-overflow-scrolling: touch;
 }
 .section, 
 .award_nav, 
@@ -192,7 +191,7 @@ a:active{
 	}
 
 	/* iOS Fix */
-	@supports (-webkit-overflow-scrolling: touch){
+	@supports (-webkit-touch-callout: none){
 		body, 
 		.award, 
 		#home{

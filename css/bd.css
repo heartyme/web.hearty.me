@@ -18,7 +18,6 @@ body{
 	padding: 0;
 	overscroll-behavior: none;
 	background: #fff;
-	-webkit-overflow-scrolling: touch;
 }
 	body, 
 	.redeem_tutorial{
