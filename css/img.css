@@ -49,25 +49,34 @@ a:active{
 	margin-top: env(safe-area-inset-top, 0);
 }
 .img_wall{
-	width: 100%;
+	position: relative;
+
+	/* 不用 padding：absolute 子元素的 % 寬度以 padding box 計算，會與 Masonry 欄寬不符 */
+	width: calc(100% - 2em);
 	max-width: 1080px;
 	margin: 0 auto;
-	padding: 0 1em;
 }
 	.img_wall figure{
-		display: inline-flex;
+		/* 排版前不佔文件流，避免推擠 */
+		position: absolute;
+		top: 0;
+		left: 0;
+		display: flex;
 		align-items: center;
 		justify-content: center;
-		max-width: 30%;
-		margin: 1em auto;
+
+		/* 3 欄，gutter 20px（與 Masonry 設定一致） */
+		width: calc((100% - 40px) / 3);
+		margin: 0 0 20px;
 		border: 1px solid #eee;
 		border-radius: .5em;
 		box-shadow: rgba(0,0,0,.2) 1px 1px 1em 1px;
-		visibility: hidden;
+		opacity: 0;
 		cursor: pointer;
-		transition: box-shadow .2s ease-in;
+		transition: opacity .4s ease-in, transform .2s ease-in, box-shadow .2s ease-in;
 	}
 	.img_wall figure:hover{
+		z-index: 1;
 		box-shadow: rgba(0,0,0,.4) 1px 1px 1em 1px;
 		transform: scale(1.05);
 	}
@@ -83,7 +92,6 @@ a:active{
 		letter-spacing: 1px;
 		white-space: nowrap;
 		overflow-x: hidden;
-		overflow-x: clip;
 		background: rgba(255,255,255,.6);
 		background: linear-gradient(to bottom,rgba(255,255,255,.5),rgba(255,255,255,.9));
 	    text-overflow: ellipsis;
@@ -108,7 +116,7 @@ a:active{
 		}
 
 .img_wall .img-loaded{
-	visibility: visible;
+	opacity: 1;
 }
 
 .img_empty{
@@ -285,6 +293,7 @@ a:active{
 
 @media screen and (max-device-width: 767px){
 	.img_wall figure{
-		max-width: 90%;
+		/* 2 欄，gutter 20px */
+		width: calc((100% - 20px) / 2);
 	}
 }

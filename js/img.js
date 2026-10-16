@@ -65,24 +65,39 @@ var msnry;
 function imagesLoadedAndLayout(el){
 	if(!msnry){
 		msnry = new Masonry(".img_wall", {
-			itemSelector: ".img_wall .img-loaded", 
-			columnWidth: 24, 
-			gutter: 20, 
-			percentPosition: true, 
-			transitionDuration: "0.3s"
+			itemSelector: ".img_wall .img-loaded",
+			columnWidth: ".img_wall figure",
+			gutter: 20,
+			percentPosition: true,
+			transitionDuration: 0 // 淡入交給 CSS
 			// resize: false
 		});
 	}
 
+	// 依 DOM 順序放出已載入的連續段；只 appended 不 layout，舊圖不會移動
+	let pending = $(el).find("figure").addBack("figure").get(), raf = 0;
+	const flush = () => {
+		raf = 0;
+		let ready = [];
+		while(pending.length && pending[0].dataset.loaded) ready.push(pending.shift());
+		ready = ready.filter(f => f.isConnected);
+		if(ready.length==0) return;
+		ready.forEach(f => f.classList.add("img-loaded"));
+		msnry.appended(ready);
+	};
+
 	return new Promise((resolve) => {
 		imagesLoaded(el).on("progress", (imgLoad, e) => {
-			e.img.parentNode.classList.add("img-loaded");
-			msnry.appended(e.img.parentNode);
-			msnry.layout();
-		}).on("done", () => {
-			msnry.once("layoutComplete", () => {
-				resolve();
-			});
+			let f = e.img.closest("figure");
+			if(!f) return;
+			f.dataset.loaded = 1;
+			if(!e.isLoaded) f.remove(); // 破圖不顯示
+			raf = raf || requestAnimationFrame(flush);
+		}).on("always", () => {
+			// 有破圖時 done 不會觸發，改用 always
+			cancelAnimationFrame(raf);
+			flush();
+			resolve();
 		});
 	});
 }
