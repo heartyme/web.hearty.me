@@ -49,14 +49,84 @@ a:active{
 	margin-top: env(safe-area-inset-top, 0);
 }
 .img_wall{
-	position: relative;
-
-	/* 不用 padding：absolute 子元素的 % 寬度以 padding box 計算，會與 Masonry 欄寬不符 */
-	width: calc(100% - 2em);
+	/* 獨立疊層：牆內的 z-index（hover 相片、sticky 月份標題）不會蓋過牆外的固定按鈕 */
+	isolation: isolate;
+	width: 100%;
 	max-width: 1080px;
 	margin: 0 auto;
 }
 	.img_wall figure{
+		margin: 0;
+		cursor: pointer;
+	}
+	.img_wall figure img{
+		display: block;
+		width: 100%;
+	}
+
+/* grid：iPhone 相簿式，等大正方形，手機 3 欄 */
+.img_wall[data-layout="grid"]{
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 2px;
+}
+	.img_wall[data-layout="grid"] .img_month{
+		position: sticky;
+
+		/* 與 .mh-head 按鈕垂直置中對齊 */
+		top: calc(env(safe-area-inset-top, 0px) + .3em);
+		z-index: 1;
+		grid-column: 1 / -1;
+
+		/* 置中膠囊：不橫跨全寬，避免遮住左右的選單鈕與版型切換鈕 */
+		justify-self: center;
+		margin: .6em 0;
+		padding: .4em 1.2em;
+		border-radius: 2em;
+		text-align: center;
+		font-size: medium;
+		font-weight: normal;
+		letter-spacing: 1px;
+		color: #444;
+
+		/* 近不透明：sticky 標題會互相疊在頂部 */
+		background: rgba(255,255,255,.9);
+		-webkit-backdrop-filter: blur(8px);
+		backdrop-filter: blur(8px);
+		box-shadow: 0 1px 4px rgba(0,0,0,.15);
+	}
+	.img_wall[data-layout="grid"] .img_month:empty{
+		/* JS 填入文字前保留尺寸，避免跳動 */
+		min-width: 7em;
+		min-height: calc(1.2em + .8em);
+	}
+	.img_wall[data-layout="grid"] figure{
+		position: relative;
+		aspect-ratio: 1;
+		overflow: hidden;
+		background: #eee;
+	}
+	.img_wall[data-layout="grid"] figure img{
+		height: 100%;
+		object-fit: cover;
+		opacity: 0;
+		transition: opacity .3s ease-in, filter .2s ease-in;
+	}
+		.img_wall[data-layout="grid"] .img-loaded img{
+			opacity: 1;
+		}
+
+/* masonry：瀑布流 */
+.img_wall[data-layout="masonry"]{
+	position: relative;
+
+	/* 不用 padding：absolute 子元素的 % 寬度以 padding box 計算，會與 Masonry 欄寬不符 */
+	width: calc(100% - 2em);
+}
+	.img_wall[data-layout="masonry"] .img_month{
+		display: none;
+	}
+	.img_wall[data-layout="masonry"] figure{
 		/* 排版前不佔文件流，避免推擠 */
 		position: absolute;
 		top: 0;
@@ -72,52 +142,31 @@ a:active{
 		border-radius: .5em;
 		box-shadow: rgba(0,0,0,.2) 1px 1px 1em 1px;
 		opacity: 0;
-		cursor: pointer;
 		transition: opacity .4s ease-in, transform .2s ease-in, box-shadow .2s ease-in;
 	}
-	.img_wall figure:hover{
-		z-index: 1;
-		box-shadow: rgba(0,0,0,.4) 1px 1px 1em 1px;
-		transform: scale(1.05);
-	}
-	.img_wall figure[title]::after{
-		position: absolute;
-		display: block;
-		content: attr(title);
-		width: 100%;
-		bottom: 0;
-		color: #111;
-		padding: .8em 0;
-		text-align: center;
-		letter-spacing: 1px;
-		white-space: nowrap;
-		overflow-x: hidden;
-		background: rgba(255,255,255,.6);
-		background: linear-gradient(to bottom,rgba(255,255,255,.5),rgba(255,255,255,.9));
-	    text-overflow: ellipsis;
-		transition: opacity .4s ease-in;
-		opacity: 0;
-	}
-		.img_wall figure[title]:hover::after{
-			opacity: 1;
-		}
-
-	.img_wall figure img{
-		display: block;
-		width: 100%;
+	.img_wall[data-layout="masonry"] figure img{
 		height: auto;
 		border-radius: .5em;
 		min-height: 80px;
-		opacity: 1;
-		transition: all .2s ease-in;
+		opacity: .9;
+		transition: opacity .2s ease-in;
 	}
-		.img_wall figure img{
-			opacity: .9;
-		}
+	.img_wall[data-layout="masonry"] .msnry-item{
+		opacity: 1;
+	}
 
-.img_wall .img-loaded{
-	opacity: 1;
+/* 版型切換（右上角） */
+.img_layout [data-img_layout]{
+	color: #888;
+	transition: color .2s ease-in;
 }
+	.img_layout [data-img_layout]::before{
+		margin-right: 0;
+	}
+	.img_layout [data-img_layout]:hover, 
+	.img_layout [data-img_layout].active{
+		color: #d17a67;
+	}
 
 .img_empty{
 	color: #555;
@@ -129,25 +178,6 @@ a:active{
 	max-width: 70%;
 	max-height: 50vh;
 }
-.img_empty .fa-camera{
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 3em;
-	height: 3em;
-	margin: .4em auto;
-	font-size: 3em;
-	color: #c68e78;
-	border: 1px solid #c68e78;
-	border-radius: 50%;
-	background: rgba(255,255,255,.5);
-	cursor: pointer;
-	transition: all .1s ease-in;
-}
-	.img_empty .fa-camera:hover{
-		color: #fff;
-		background: #c68e78;
-	}
 
 .img .vip_only{
 	position: fixed;
@@ -291,9 +321,32 @@ a:active{
 		filter: brightness(1.2);
 	}
 
-@media screen and (max-device-width: 767px){
-	.img_wall figure{
+@media screen and (min-width: 600px){
+	.img_wall[data-layout="grid"]{
+		grid-template-columns: repeat(4, 1fr);
+	}
+}
+@media screen and (min-width: 900px){
+	.img_wall[data-layout="grid"]{
+		grid-template-columns: repeat(6, 1fr);
+		gap: 4px;
+	}
+}
+@media screen and (max-width: 599px){
+	.img_wall[data-layout="masonry"] figure{
 		/* 2 欄，gutter 20px */
 		width: calc((100% - 20px) / 2);
+	}
+}
+
+/* 僅支援 hover 的裝置（避免觸控點擊後效果殘留） */
+@media (hover: hover){
+	.img_wall[data-layout="grid"] figure:hover img{
+		filter: brightness(.85);
+	}
+	.img_wall[data-layout="masonry"] figure:hover{
+		z-index: 1;
+		box-shadow: rgba(0,0,0,.4) 1px 1px 1em 1px;
+		transform: scale(1.05);
 	}
 }
