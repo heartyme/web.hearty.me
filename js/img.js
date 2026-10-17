@@ -15,7 +15,7 @@ document.addEventListener("error", function(e){
 hj_getScript("//cdn.jsdelivr.net/npm/@webcreate/infinite-ajax-scroll@3.1.0/dist/infinite-ajax-scroll.min.js").then(function(){
 	$(function(){
 		let ias = new InfiniteAjaxScroll(".img_wall", {
-				item: ".img_wall > *",
+				item: ".img_wall>*",
 				next: ".pager_next",
 				pagination: ".pager",
 				bind: false,
@@ -79,7 +79,7 @@ $(function(){
 	});
 	post_font();
 
-	img_month_label($(".img_wall > .img_month"));
+	img_month_label($(".img_wall>.img_month"));
 
 	document.title = _h("I-title")+" | 💝 Hearty Journal 溫度日記";
 });
@@ -90,7 +90,7 @@ function img_month_label(el){
 		let m = (this.dataset.month||"").split("-");
 		this.textContent = new Date(m[0], m[1]-1, 1).toLocaleDateString(hj_lang(), {
 			year: "numeric",
-			month: "long"
+			month: "short"
 		});
 	});
 }

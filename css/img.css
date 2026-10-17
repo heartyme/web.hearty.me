@@ -49,7 +49,7 @@ a:active{
 	margin-top: env(safe-area-inset-top, 0);
 }
 .img_wall{
-	/* 獨立疊層：牆內的 z-index（hover 相片、sticky 月份標題）不會蓋過牆外的固定按鈕 */
+	/* 獨立疊層：牆內的 z-index（hover相片、sticky月份標題）不會蓋過牆外的固定按鈕 */
 	isolation: isolate;
 	width: 100%;
 	max-width: 1080px;
@@ -64,7 +64,7 @@ a:active{
 		width: 100%;
 	}
 
-/* grid：iPhone 相簿式，等大正方形，手機 3 欄 */
+/* grid：iPhone相簿式，等大正方形，手機 3欄 */
 .img_wall[data-layout="grid"]{
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
@@ -232,7 +232,7 @@ a:active{
 	display: inline-block;
 	width: 13px;
 	height: 13px;
-	background: #F16D6E;
+	background: #f16d6e;
 	border-radius: 50%;
 	animation: bouncing-loader .6s infinite alternate;
 }
@@ -339,7 +339,7 @@ a:active{
 	}
 }
 
-/* 僅支援 hover 的裝置（避免觸控點擊後效果殘留） */
+/* 僅支援 hover的裝置（避免觸控點擊後效果殘留） */
 @media (hover: hover){
 	.img_wall[data-layout="grid"] figure:hover img{
 		filter: brightness(.85);

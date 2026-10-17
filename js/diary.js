@@ -22,7 +22,7 @@ $(function(){
 	// YTbox
 	hj_getScript_gh({
 		path: "js/ytbox.min.js", 
-		commit: "099b50da61ca5d5b267b98807e2901d0c0c00ac9"
+		commit: "17bc07bf59a25f0486e2f0c59d16497018164b0b"
 	});
 
 	// 網路及電量
@@ -496,7 +496,7 @@ function editor_enable(on){
 			// 相片上傳
 			hj_getScript_gh({
 				path: "js/jquery.uploadfile.min.js", 
-				commit: "099b50da61ca5d5b267b98807e2901d0c0c00ac9"
+				commit: "17bc07bf59a25f0486e2f0c59d16497018164b0b"
 			}, image_uploader_init);
 
 			$e.data({editor_loaded: true});
@@ -1396,7 +1396,7 @@ function period__initialize(){
 			// Date-picker bug on some Chrome 131, Windows
 			// https://i.hearty.app/j/6768f963d041c.gif
 			path: "js/periods.min.js", 
-			commit: "099b50da61ca5d5b267b98807e2901d0c0c00ac9"
+			commit: "17bc07bf59a25f0486e2f0c59d16497018164b0b"
 		}, function(){
 			$pd.slideDown("slow").data({loaded: true});
 		});
@@ -3855,7 +3855,7 @@ function sticker__list(set_num, set_alias){
 									"data-src": set["alias"]+"/"+set["cover"]+".png"
 								}).add($("<h5>", {
 									text: set["name"], 
-									"data-new": +(set_num>122||[82,103].indexOf(set_num)>=0)
+									"data-new": +(set_num>122||[27,104,105,115].indexOf(set_num)>=0)
 								})), 
 							"data-sticker": 0
 						})
