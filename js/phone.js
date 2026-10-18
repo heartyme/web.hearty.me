@@ -49,11 +49,15 @@ function phone_firebase_init(){
 		if(u){
 			let cc = $("#country-code").val() || 886, 
 				no = u.phoneNumber.replace("+"+cc, "");
-			hj_update({
-				action: "phone_verification_firebase", 
-				cc: cc, 
-				no: no, 
-				token: u.uid
+			// 後端以 ID Token 驗證手機號碼
+			u.getIdToken().then(function(id_token){
+				return hj_update({
+					action: "phone_verification_firebase", 
+					cc: cc, 
+					no: no, 
+					token: u.uid, 
+					id_token: id_token
+				});
 			}).then(function(r){
 				switch(r["Status"]){
 					case 1:
@@ -89,7 +93,9 @@ function phone_firebase_init(){
 						msg();
 					break;
 				}
-			}).fail(msg);
+			}).catch(function(){
+				msg();
+			});
 			$("#phone-verify-firebase").hide();
 			// console.log( JSON.stringify(firebase.auth().currentUser) );
 		}
