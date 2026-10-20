@@ -50,6 +50,7 @@ function phone_firebase_init(){
 			let cc = $("#country-code").val() || 886, 
 				no = u.phoneNumber.replace("+"+cc, "");
 			// 後端以 ID Token 驗證手機號碼
+			hj_loading();
 			u.getIdToken().then(function(id_token){
 				return hj_update({
 					action: "phone_verification_firebase", 
@@ -84,16 +85,19 @@ function phone_firebase_init(){
 					break;
 
 					case 2:
+						hj_loading(false);
 						msg('<i class="far fa-exclamation-triangle"></i> '+_h("pv-signin-0"), '<i class="fas fa-door-open"></i> '+_h("pv-signin-1"), function(){
 							hj_href("?r="+location.href.split("#")[0].split("?")[0].replace(location.origin, "")+"#signin");
 						});
 					break;
 
 					default:
+						hj_loading(false);
 						msg();
 					break;
 				}
 			}).catch(function(){
+				hj_loading(false);
 				msg();
 			});
 			$("#phone-verify-firebase").hide();
@@ -123,7 +127,10 @@ function phone_firebase(){
 		resetReCaptcha();
 		return false;
 	}
-	firebase.auth().signInWithPhoneNumber("+"+cc+phone, verifier).then(function(r){
+	hj_loading();
+	firebase.auth().signInWithPhoneNumber("+"+cc+phone, verifier).finally(function(){
+		hj_loading(false);
+	}).then(function(r){
 		window.phone_firebase_result = r;
 		phone_firebase_verify("", true);
 	}).catch(function(e){
@@ -164,10 +171,13 @@ function phone_firebase_verify(code, sms_sent){
 				return false;
 			}
 
+			// 載入動畫持續到 onAuthStateChanged 完成後端驗證並跳轉
+			hj_loading();
 			phone_firebase_result.confirm(code).then(function(r){
 				let user = r.user;
 				msg('<i class="fas fa-check-circle"></i> '+_h("pv-verify1-3", {$no: $("#phone-no").val()}), _h("pv-ok"));
 			}).catch(function(e){
+				hj_loading(false);
 				switch(e.code){
 					case "auth/invalid-verification-code":
 						msg('<i class="far fa-times"></i> '+_h("pv-code-3"), _h("pv-code-1"), function(){
