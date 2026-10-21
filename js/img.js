@@ -51,8 +51,6 @@ hj_getScript("//cdn.jsdelivr.net/npm/@webcreate/infinite-ajax-scroll@3.1.0/dist/
 		});
 
 		$(".pager").hide().delay(1000).queue(function(){
-			// 自動緩滑
-			if($(".img .vip_only").length>0) img_carousel();
 			$(this).dequeue();
 		});
 	});
@@ -200,20 +198,6 @@ function img_masonry_destroy(){
 		msnry = null;
 	}
 	$(".img_wall figure").removeClass("msnry-item").removeAttr("data-loaded");
-}
-
-function img_carousel(t){
-	t = t || 30000;
-
-	$("html,body").stop().animate({
-		scrollTop: $(".bouncingLoader").offset().top
-	}, t, function(){
-		$(this).animate({
-			scrollTop: 0
-		}, t, function(){
-			img_carousel(t);
-		});
-	});
 }
 
 function img_scrolltop($e){
