@@ -103,7 +103,7 @@ function hj_getScript(url, onsuccess, onerror, attrs){
 		p = p || {};
 			p["repo"] = "repo" in p ? p["repo"] : "heartyme/web.hearty.me";
 			p["path"] = "path" in p ? p["path"] : "";
-			p["commit"] = "commit" in p ? p["commit"] : "a5f0aaafbca69d621830c6279f6969a2d9508c32"; // "main"
+			p["commit"] = "commit" in p ? p["commit"] : "fb068e29f50d968923ca657e2e4816c323a51877"; // "main"
 
 		onsuccess = onsuccess || {};
 		onerror = onerror || {};
@@ -690,6 +690,19 @@ function hj_lang(){
 }
 	function hj_lang_zhcn(){
 		return /zh-CN/i.test(hj_lang());
+	}
+	// 語言索引 (同 libs/languages.php)
+	function hj_lang_index(locale){
+		let langs = ["en-us", "zh-tw", "zh-cn", "es-es", "id-id", "pt-pt", "ja-jp", "ru-ru", "fr-fr", "de-de", "tr-tr", "vi-vn", "ko-kr", "th-th", "it-it", "pl-pl", "uk-ua", "nl-nl", "ro-ro", "sw-ke", "el-gr"];
+		locale = (locale || navigator.language || "").toLowerCase();
+
+		// 中文：簡體 zh-cn，其餘 zh-tw
+		if(/^zh\b/.test(locale)) return /^zh-(cn|sg|my|hans)/.test(locale) ? 2 : 1;
+
+		// 完全相符，否則比對主語言碼
+		let i = langs.indexOf(locale);
+		if(i<0) i = langs.findIndex(l => l.split("-")[0]==locale.split("-")[0]);
+		return i<0 ? 0 : i;
 	}
 
 function hj_ip(alt){

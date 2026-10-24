@@ -714,7 +714,7 @@ function language_switch(lang, title){
 
 		// 為空
 		if(isNaN(lang)){
-			lang = +(/zh/i.test(hj_lang()));
+			lang = hj_lang_index(hj_lang());
 			setcookie("hearty_language", lang, 730);
 		}
 		$lang.val(lang).find("[value="+lang+"]").attr("selected", "selected");
