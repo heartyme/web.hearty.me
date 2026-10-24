@@ -21,8 +21,7 @@ $(function(){
 
 	// YTbox
 	hj_getScript_gh({
-		path: "js/ytbox.min.js", 
-		commit: "17bc07bf59a25f0486e2f0c59d16497018164b0b"
+		path: "js/ytbox.min.js"
 	});
 
 	// 網路及電量
@@ -495,8 +494,7 @@ function editor_enable(on){
 
 			// 相片上傳
 			hj_getScript_gh({
-				path: "js/jquery.uploadfile.min.js", 
-				commit: "17bc07bf59a25f0486e2f0c59d16497018164b0b"
+				path: "js/jquery.uploadfile.min.js"
 			}, image_uploader_init);
 
 			$e.data({editor_loaded: true});
@@ -1269,65 +1267,22 @@ function network_status(issues, status){
 
 // 翻面
 function flip_book(){
-	$(".bk-flip").trigger("click");
+	var $b = $(".bk-list .bk-book"), f = !$b.hasClass("bk-filp");
+	$b.toggleClass("bk-filp", f).toggleClass("bk-default", !f).removeClass("bk-viewinside");
 }
 
 function book__initialize(open){
-	var Books = (function(){
-		var $books = $(".bk-list .bk-book"), 
-			booksCount = $books.length;
-
-		function init(){
-			$books.each(function(){
-				var $book = $(this), 
-					$other = $books.not($book), 
-					$parent = $book.parent(), 
-					$read = $(".bk-read"), 
-					$flip = $(".bk-flip");
-
-				$read.on("click", function(){
-					var $this = $(this);
-
-					$other.data({opened: false}).removeClass("bk-viewinside").parent().css("z-index", 0).find(".bk-read").removeClass("bk-active");
-					if(!$other.hasClass("bk-filp"))
-						$other.addClass("bk-default");
-
-					if($book.data("opened")){
-						$this.removeClass("bk-active");
-						$book.data({opened: false, flip: false }).removeClass("bk-viewinside").addClass("bk-default");
-					}
-					else{
-						$this.addClass("bk-active");
-						$book.data({opened: true, flip: false}).removeClass("bk-filp bk-default").addClass("bk-viewinside");
-						$parent.css("z-index", booksCount);
-					}
-				});
-
-				$flip.on("click", function(){				
-					$read.removeClass("bk-active");
-
-					if($book.data("flip"))
-						$book.data({opened: false, flip: false}).removeClass("bk-filp").addClass("bk-default");
-					else
-						$book.data({opened: false, flip: true}).removeClass("bk-viewinside bk-default").addClass("bk-filp");
-				} );
-
-			});
-		}
-			return {init: init};
-	})();
-	Books.init();
-
 	$(".mask_loading").delay(600).queue(function(){
 		$(this).finish().fadeOut("fast", function(){
+			// 載入期間書已被打開：略過旋轉，仍需 resolve $d0，否則編輯器不會啟用
+			if($(".bk-viewinside").length) return window.$d0.resolve();
+
 			// 載入自動開書
-			if(!$(".bk-viewinside").length){
-				$(".bk-list .bk-book").addClass("bk-rotate").delay(1200).queue(function(){
-					if(open) open_book(true);
-					$(this).removeClass("bk-rotate").dequeue();
-					window.$d0.resolve();
-				});
-			}
+			$(".bk-list .bk-book").addClass("bk-rotate").delay(1200).queue(function(){
+				if(open) open_book(true);
+				$(this).removeClass("bk-rotate").dequeue();
+				window.$d0.resolve();
+			});
 		});
 	});
 
@@ -1358,9 +1313,6 @@ function book__initialize(open){
 	$(".bk-list .bk-page,.bk-cover-back .catalog").delay(800).queue(function(){
 		$(this).scrollTop(0).dequeue();
 	});
-
-	// M$ Edge Dirty Fix (Div Scroll Overflow Issue)
-	if(check_browser("Edge")) $(".bk-cover-back .catalog").scrollTop($(".bk-cover-back .catalog").get(0)?.scrollHeight);
 }
 
 // 啟動：編輯區
@@ -1395,8 +1347,7 @@ function period__initialize(){
 		hj_getScript_gh({
 			// Date-picker bug on some Chrome 131, Windows
 			// https://i.hearty.app/j/6768f963d041c.gif
-			path: "js/periods.min.js", 
-			commit: "17bc07bf59a25f0486e2f0c59d16497018164b0b"
+			path: "js/periods.min.js"
 		}, function(){
 			$pd.slideDown("slow").data({loaded: true});
 		});
@@ -3465,45 +3416,7 @@ function post_penpal_add(user){
 				action: "post_penpal_add", 
 				penpal: user
 			}).then(function(r){
-				switch(r["Status"]){
-					case 1:
-						var penpal = r["Values"];
-						post_penpal_option(penpal).prependTo($s);
-
-						if(hj_membership()[1]>4) $(".penpals .penpal_delete").fadeTo("fast",1); // 封存筆友鈕
-						alertify.success('<i class="fas fa-user-plus"></i> '+_h("e-penpal_add-5", {$name: penpal["nickname"]}));
-
-						ga_evt_push("Penpal", {
-							event_category: "Add User", 
-							event_label: "Penpal"
-						});
-					break;
-
-					case 2:
-						signin_required();
-					break;
-
-					case 3: // 加入過囉
-						msg('<i class="far fa-grin"></i> '+_h("e-penpal_add-6", {$user: user}));
-					break;
-
-					case 4: // 已遭封存
-						$("#alertify .alertify-text").val("");
-						msg('<i class="far fa-user-slash"></i> '+_h("e-penpal_add-8", {$user: user})+" (;´ㅁ`)-3");
-					break;
-
-					case 5: // 輸入自己
-						$("#alertify .alertify-text").val("");
-						msg('<i class="far fa-grin-beam-sweat"></i> '+_h("e-penpal_add-9"));
-					break;
-
-					default: // 找不到
-						msg('<i class="far fa-grin-beam-sweat"></i> '+_h("e-penpal_add-7", {$user: user}), _h("e-retry"), function(){
-							alertify_input_shake();
-						});
-						post_penpal_add(user);
-					break;
-				}
+				post_penpal_add_result(r, user);
 			});
 		}
 	}, (user || "").toString() );
@@ -3518,6 +3431,66 @@ function post_penpal_add(user){
 
 	// 開啟通知
 	hj_fcm_init();
+
+	function post_penpal_add_result(r, user){
+		switch(r["Status"]){
+			case 1:
+				var penpal = r["Values"];
+				post_penpal_option(penpal).prependTo($s);
+
+				if(hj_membership()[1]>4) $(".penpals .penpal_delete").fadeTo("fast",1); // 封存筆友鈕
+				alertify.success('<i class="fas fa-user-plus"></i> '+_h("e-penpal_add-6", {$name: htmlspecialchars(htmlDecode(penpal["nickname"]))}));
+
+				ga_evt_push("Penpal", {
+					event_category: "Add User", 
+					event_label: "Penpal"
+				});
+			break;
+
+			case 2:
+				signin_required();
+			break;
+
+			case 3: // 加入過囉
+				msg('<i class="far fa-grin"></i> '+_h("e-penpal_add-7", {$user: user}));
+			break;
+
+			case 4: // 已遭封存
+				$("#alertify .alertify-text").val("");
+				msg('<i class="far fa-user-slash"></i> '+_h("e-penpal_add-9", {$user: user})+" (;´ㅁ`)-3");
+			break;
+
+			case 5: // 輸入自己
+				$("#alertify .alertify-text").val("");
+				msg('<i class="far fa-grin-beam-sweat"></i> '+_h("e-penpal_add-10"));
+			break;
+
+			case 6: // 確認對象
+				var penpal = r["Values"];
+				alertify.set({labels: {ok: '<i class="far fa-plus"></i> '+_h("e-penpal_add-3"), cancel: _h("e-back")}, buttonReverse: false});
+				alertify.confirm('<i class="fal fa-user-check"></i> '+_h("e-penpal_add-5", {$name: htmlspecialchars(htmlDecode(penpal["nickname"])), $user: penpal["username"]}), function(e){
+					if(e){
+						hj_update({
+							action: "post_penpal_add", 
+							penpal_user_id: penpal["user_id"]
+						}).then(function(r){
+							post_penpal_add_result(r, user);
+						});
+					}
+					else{
+						post_penpal_add(user); // 返回輸入框
+					}
+				});
+			break;
+
+			default: // 找不到
+				msg('<i class="far fa-grin-beam-sweat"></i> '+_h("e-penpal_add-8", {$user: user}), _h("e-retry"), function(){
+					alertify_input_shake();
+				});
+				post_penpal_add(user);
+			break;
+		}
+	}
 }
 
 // 封存筆友

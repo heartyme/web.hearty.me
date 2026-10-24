@@ -3,7 +3,7 @@ function open_book(o){
 		o = o || !opened, 
 		$t = $(".editor_toolbelt");
 	if(o!==opened){
-		$(".bk-read").trigger("click");
+		$(".bk-list .bk-book").toggleClass("bk-viewinside", o).toggleClass("bk-default", !o).removeClass("bk-filp");
 		if(is_touch_device()){
 			if(o) $t.slideDown("normal");
 			else $t.slideUp("fast");
