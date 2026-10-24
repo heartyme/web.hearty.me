@@ -15,6 +15,7 @@ body{
 html{
 	box-sizing: border-box;
 	appearance: none;
+	scrollbar-width: none;
 }
 a:link, 
 a:visited, 
@@ -34,11 +35,6 @@ body{
 	overscroll-behavior: none;
 	-webkit-touch-callout: none;
 }
-	body::-webkit-scrollbar{
-		display: none;
-		width: 0;
-		background: transparent;
-	}
 
 .topbar{
 	position: sticky;

@@ -18,17 +18,11 @@ body{
 	background-repeat: repeat;
 	background-position: center;
 }
+	html, 
 	body, 
 	.feed, 
 	.feed div{
 		scrollbar-width: none;
-	}
-	body::-webkit-scrollbar, 
-	.feed::-webkit-scrollbar, 
-	.feed div::-webkit-scrollbar{
-		display: none;
-		width: 0;
-		background: transparent;
 	}
 
 a:link, 

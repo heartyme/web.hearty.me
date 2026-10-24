@@ -27,17 +27,11 @@ body{
 	background-attachment: fixed;
 	text-rendering: optimizeLegibility;
 }
+	html, 
 	body, 
 	.account, 
 	.account > div{
 		scrollbar-width: none;
-	}
-	body::-webkit-scrollbar, 
-	.account::-webkit-scrollbar, 
-	.account > div::-webkit-scrollbar{
-		display: none;
-		width: 0;
-		background: transparent;
 	}
 
 	/*

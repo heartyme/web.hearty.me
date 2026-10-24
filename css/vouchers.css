@@ -154,7 +154,6 @@ input[type="checkbox"]{
 		word-break: break-all;
 		word-wrap: break-word;
 		overflow: hidden;
-		overflow: clip;
 		text-overflow: ellipsis;
 		max-width: 25vw;
 	}
@@ -433,7 +432,6 @@ section ol{ /* section 可躲過 menu */
 	backdrop-filter: blur(5px);
 	opacity: 0;
 	overflow-x: hidden;
-	overflow-x: clip;
 	overflow-y: scroll;
 }
 	.eml[data-hidden], 
@@ -811,10 +809,9 @@ small{
 
 /* 手機 */
 @media screen and (max-width: 767px){
-	body::-webkit-scrollbar{
-		display: none;
-		width: 0;
-		background: transparent;
+	html, 
+	body{
+		scrollbar-width: none;
 	}
 
 	.vouchers [title-m]::after, 

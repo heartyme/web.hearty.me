@@ -13,20 +13,13 @@ body{
 	margin: 0;
 	overscroll-behavior: none;
 }
+	html, 
 	body, 
 	.goodnight, 
 	.goodnight div, 
 	.alice_inner [data-opinions]{
 		scrollbar-width: none;
 	}
-		body::-webkit-scrollbar, 
-		.goodnight::-webkit-scrollbar, 
-		.goodnight div::-webkit-scrollbar, 
-		.alice_inner [data-opinions]::-webkit-scrollbar{
-			display: none;
-			width: 0;
-			background: transparent;
-		}
 
 .goodnight{
 	display: flex;

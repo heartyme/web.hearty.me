@@ -48,7 +48,6 @@ body.loading::after{
 	margin: 0;
 	cursor: pointer;
 	overflow: hidden;
-	overflow: clip;
 }
 	/* Effect: Shine */
 	.profile_image::after{
@@ -153,11 +152,6 @@ body.loading::after{
 	nav.menu div{
 		scrollbar-width: none;
 	}
-		nav.menu div::-webkit-scrollbar{
-			display: none;
-			width: 0;
-			background: transparent;
-		}
 
 	nav.menu ol{
 		margin: 0 auto;
