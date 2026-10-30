@@ -635,8 +635,7 @@ audio::-webkit-media-controls-timeline{
 		content: "\00a0";
 	}
 .authform .signin, 
-.authform .reset, 
-.authform #reset{
+.authform .reset{
 	display: none;
 }
 .authform #signin, 
@@ -654,7 +653,7 @@ audio::-webkit-media-controls-timeline{
 	content: "\25B6\00a0";
 }
 .authform #captcha{
-	text-align: left;
+	text-align: center;
 }
 .authform .toggle{
 	float: left;
@@ -693,7 +692,7 @@ audio::-webkit-media-controls-timeline{
 	background: #ff69b4;
 }
 
-data-tooltip]{
+[data-tooltip]{
 	position: relative;
 	line-height: 1.5;
 }
