@@ -253,7 +253,10 @@ function alice_greeting_read(greeting_id){
 			html: $("<div>", {
 				class: "avatar", 
 				title: c["nickname"], 
-				onclick: "profile_popup('"+c["username"]+"','"+c["nickname"]+"','"+profile_image+"','"+gender+"')", 
+				onclick: "profile_popup(this.dataset.username,this.title,this.dataset.profile_image,this.dataset.gender)", 
+				"data-username": c["username"], 
+				"data-profile_image": profile_image, 
+				"data-gender": gender, 
 				"data-vip": c["is_vip"] // $.inArray(c["username"], ["nien", "jianny"])<0 ? 0 : 1
 			}).css({
 				"background-image": "url(//i.hearty.app/u/"+profile_image+")"

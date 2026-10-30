@@ -3082,14 +3082,14 @@ function hj__cache(v){
 	if(s in window){
 		if(set){
 			try{
-				window.eval(s).setItem(v.bucket, v.data);
+				window[s].setItem(v.bucket, v.data);
 			}
 			catch(e){
 				$b.data(v.bucket, v.data);
 			}
 		}
 		else{
-			return window.eval(s).getItem(v.bucket) || $b.data(v.bucket) || null;
+			return window[s].getItem(v.bucket) || $b.data(v.bucket) || null;
 		}
 	}
 	else{
@@ -3524,8 +3524,9 @@ function post_penpal_delete(penpal_id, penpal_nickname, penpal_username){
 	// 3. 再次確認
 	else{
 		penpal_id = parseInt(penpal_id);
+		var penpal_user = htmlspecialchars(htmlDecode(penpal_nickname))+" ("+htmlspecialchars(penpal_username)+")";
 		alertify.set({labels: {ok: _h("e-no-0"), cancel: '<i class="fas fa-user-slash"></i> '+_h("e-penpal_delete-4")}, buttonReverse: false});
-		alertify.confirm('<i class="fal fa-info-circle"></i> '+_h("e-penpal_delete-3", {$user: penpal_nickname+" ("+penpal_username+")"}), function(e){
+		alertify.confirm('<i class="fal fa-info-circle"></i> '+_h("e-penpal_delete-3", {$user: penpal_user}), function(e){
 			if(!e){
 				hj_update({
 					action: "post_penpal_delete", 
@@ -3535,7 +3536,7 @@ function post_penpal_delete(penpal_id, penpal_nickname, penpal_username){
 						case 1:
 							$s.find("option[value='"+penpal_id+"']").remove();
 							if(!$s.find("option").length) $(".penpals .penpal_delete").fadeTo("fast",0);
-							msg('<i class="far fa-check-circle"></i> '+_h("e-penpal_delete-5", {$user: penpal_nickname+" ("+penpal_username+")"}), _h("e-ok-0"));
+							msg('<i class="far fa-check-circle"></i> '+_h("e-penpal_delete-5", {$user: penpal_user}), _h("e-ok-0"));
 
 							catalog_query(null, {page: 1}); // 刷新目錄
 
@@ -4433,8 +4434,8 @@ function post_query(post_id, via_backbtn){
 	function linkify(s){
 		return (s || "")
 
-		// escape <>
-		.replace(/</g,"&lt;").replace(/>/g,"&gt;")
+		// escape <>"' (&apos; 不含 #，避免被 Hashtags 誤判)
+		.replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;")
 
 		// starts with http(s)://
 		.replace(/\b(?:https?):\/\/[\w\p{L}\p{N}\-+&@#\/%?=~_|!:,.;]*[\w\p{L}\p{N}\-+&@#\/%=~_|]/gimu, '<a onclick="open_external(this.dataset.link)" rel="ugc" title="$&" data-link="$&" spellcheck="false">$&</a>')
@@ -4457,7 +4458,7 @@ function post_query(post_id, via_backbtn){
 
 		// Hashtags: Negative Lookahead (with Safari support) regex101.com/r/zEoWKu/1
 		// ref: stackoverflow.com/a/27213663
-		.replace(/((?!([\(])).|^|\s)#(\S+)(?![^<]*>|[^<>｛｝]*<\/)/g, '$1<a onclick="catalog_search(\'#$3\')" rel="ugc" title="$3" spellcheck="false">#$3</a>')
+		.replace(/((?!([\(])).|^|\s)#(\S+)(?![^<]*>|[^<>｛｝]*<\/)/g, '$1<a onclick="catalog_search(\'#\'+this.title)" rel="ugc" title="$3" spellcheck="false">#$3</a>')
 
 	/* Hashtags: Negative Lookbehind (without Safari support) regex101.com/r/g5Y1nh/1
 		.replace(/(?<!\()#(\S+)(?![^<]*>|[^<>｛｝]*<\/)/g, '<a onclick="catalog_search(\'#$1\')" rel="ugc" title="$1" spellcheck="false">#$1</a>')

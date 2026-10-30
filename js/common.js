@@ -103,7 +103,7 @@ function hj_getScript(url, onsuccess, onerror, attrs){
 		p = p || {};
 			p["repo"] = "repo" in p ? p["repo"] : "heartyme/web.hearty.me";
 			p["path"] = "path" in p ? p["path"] : "";
-			p["commit"] = "commit" in p ? p["commit"] : "fb068e29f50d968923ca657e2e4816c323a51877"; // "main"
+			p["commit"] = "commit" in p ? p["commit"] : "fc9ea9cd3729d1b0a7858a50b275eeb3878c8f3f"; // "main"
 
 		onsuccess = onsuccess || {};
 		onerror = onerror || {};
@@ -348,8 +348,8 @@ function alertify_input_custom(a, c){
 // Enter 鍵
 function press_enter(e, action){
 	if((e.keyCode ? e.keyCode : e.which)==13){
-		if(action.indexOf("(")>0) eval(action);
-		else eval(action+'();');
+		let fn = window[action];
+		if(typeof fn=="function") fn();
 	}
 }
 
@@ -463,12 +463,8 @@ function htmlspecialchars(str){
 	return !!str ? str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') : "";
 }
 function htmlDecode(i){
-	return $("<i>").html(i || "").text();
-	/* Alt: 
-		let e = document.createElement("i");
-		e.innerHTML = i || " ";
-		return e.childNodes[0].nodeValue;
-	*/
+	// DOMParser 不執行 script、不載入圖片 (避免 <img onerror> XSS)；<body> 前綴保留開頭空白
+	return new DOMParser().parseFromString("<!doctype html><body>"+(i || ""), "text/html").body.textContent;
 }
 
 // 抖動

@@ -232,15 +232,15 @@ function read_post(d){
 }
 	function linkify(s){
 		return (s || "")
-		// escape <>
-		.replace(/</g,"&lt;").replace(/>/g,"&gt;")
+		// escape <>"' (&apos; 不含 #，避免被 Hashtags 誤判)
+		.replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;")
 
 		// https://+ Owned Domains
 		.replace(/\b(?:https):\/\/(|(\w+)\.)(hearty\.(me|app|gift|tw|page\.link|eu\.org)|hj\.rs|ht\.mk|nien\.(co(m|)|org)|youtu(be\.com|\.be))(\/(\S+)?|)/gim, '<a target="_blank" href="$&" rel="ugc" title="$&">$&</a>')
 
 		// Hashtags: Negative Lookahead (with Safari support) regex101.com/r/zEoWKu/1
 		// ref: stackoverflow.com/a/27213663
-		.replace(/((?!([\(])).|^|\s)#(\S+)(?![^<]*>|[^<>｛｝]*<\/)/g, '$1<a title="$3" onclick="msg(\'#$3\')">#$3</a>')
+		.replace(/((?!([\(])).|^|\s)#(\S+)(?![^<]*>|[^<>｛｝]*<\/)/g, '$1<a title="$3" onclick="msg(\'#\'+htmlspecialchars(this.title))">#$3</a>')
 
 		// Marks
 		.replace(/[^\S\r\n]?\*([^\*{}=#<>｛｝]+)\*[^\S\r\n]?(?![^<]*>|[^<>]*<\/)/g, '<mark title="$1">$1</mark>')
@@ -363,9 +363,9 @@ function report_abuse(post_id){
 				title = ($a.find("h2").attr("title") || "無標題").trim();
 
 			alertify.set({labels: {ok: _h("f-no"), cancel: '<i class="fas fa-check-circle"></i> '+_h("f-report_ask-1")}, buttonReverse: false});
-			alertify.confirm('<i class="fal fa-flag-alt"></i> '+_h("f-report_ask-0", {$title: title}), function(e){
+			alertify.confirm('<i class="fal fa-flag-alt"></i> '+_h("f-report_ask-0", {$title: htmlspecialchars(title)}), function(e){
 				if(!e){
-					msg("📝 "+_h("f-report_ask-2", {$title: title}));
+					msg("📝 "+_h("f-report_ask-2", {$title: htmlspecialchars(title)}));
 
 					// forms.gle/z6gzojN2h8ewF5vd9
 					gform_post("1FAIpQLSdPi8fPhBq6KN1ok8h6fK8h5At0SO0qANuNlDCNk6VDoVjjuA", {

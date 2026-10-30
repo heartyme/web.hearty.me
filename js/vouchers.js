@@ -269,11 +269,11 @@ function voucher_remark($e){
 	if(!$e) return;
 
 	let voucher = $e.siblings("[data-voucher]").attr("title")||"", 
-		remark = $("<i>").html($e.attr("title")||"").text();
+		remark = htmlDecode($e.attr("title"));
 	alertify.set({labels: {ok: '<i class="fas fa-plus"></i> 貼上', cancel: "取消"}, buttonReverse: false});
 	alertify.prompt('<i class="fal fa-edit"></i> 備註一下：', function(e, remark){
 		if(e){
-			remark = $("<i>").html(remark||"").text();
+			remark = htmlDecode(remark);
 
 			bd_update({
 				action: "voucher_remark", 
