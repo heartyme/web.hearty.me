@@ -893,77 +893,42 @@ function nav_account(p, no_animation){
 	$(".nav_account li").removeAttr("data-active").eq(p||0).attr("data-active", "");
 }
 
-function export_txt(txt){
+// 匯出備份：選擇格式 (.txt／.docx)
+function export_journal(){
 	hj_loading();
 	account_status().then(function(r){
 		if(r["Values"]["vip"]==1){
 			if(is_touch_device()){
 				msg('<i class="far fa-desktop"></i> '+_h("a-dl_pc"));
-				hj_loading(false);
-				export_txt_stats("use_pc_instead");
+				export_stats("use_pc_instead");
 				return false;
 			}
 
-			alertify.set({labels: {ok: '<i class="fas fa-lock"></i> '+_h("a-dl_pwd-2"), cancel: _h("a-no")}, buttonReverse: false});
-			alertify.prompt((txt || '<i class="far fa-briefcase"></i> '+_h("a-dl_pwd-0")), function(e, pwd){
-				if(e){
-					if(pwd.length<6 || pwd.length>20){
-						export_txt('<i class="far fa-info-circle"></i> '+_h("a-dl_pwd-1"));
-						alertify_input_shake();
-						export_txt_stats("password_malformatted");
-						return false;
-					}
+			let fmt = "txt";
+			alertify.set({labels: {ok: _h("a-dl_fmt-3"), cancel: _h("a-no")}, buttonReverse: false});
+			alertify.confirm('<i class="far fa-briefcase"></i> '+_h("a-dl_fmt-0")+
+				'<label style="display:block;margin-top:.8em;cursor:pointer"><input type="radio" name="export_fmt" value="txt" checked> <i class="far fa-file-alt"></i> '+_h("a-dl_fmt-1")+"</label>"+
+				'<label style="display:block;margin-top:.4em;cursor:pointer"><input type="radio" name="export_fmt" value="docx"> <i class="far fa-file-word"></i> '+_h("a-dl_fmt-2")+"</label>", function(e){
+				if(!e) return;
 
-					$("<form>", {
-						method: "POST", 
-						target: "_self", 
-						action: "/update", 
-						enctype: "application/x-www-form-urlencoded", 
-						html: $("<input>", {
-							type: "hidden", 
-							name: "action", 
-							value: "export_txt"
-						}).add(
-							$("<input>", {
-								type: "hidden", 
-								name: "password", 
-								value: pwd
-							})
-						)
-					}).appendTo("body").trigger("submit");
-
-					alertify.success('<i class="far fa-arrow-to-bottom"></i> '+_h("a-dl_pwd-3"));
-
-					$.wait(2000).then(function(){
-						export_txt_stats("txt_exported");
-
-						ga_evt_push("Posts Exported", {
-							event_category: "Posts", 
-							event_label: "Posts Exported"
-						});
-
-						msg('<i class="fas fa-folder-download"></i> '+_h("a-dl_pwd-4"), _h("a-ok-1"));
-					});
+				if(fmt=="txt"){
+					export_txt();
 				}
-
-				$.wait(1000).then(function(){
-					hj_loading(false);
-				});
-			}, "");
-
-			alertify_input_custom({
-				type: "password", 
-				placeholder: _h("a-dl_pwd-1"), 
-				autocomplete: "new-password", // new-password
-				minlength: 6, 
-				maxlength: 20
-			}, {
-				"letter-spacing": "2px"
+				else if(!("showSaveFilePicker" in window)){
+					msg('<i class="fab fa-chrome"></i> '+_h("a-dl_doc-7"));
+					export_stats("doc_unsupported");
+				}
+				else{
+					export_docx();
+				}
+			});
+			$("#alertify input[name=export_fmt]").on("change", function(){
+				fmt = this.value;
 			});
 		}
 		else{
 			vip_only(_h("a-dl"));
-			export_txt_stats("notice_upgrade");
+			export_stats("notice_upgrade");
 		}
 	}).fail(function(){
 		msg();
@@ -971,7 +936,195 @@ function export_txt(txt){
 		hj_loading(false);
 	});
 }
-	function export_txt_stats(action){
+	// 輸入溫度密碼：格式不符時以 retry 重新詢問
+	function export_password(txt, retry, callback, ok){
+		alertify.set({labels: {ok: '<i class="fas fa-lock"></i> '+(ok || _h("a-dl_pwd-2")), cancel: _h("a-no")}, buttonReverse: false});
+		alertify.prompt((txt || '<i class="far fa-briefcase"></i> '+_h("a-dl_pwd-0")), function(e, pwd){
+			if(!e) return;
+
+			if(pwd.length<6 || pwd.length>20){
+				retry('<i class="far fa-info-circle"></i> '+_h("a-dl_pwd-1"));
+				alertify_input_shake();
+				export_stats("password_malformatted");
+				return;
+			}
+			callback(pwd);
+		}, "");
+
+		alertify_input_custom({
+			type: "password", 
+			placeholder: _h("a-dl_pwd-1"), 
+			autocomplete: "new-password", // new-password
+			minlength: 6, 
+			maxlength: 20
+		}, {
+			"letter-spacing": "2px"
+		});
+	}
+
+	function export_txt(txt){
+		export_password(txt, export_txt, function(pwd){
+			hj_loading();
+
+			$("<form>", {
+				method: "POST", 
+				target: "_self", 
+				action: "/update", 
+				enctype: "application/x-www-form-urlencoded", 
+				html: $("<input>", {
+					type: "hidden", 
+					name: "action", 
+					value: "export_txt"
+				}).add(
+					$("<input>", {
+						type: "hidden", 
+						name: "password", 
+						value: pwd
+					})
+				)
+			}).appendTo("body").trigger("submit");
+
+			alertify.success('<i class="far fa-arrow-to-bottom"></i> '+_h("a-dl_pwd-3"));
+
+			$.wait(2000).then(function(){
+				export_stats("txt_exported");
+
+				ga_evt_push("Posts Exported", {
+					event_category: "Posts", 
+					event_label: "Posts Exported"
+				});
+
+				msg('<i class="fas fa-folder-download"></i> '+_h("a-dl_pwd-4"), _h("a-ok-1"));
+			});
+
+			$.wait(1000).then(function(){
+				hj_loading(false);
+			});
+		});
+	}
+
+	function export_docx(txt){
+		export_password(txt, export_docx, function(pwd){
+			hj_loading();
+			hj_update({action: "export_doc_data", password: pwd}).then(function(r){
+				switch(+r["Status"]){
+					case 1:
+						export_docx_confirm(r["Values"]);
+					break;
+
+					// 密碼錯誤
+					case 2:
+						export_docx('<i class="far fa-info-circle"></i> '+_h("a-dl_doc-9"));
+						alertify_input_shake();
+						export_stats("password_incorrect");
+					break;
+
+					// 非 VIP
+					case 3:
+						vip_only(_h("a-dl"));
+						export_stats("notice_upgrade");
+					break;
+
+					// 沒有日記
+					case 4:
+						msg('<i class="far fa-info-circle"></i> '+_h("a-dl_doc-10"));
+					break;
+
+					default:
+						msg();
+				}
+			}).fail(function(){
+				msg();
+			}).always(function(){
+				hj_loading(false);
+			});
+		}, _h("a-dl_doc-11"));
+	}
+	function export_docx_confirm(d){
+		let images = d["posts"].reduce(function(n, p){
+			return n+p["images"].length;
+		}, 0);
+
+		alertify.set({labels: {ok: '<i class="fas fa-file-word"></i> '+_h("a-dl_doc-1"), cancel: _h("a-no")}, buttonReverse: false});
+		alertify.confirm('<i class="far fa-file-word"></i> '+_h("a-dl_doc-0", {"$posts": d["posts"].length.toLocaleString(), "$images": images.toLocaleString()}), function(e){
+			if(!e) return;
+
+			// 須在使用者手勢內呼叫
+			window.showSaveFilePicker({
+				suggestedName: "Hearty_Journal_"+d["username"]+".docx", 
+				types: [{
+					description: "Word", 
+					accept: {"application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"]}
+				}]
+			}).then(function(handle){
+				return export_docx_run(d, handle);
+			}).catch(function(err){
+				// 取消存檔
+				if(err && err.name=="AbortError") return;
+				msg('<i class="far fa-info-circle"></i> '+_h("a-dl_doc-6"));
+				export_stats("doc_failed");
+			});
+		});
+	}
+	async function export_docx_run(d, handle){
+		let $b = $("body"), 
+			writable = null, 
+			$p = null, 
+			progress = function(html){
+				html = '<i class="far fa-spinner fa-spin"></i> '+html;
+				if($p && $p.parent().length>0){
+					$p.html(html);
+				}
+				else{
+					alertify.log(html, "", 0); // 常駐
+					$p = $("#alertify-logs .alertify-log").last();
+				}
+			}, 
+			unload = function(e){
+				e.preventDefault();
+				e.returnValue = "";
+			};
+
+		// 不用 hj_loading()：其 8秒逾時會在匯出途中移除；並清除先前 hj_loading() 排定的移除
+		$b.clearQueue().addClass("loading");
+		progress(_h("a-dl_doc-3"));
+		window.addEventListener("beforeunload", unload);
+
+		try{
+			writable = await handle.createWritable();
+			if(!("fflate" in window)) await hj_getScript_npm("fflate@0.8.2/umd/index.js");
+			if(!("export_doc" in window)) await hj_getScript_gh({
+				commit: "main", 
+				path: "js/export_doc.min.js"
+			});
+
+			let r = await export_doc(d, writable, function(done, total){
+				progress(total>0 ? _h("a-dl_doc-2", {"$done": done.toLocaleString(), "$total": total.toLocaleString()}) : _h("a-dl_doc-3"));
+			});
+
+			msg('<i class="fas fa-folder-download"></i> '+_h("a-dl_doc-4")+(r.skipped>0 ? "<br>"+_h("a-dl_doc-5", {"$n": r.skipped.toLocaleString()}) : ""), _h("a-ok-1"));
+			export_stats("docx_exported");
+
+			ga_evt_push("Posts Exported", {
+				event_category: "Posts", 
+				event_label: "Posts Exported (docx)", 
+				value: r.skipped
+			});
+		}
+		catch(e){
+			console.error(e);
+			if(writable) writable.abort().catch(function(){});
+			msg('<i class="far fa-info-circle"></i> '+_h("a-dl_doc-6"));
+			export_stats("doc_failed");
+		}
+		finally{
+			window.removeEventListener("beforeunload", unload);
+			if($p) $p.get(0).click(); // 關閉進度
+			$b.removeClass("loading");
+		}
+	}
+
+	function export_stats(action){
 		// forms.gle/ak6RutfWkMkGY6QJ7
 		gform_post("1FAIpQLSfvmnOWgvwQfBjQIoJeH6EzxLUq62mwcRB7RQeODoWF1oC7Pg", {
 			"emailAddress": getcookie("hearty_em"), 
