@@ -20,7 +20,7 @@ function home_init(){
 		var account = getcookie("hearty_account") || getUrlPara("account") || "";
 		if(!!account){
 			$("#account").val(account); $(".toggler").removeClass("off");
-			$(".toggle_signup").css({color: "#fff", background: "#555"});
+			box("signin");
 		}
 		else{
 			box("signup");
@@ -54,13 +54,13 @@ function home_init(){
 					status = _h("i-email-3"); shake($(".authform"));
 				break;
 			}
-			authbox(true);
+			authbox(true); box("signin");
 			toast(status);
 		}
 		// 來自重設密碼所跳轉
 		else if(!!reset){
 			if(reset=="1"){
-					authbox(true);
+					authbox(true); box("signin");
 					toast(_h("i-reset-1"));
 					$("#account").val(getUrlPara("account") || "");
 					$("#password").val(getUrlPara("token") || "");
@@ -227,7 +227,7 @@ function signin(para){
 		$p[0]?.focus(); return;
 	}
 
-	hj_update({
+	hj_update_ts({
 		action: "signin", 
 		account: account, 
 		password: $p.val(), 
@@ -238,55 +238,7 @@ function signin(para){
 	}).then(function(r){
 		switch(r["Status"]){
 			case 1:
-				var val = r["Values"];
-				$("#signin").hide(); $(".loading-bars").show();
-
-				// Cookie 記憶
-				if(!$("a.toggler").hasClass("off")) setcookie("hearty_account", account, 90);
-				else setcookie("hearty_account", "", 90);
-
-				// 登入後跳轉
-				toast(_h("i-signin-1", {$user: account}));
-				$("body").css({cursor: "wait"});
-
-				if(typeof mixpanel!="undefined"){
-					mixpanel.identify(val["user_id"]);
-					mixpanel.people.set({
-						"$username": val["username"], 
-						"$email": val["email"], 
-						"$last_login": new Date()
-					});
-				}
-				ga_evt_push("Sign In", {
-					event_category: "Auth", 
-					event_label: "Sign In"
-				});
-
-				var redirect;
-				if(!!via_API){
-					redirect = Return_URL;
-					redirect += (redirect.indexOf("?")<0?"?":"&")+"Hearty_Signin="+val["token_signin"]; // 網址帶 Token 參數
-			    	location.assign(redirect);
-				}
-				else if(!!getUrlPara("r")){
-					location.assign(htmlspecialchars(getUrlPara("r")).replace("？", "?").replace(/＆/g, "&"));
-				}
-				else{
-					switch(para){
-						case "first": // 需要導覽
-							redirect = "/"+val["username"]+"?first=1";
-						break;
-						
-						case "profile": // 導至 profile
-							redirect = "/account?pc=1";
-						break;
-
-						default:
-							redirect = "/"+val["username"];
-						break;
-					}
-					location.assign(redirect);
-				}
+				signin_success(r["Values"], account, para);
 			break;
 
 			case 2:
@@ -301,6 +253,10 @@ function signin(para){
 				msg(_h("i-signin-6", {$user: account}));
 			break;
 
+			case 8:
+				ts_failed();
+			break;
+
 			default:
 				shake($f);
 				toast(_h("i-signin-7"));
@@ -311,6 +267,57 @@ function signin(para){
 		msg();
 	});
 }
+	// 登入成功 (登入、註冊後直接登入共用)：記憶帳號、事件追蹤並跳轉
+	function signin_success(val, account, para){
+		$("#signin").hide(); $(".loading-bars").show();
+
+		// Cookie 記憶
+		if(!$("a.toggler").hasClass("off")) setcookie("hearty_account", account, 90);
+		else setcookie("hearty_account", "", 90);
+
+		// 登入後跳轉
+		toast(_h("i-signin-1", {$user: account}));
+		$("body").css({cursor: "wait"});
+
+		if(typeof mixpanel!="undefined"){
+			mixpanel.identify(val["user_id"]);
+			mixpanel.people.set({
+				"$username": val["username"], 
+				"$email": val["email"], 
+				"$last_login": new Date()
+			});
+		}
+		ga_evt_push("Sign In", {
+			event_category: "Auth", 
+			event_label: "Sign In"
+		});
+
+		var redirect;
+		if(!!window.via_API){
+			redirect = Return_URL;
+			redirect += (redirect.indexOf("?")<0?"?":"&")+"Hearty_Signin="+val["token_signin"]; // 網址帶 Token 參數
+	    	location.assign(redirect);
+		}
+		else if(!!getUrlPara("r")){
+			location.assign(htmlspecialchars(getUrlPara("r")).replace("？", "?").replace(/＆/g, "&"));
+		}
+		else{
+			switch(para){
+				case "first": // 需要導覽
+					redirect = "/"+val["username"]+"?first=1";
+				break;
+
+				case "profile": // 導至 profile
+					redirect = "/account?pc=1";
+				break;
+
+				default:
+					redirect = "/"+val["username"];
+				break;
+			}
+			location.assign(redirect);
+		}
+	}
 	function signin_viaapi(client){
 		if(!!client){
 			$(function(){
@@ -406,120 +413,139 @@ function signup(){
 		return;
 	}
 
-	// 是否為拋棄式信箱
-	var disposable = false;
+	// 避免檢查期間重複送出
+	if(signup.busy) return;
+	signup.busy = true;
+
+	// 是否為拋棄式信箱（非同步，避免註冊瞬間卡住畫面；API 失敗或逾時則略過）
 	$.ajax({
 		url: "//api.usercheck.com/domain/"+email_domain, 
 		// headers: {Authorization: "Bearer m6MHxfLy2tU1Ro9Y0laS0WQy3GZg7Vfm"}, 
 		type: "GET", 
 		crossDomain: true, 
 		dataType: "json", 
-		async: false, 
-		timeout: 2000, 
-		success: function(r){
-			disposable = (r["disposable"]||"")==true;
+		timeout: 2000
+	}).always(function(r, status){
+		if(status=="success" && (r["disposable"]||"")==true){
+			signup.busy = false;
+			toast(_h("i-signup-14"));
+			shake($f); $e.val("").trigger("focus");
+			return;
 		}
+		signup_submit();
 	});
-	if(disposable){
-		toast(_h("i-signup-14"));
-		shake($f); $e.val("").trigger("focus");
-		return;
-	}
 
+	function signup_submit(){
+		// referrer 暫存 Cookie
+		if(!getcookie("hearty_referrer") && !!referrer)
+			setcookie("hearty_referrer", referrer, 90);
+		else if(!!getcookie("hearty_referrer") && !referrer)
+			referrer = getcookie("hearty_referrer");
 
-	// referrer 暫存 Cookie
-	if(!getcookie("hearty_referrer") && !!referrer)
-		setcookie("hearty_referrer", referrer, 90);
-	else if(!!getcookie("hearty_referrer") && !referrer)
-		referrer = getcookie("hearty_referrer");
+		hj_update_ts({
+			action: "signup", 
+			account: account, 
+			email: email, 
+			password: password, 
+			// nickname: nickname, 
+			// gender: gender, 
+			language: $(".language").val()||0, 
+			timezone: timezone, 
+			referrer: referrer, 
+			referral: referral, 
+			// 註冊成功即直接登入，登入紀錄所需資料同 signin()
+			ip: $("body").attr("data-ip") || "", 
+			cc: $("body").attr("data-cc") || "", 
+			app: +(!!check_hjapp() || check_hjpwa()), 
+			via_API: !!window.via_API
+		}).then(function(r){
+			switch(r["Status"]){
+				case 0:
+					msg(_h("i-signup-7"));
+					$a[0]?.focus();
+				break;
 
-	hj_update({
-		action: "signup", 
-		account: account, 
-		email: email, 
-		password: password, 
-		// nickname: nickname, 
-		// gender: gender, 
-		language: $(".language").val()||0, 
-		timezone: timezone, 
-		referrer: referrer, 
-		referral: referral
-	}).then(function(r){
-		switch(r["Status"]){
-			case 0:
-				msg(_h("i-signup-7"));
-				$a[0]?.focus();
-			break;
+				case 1:
+					var val = r["Values"];
+					if(!val["verification"]){ // if(val["verification"]=="1"){
+						alertify.success(_h("i-signup-9", {$user: account})); // 發信失敗
+					}
+					else{
+						alert(_h("i-signup-8", {$user: account}));
+						email_verification_suspended(!0);
+					}
 
-			case 1:
-				var val = r["Values"];
-				if(!val["verification"]){ // if(val["verification"]=="1"){
-					alertify.success(_h("i-signup-9", {$user: account})); // 發信失敗
-				}
-				else{
-					alert(_h("i-signup-8", {$user: account}));
-					email_verification_suspended(!0);
-				}
+					$("a.toggler").removeClass("off");
+					box("signin");
 
-				$("a.toggler").removeClass("off");
-				box("signin"); signin("first");
+					if(typeof mixpanel!="undefined"){
+						mixpanel.identify(val["user_id"]);
+						mixpanel.people.set({
+							"$username": val["username"], 
+							"$email": val["email"], 
+							"$created": new Date()
+						});
+					}
 
-				if(typeof mixpanel!="undefined"){
-					mixpanel.identify(val["user_id"]);
-					mixpanel.people.set({
-						"$username": val["username"], 
-						"$email": val["email"], 
-						"$created": new Date()
+					ga_evt_push("Sign Up", {
+						event_category: "Auth", 
+						event_label: "Sign Up"
 					});
-				}
+					fb_evt_push("CompleteRegistration");
+					oa_evt_push("registration_completed", "customer_action");
+					ln_evt_push("CompleteRegistration");
+					ga_evt_push("conversion", {send_to: "AW-1027812032/VU59COmFmNIBEMDVjOoD"});
 
-				ga_evt_push("Sign Up", {
-					event_category: "Auth", 
-					event_label: "Sign Up"
-				});
-				fb_evt_push("CompleteRegistration");
-				oa_evt_push("registration_completed", "customer_action");
-				ln_evt_push("CompleteRegistration");
-				ga_evt_push("conversion", {send_to: "AW-1027812032/VU59COmFmNIBEMDVjOoD"});
-			break;
+					// 後端已直接登入：稍候再跳轉，讓上方轉換事件送出
+					setTimeout(function(){
+						signin_success(val, account, "first");
+					}, 500);
+				break;
 
-			case 2:
-				box("signin");
-				toast(_h("i-signup-10")); shake($f);
-				$a[0]?.focus();
-			break;
+				case 2:
+					box("signin");
+					toast(_h("i-signup-10")); shake($f);
+					$a[0]?.focus();
+				break;
 
-			case 3:
-				box("signin");
-				toast(_h("i-signup-11")); shake($f);
-				$a.val(email).trigger("focus");
-			break;
+				case 3:
+					box("signin");
+					toast(_h("i-signup-11")); shake($f);
+					$a.val(email).trigger("focus");
+				break;
 
-			case 4:
-				toast(_h("i-signup-12"));
-				shake($f);
-				$a[0]?.focus();
-			break;
+				case 4:
+					toast(_h("i-signup-12"));
+					shake($f);
+					$a[0]?.focus();
+				break;
 
-			case 5:
-				toast(_h("i-signup-13"));
-				shake($f);
-				$e[0]?.focus();
-			break;
+				case 5:
+					toast(_h("i-signup-13"));
+					shake($f);
+					$e[0]?.focus();
+				break;
 
-			case 9:
-			    toast(_h("i-signup-15"));
-			    shake($f);
-			    msg();
-			break;
+				case 9:
+				    toast(_h("i-signup-15"));
+				    shake($f);
+				    msg();
+				break;
 
-			default:
-				msg();
-			break;
-		}
-	}).fail(function(){
-		msg();
-	});
+				case 8:
+					ts_failed();
+				break;
+
+				default:
+					msg();
+				break;
+			}
+		}).fail(function(){
+			msg();
+		}).always(function(){
+			signup.busy = false;
+		});
+	}
 }
 
 // 密碼重設
@@ -531,7 +557,7 @@ function hj_reset(){
 		$("#account")[0]?.focus(); return;
 	}
 
-	hj_update({
+	hj_update_ts({
 		action: "password_reset", 
 		account: account
 	}).then(function(r){
@@ -549,6 +575,10 @@ function hj_reset(){
 						toast(_h("i-reset-4"));
 					});
 				}
+			break;
+
+			case 8:
+				ts_failed();
 			break;
 
 			default:
@@ -570,12 +600,101 @@ function authbox(on){
 		setTimeout(function(){
 			$h.fadeIn();
 		}, 200);
+		ts_init();
 	}
 	else{
 		$h.fadeOut(); $c.show();
 	}
 	$("body").css("overflow-y", on ? "hidden" : "auto");
 }
+
+// Cloudflare Turnstile (Managed)
+var ts = {id: null, token: "", waiting: [], interactive: false};
+function ts_init(){
+	if(ts.id!==null || !!window.ts_onload || !window.turnstile_sitekey) return;
+	window.ts_onload = function(){
+		ts.id = turnstile.render("#captcha", {
+			sitekey: turnstile_sitekey, 
+			action: "auth", 
+			theme: "light", 
+			size: "flexible", 
+			appearance: "interaction-only", // 需要互動時才顯示
+			"refresh-expired": "auto", 
+			callback: function(t){
+				// 有等待中的請求則直接交付 (一次性)，否則暫存
+				var w = ts.waiting.splice(0);
+				ts.token = w.length>0 ? "" : t;
+				w.forEach(function(f){f(t);});
+			}, 
+			"expired-callback": function(){
+				ts.token = "";
+			}, 
+			"before-interactive-callback": function(){
+				ts.interactive = true;
+				toast(_h("i-captcha-1"));
+			}, 
+			"after-interactive-callback": function(){
+				ts.interactive = false;
+			}, 
+			"error-callback": function(){
+				ts.token = "";
+				ts.interactive = false;
+				ts.waiting.splice(0).forEach(function(f){f("");});
+			}
+		});
+	};
+	hj_getScript("//challenges.cloudflare.com/turnstile/v0/api.js?onload=ts_onload&render=explicit");
+}
+	// 取得 token (一次性)
+	// 背景驗證最多等 10秒，逾時回傳空字串由後端拒絕；正在等用戶勾選時不逾時，勾選完成後自動送出
+	function ts_token(){
+		ts_init();
+		if(!!ts.token){
+			var t = ts.token; ts.token = "";
+			return Promise.resolve(t);
+		}
+		return new Promise(function(resolve){
+			ts.waiting.push(resolve);
+			setTimeout(function(){
+				if(ts.interactive) return;
+				ts.waiting = ts.waiting.filter(function(f){return f!==resolve;});
+				resolve("");
+			}, 10000);
+		});
+	}
+	// 用過即重新產生
+	function ts_reset(){
+		ts.token = "";
+		ts.interactive = false;
+		if(ts.id!==null) turnstile.reset(ts.id);
+	}
+	// 附帶 Turnstile token 的 hj_update (等待驗證期間重複送出則略過)
+	function hj_update_ts(d){
+		var dfd = $.Deferred();
+
+		// 需勾選但尚未勾選：彈窗提醒 (送出動作仍保留，勾選完成後自動送出)
+		if(ts.interactive) msg('<i class="fal fa-info-circle"></i> '+_h("i-captcha-1"), "", function(){
+				shake($("#captcha>div"));
+			});
+
+		if(hj_update_ts.busy) return dfd.promise();
+		hj_update_ts.busy = true;
+
+		ts_token().then(function(t){
+			d["cf_turnstile"] = t;
+			hj_update(d).always(function(){
+				// 先重新產生 token，供回應後的連續請求使用 (如註冊後自動登入)
+				hj_update_ts.busy = false;
+				ts_reset();
+			}).then(dfd.resolve, dfd.reject);
+		});
+		return dfd.promise();
+	}
+	// 後端回傳 8：Turnstile 驗證未通過
+	function ts_failed(){
+		shake($(".authform"));
+		toast(_h("i-captcha-0"));
+	}
 
 // 登入/註冊切換
 function box(toggle){
@@ -616,24 +735,6 @@ function box(toggle){
 		    $sup.add($sin).hide("slide"); $res.show();
 		    password_show(!1);
 
-			if(!$("#captcha").html()){
-				if(!window.recaptcha){
-					window.recaptcha = function(){
-						var $r = $("#reset");
-						turnstile.render("#captcha", {
-							sitekey: "0x4AAAAAAAAt_P1lgP_qe9nY", 
-							theme: "light", 
-							callback: function(){
-								$r.show();
-							}, 
-							"expired-callback": function(){
-								$r.slideUp();
-							}
-						});
-					};
-				}
-				hj_getScript("//challenges.cloudflare.com/turnstile/v0/api.js?onload=recaptcha&render=explicit");
-			}
 		break;
 	}
 
@@ -642,7 +743,10 @@ function box(toggle){
 		reg = toggle=="signup" ? "/[^a-z0-9]/g" : "/[^a-z0-9_.@-]/g", 
 		oninput = "this.value=(this.value||'').toLowerCase().replace("+reg+",'')";
 
-	$a.trigger("focus").attr({title: title,
+	// 僅在登入框開啟時 focus (authbox 會隱藏 .content)；否則首次開啟、CSS 尚未載入時，focus 會使頁面捲到登入框位置
+	if($(".home_signin").is(":visible") && $(".content").is(":hidden")) $a.trigger("focus");
+
+	$a.attr({title: title,
 		placeholder: title, 
 		maxlength: maxlength, 
 		oninput: oninput
