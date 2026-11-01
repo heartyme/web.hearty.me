@@ -492,10 +492,7 @@ function editor_enable(on){
 			hj_idle(); // 閒置計時
 			screenlock("initialize", pincode || "");
 
-			// 相片上傳
-			hj_getScript_gh({
-				path: "js/jquery.uploadfile.min.js"
-			}, image_uploader_init);
+			image_uploader_init(); // 相片上傳
 
 			$e.data({editor_loaded: true});
 			$(".editor_toolbelt .kit.save").on("mouseover", save_btn);
@@ -1145,7 +1142,7 @@ function cover_uploader_init(){
 	function cropper_sdk(callback){
 		callback = callback || function(){};
 
-		if("Cropper" in window) callback;
+		if("Cropper" in window) callback();
 		else hj_getScript_npm("cropperjs@1.6.2/dist/cropper.min.js", callback);
 	}
 	function cover_uploader_crop(){
@@ -5774,24 +5771,22 @@ function post_picture(ask){
 		return;
 	}
 
-	var $f = $(".ajax-upload-dragdrop input[type='file']").on("input", function(){
-			post_picture_onselect(this.files);
-		}).attr({
-			accept: "image/jpeg,image/png,image/gif,image/bmp,image/webp,image/avif,image/heic,image/heif"
-		});
-	if($f.length>0) $f.get(0)?.click();
+	$("#picture_upload").get(0)?.click();
 }
 	// 副檔名檢查 (Safari)
 	// caniuse.com/input-file-accept
 	function post_picture_onselect(f){
-		if(!f || !f[0]) return;
+		let re = /jpg|jpeg|png|gif|bmp|webp|avif|heic|heif/i, 
+			files = [...(f||[])], 
+			exts = files.map(v => (v["name"]||"").toLowerCase().split(".").slice(-1).toString() || "jpg"), 
+			valid = files.filter((v, i) => re.test(exts[i])), 
+			ext = exts.find(v => !re.test(v)); // 首個不支援的副檔名
 
-		let ext = (f[0]["name"]||"").toLowerCase().split(".").slice(-1).toString() || "jpg";
-		if(/jpg|jpeg|png|gif|bmp|webp|avif|heic|heif/i.test(ext)){
-			// $(".bk-page .frame").addClass("uploading");
-			hj_uploader_preview(f);
+		if(valid.length>0){
+			hj_uploader_preview(valid);
+			image_upload(valid);
 		}
-		else{
+		if(ext){
 			alertify.set({labels: {ok: _h("e-no-1"), cancel: '<i class="fas fa-chevron-square-up"></i> '+_h("e-picture-3")}, buttonReverse: true});
 			alertify.confirm('<i class="fal fa-image-polaroid"></i> '+_h("e-picture-5", {$ext: ext.toUpperCase()}), function(e){
 				if(!e) post_picture();
@@ -5830,79 +5825,80 @@ function post_picture_remove(){
 }
 
 function image_uploader_init(){
-	var $e = $(".bk-page #editor_editable"), 
-		$u = $(".img_uploader");
-
-	$u.find("#mulitplefileuploader").uploadFile({
-		url: "/update", 
-		dragDrop: true, 
-		fileName: "myfile", 
-		allowedTypes: "jpg,jpeg,png,gif,bmp,webp,avif,heic,heif", 
-		returnType: "json", 
-		showDone: false, 
-		showDelete: false, 
-		formData: {
-			category: 1
-		}, 
-		dynamicFormData: function(){
-			return {
-				post_id: current_post()["post_id"], 
-				privacy: current_post()["privacy"]
-			};
-		}, 
-		onSubmit: function(files){
-			saved(false);
-		}, 
-		afterUploadAll: function(){
-			$(".ajax-file-upload input[type='file']").val(""); // 清除已選檔，以便可後續可重選
-		}, 
-		onSuccess: function(files, g, xhr){
-			if(g["status"]==1){ // 1: 成功; 0: 錯誤
-				var gallery_id = g["gallery_id"]||1, 
-					i = "//hearty.me/i/"+gallery_id+"?r=0", 
-					$p = $(".bk-page .pictures"), 
-					$i = $("<figure>", {
-							"data-gallery_id": gallery_id, 
-							html: $("<div>")
-						}).css({
-							"background-image": "url('"+i+"')"
-						}).data({
-							cssgram: 0, 
-							rotated: 0
-						});
-
-				if($p.hasClass("slick-initialized")){
-					$p.slick("slickAdd", $i).slick("slickGoTo", -1);
-				}
-				else{
-					$i.appendTo($p);
-					post_picture_init(true);
-					if($p.hasClass("slick-initialized")) $p.slick("slickGoTo", -1);
-				}
-
-				$('meta[property="og:image"]').attr({content: i});
-
-				alertify.success('<i class="far fa-image"></i> '+_h("e-picture-6"));
-				post_revise();
-
-				var evt = "Image Added";
-				ga_evt_push(evt, {
-					event_category: "Posts", 
-					event_label: evt
-				});
-				// $u.find(".ajax-file-upload-statusbar").remove();
-			}
-			else{
-				msg('<i class="far fa-times"></i> '+_h("e-picture_err-"+(g["err"]||0)));
-			}
-			hj_uploader_preview(false);
-		}, 
-		onError: function(files,status,errMsg,pd){
-			msg('<i class="far fa-info-circle"></i> '+_h("e-picture_err-0")+"<br><small>"+JSON.stringify(status)+"："+JSON.stringify(errMsg)+"</small>");
-			hj_uploader_preview(false);
-		}
+	$("#picture_upload").on("input", function(){
+		let f = [...this.files];
+		this.value = ""; // 清除已選檔，以便可後續可重選
+		post_picture_onselect(f);
 	});
 }
+	// 逐檔上傳（後端每次請求僅寫入一筆 gallery）
+	async function image_upload(files){
+		saved(false);
+
+		for(const file of files){
+			let d = new FormData(), 
+				g;
+			d.append("myfile", file);
+			d.append("category", 1);
+			d.append("post_id", current_post()["post_id"]);
+			d.append("privacy", current_post()["privacy"]);
+
+			try{
+				let r = await fetch("/update", {
+					method: "POST", 
+					body: d
+				});
+				if(!r.ok) throw r.status+" "+r.statusText;
+				g = await r.json();
+			}
+			catch(err){
+				msg('<i class="far fa-info-circle"></i> '+_h("e-picture_err-0")+"<br><small>"+(err?.message||err)+"</small>");
+				hj_uploader_preview(false);
+				continue;
+			}
+			image_upload_done(g);
+		}
+	}
+	function image_upload_done(g){
+		if(g["status"]==1){ // 1: 成功; 0: 錯誤
+			var gallery_id = g["gallery_id"]||1, 
+				i = "//hearty.me/i/"+gallery_id+"?r=0", 
+				$p = $(".bk-page .pictures"), 
+				$i = $("<figure>", {
+						"data-gallery_id": gallery_id, 
+						html: $("<div>")
+					}).css({
+						"background-image": "url('"+i+"')"
+					}).data({
+						cssgram: 0, 
+						rotated: 0
+					});
+
+			if($p.hasClass("slick-initialized")){
+				$p.slick("slickAdd", $i).slick("slickGoTo", -1);
+			}
+			else{
+				$i.appendTo($p);
+				post_picture_init(true);
+				if($p.hasClass("slick-initialized")) $p.slick("slickGoTo", -1);
+			}
+
+			$('meta[property="og:image"]').attr({content: i});
+
+			alertify.success('<i class="far fa-image"></i> '+_h("e-picture-6"));
+			post_revise();
+
+			var evt = "Image Added";
+			ga_evt_push(evt, {
+				event_category: "Posts", 
+				event_label: evt
+			});
+		}
+		else{
+			msg('<i class="far fa-times"></i> '+_h("e-picture_err-"+(g["err"]||0)));
+		}
+		hj_uploader_preview(false);
+	}
 
 	// Blob Preview 
 	function hj_uploader_preview(f){
