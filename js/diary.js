@@ -1111,12 +1111,41 @@ function cover_uploader_init(){
 						cp_preview.onload = function(){
 							if(cropper) cropper.destroy(); // 銷毀 Cropper
 
-							cropper = new Cropper(cp_preview, {
-								aspectRatio: 0.85, // 裁剪比 1:1.19 (1/1.19)
-								viewMode: 1, // 限制裁剪區為圖片內部
-								zoomable: false, // 停用縮放
-								minCropBoxWidth: 100, 
-								background: false
+							cropper = new Cropper.Cropper(cp_preview, {
+								template: '<cropper-canvas>' // 無棋盤格背景
+									+ '<cropper-image></cropper-image>' // 停用移動、縮放
+									+ '<cropper-shade></cropper-shade>'
+									+ '<cropper-handle action="select" plain></cropper-handle>'
+									+ '<cropper-selection initial-coverage="0.8" aspect-ratio="0.85" movable resizable>' // 裁剪比 1:1.19 (1/1.19)
+									+ '<cropper-grid role="grid" bordered covered></cropper-grid>'
+									+ '<cropper-crosshair centered></cropper-crosshair>'
+									+ '<cropper-handle action="move" theme-color="rgba(255,255,255,.35)"></cropper-handle>'
+									+ ["n", "e", "s", "w", "ne", "nw", "se", "sw"].map(d => '<cropper-handle action="'+d+'-resize"></cropper-handle>').join("")
+									+ '</cropper-selection>'
+									+ '</cropper-canvas>'
+							});
+
+							let cp_canvas = cropper.getCropperCanvas(), 
+								cp_image = cropper.getCropperImage();
+
+							// 同原 img：max-width 100%、max-height 80vh
+							$(cp_canvas).css({
+								aspectRatio: cp_preview.naturalWidth+"/"+cp_preview.naturalHeight, 
+								maxHeight: "80vh"
+							});
+
+							// 限制裁剪區為圖片內部、最小寬度 100
+							cropper.getCropperSelection().addEventListener("change", function(e){
+								let c = cp_canvas.getBoundingClientRect(), 
+									i = cp_image.getBoundingClientRect(), 
+									d = e.detail;
+
+								if(d.width<100
+									|| d.x<i.left-c.left
+									|| d.y<i.top-c.top
+									|| d.x+d.width>i.right-c.left
+									|| d.y+d.height>i.bottom-c.top
+								) e.preventDefault();
 							});
 						};
 					};
@@ -1143,65 +1172,64 @@ function cover_uploader_init(){
 		callback = callback || function(){};
 
 		if("Cropper" in window) callback();
-		else hj_getScript_npm("cropperjs@1.6.2/dist/cropper.min.js", callback);
+		else hj_getScript_npm("cropperjs@2.3.1/dist/cropper.min.js", callback);
 	}
 	function cover_uploader_crop(){
-		if(cropper){
+		let selection = cropper?.getCropperSelection();
+		if(selection){
 			hj_loading(true);
 			style_img_reset(2, true); // 先刪舊圖
 
-			let cropped = cropper.getCroppedCanvas(), 
-				cropped_b64 = cropped.toDataURL('image/jpeg'), // image/png
-				$cropped = $(".crop canvas").get(0), 
+			let scale = cropper.getCropperImage().$getTransform()[0], // 顯示尺寸 / 原圖尺寸
 				s = $(":root").get(0)?.style;
 
-			s.setProperty("--book-cover", "url("+cropped_b64+")");
+			// 以原圖解析度匯出 canvas
+			selection.$toCanvas({width: selection.width/scale}).then(cropped => {
+				s.setProperty("--book-cover", "url("+cropped.toDataURL('image/jpeg')+")"); // image/png
 
-			// 匯出至 canvas
-			$cropped.width = cropped.width;
-			$cropped.height = cropped.height;
-			$cropped.getContext('2d').drawImage(cropped, 0, 0);
+				// 將 canvas轉為 Blob，然後上傳
+				cropped.toBlob(blob => {
+					let d = new FormData();
+					d.append("myfile", blob, "cover.png");
+					d.append("category", 2);
+					d.append("privacy", 9);
 
-			// 將 canvas轉為 Blob，然後上傳
-			$cropped.toBlob(blob => {
-				let d = new FormData();
-				d.append("myfile", blob, "cover.png");
-				d.append("category", 2);
-				d.append("privacy", 9);
-
-				$.ajax({
-					url: "/update", 
-					type: "POST",
-					data: d, 
-					dataType: "json", 
-					contentType: false, // 需為 false
-					processData: false, // 需為 false
-					complete: function(){
-						hj_loading(false);
-					}, 
-					success: function(r){
-						if(r["status"]==1){
-							let img = "//i.hearty.app/c/"+r["basenames"];
-							s.setProperty("--book-cover", "url('"+img+"')");
-							alertify.success('<i class="fas fa-book-spells"></i> '+_h("e-cover-6"));
+					$.ajax({
+						url: "/update", 
+						type: "POST", 
+						data: d, 
+						dataType: "json", 
+						contentType: false, // 需為 false
+						processData: false, // 需為 false
+						complete: function(){
+							hj_loading(false);
+						}, 
+						success: function(r){
+							if(r["status"]==1){
+								let img = "//i.hearty.app/c/"+r["basenames"];
+								s.setProperty("--book-cover", "url('"+img+"')");
+								alertify.success('<i class="fas fa-book-spells"></i> '+_h("e-cover-6"));
+							}
+							else{
+								msg("Error: "+JSON.stringify(r));
+							}
+						}, 
+						error: function(xhr, status, err){
+							msg("Error: "+err);
 						}
-						else{
-							msg("Error: "+JSON.stringify(r));
-						}
-					}, 
-					error: function(xhr, status, err){
-						msg("Error: "+err);
-					}
-				});
-			}, "image/jpeg");
-
-			cover_uploader_reset();
+					});
+				}, "image/jpeg");
+			}).catch(err => {
+				hj_loading(false);
+				msg("Error: "+err);
+			}).finally(cover_uploader_reset); // 匯出完成後才銷毀
 		}
 	}
 		function cover_uploader_reset(){
 			popup_toggle(false, "crop");
 			$("#cover_upload").val("");
 			if(cropper) cropper.destroy(); // 銷毀 Cropper
+			cropper = null;
 		}
 
 
