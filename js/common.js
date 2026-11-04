@@ -103,7 +103,7 @@ function hj_getScript(url, onsuccess, onerror, attrs){
 		p = p || {};
 			p["repo"] = "repo" in p ? p["repo"] : "heartyme/web.hearty.me";
 			p["path"] = "path" in p ? p["path"] : "";
-			p["commit"] = "commit" in p ? p["commit"] : "fc9ea9cd3729d1b0a7858a50b275eeb3878c8f3f"; // "main"
+			p["commit"] = "commit" in p ? p["commit"] : "f3cee89a354f77d6cef56b83eb1e4d350d1fb237"; // "main"
 
 		onsuccess = onsuccess || {};
 		onerror = onerror || {};
@@ -545,7 +545,7 @@ function ga_evt_push(evt, val){
 }
 	// Firebase Analytics
 	function fa_evt_push(evt, val){
-		// cdn.jsdelivr.net/npm/firebase@8.10.1/firebase-analytics.js
+		// cdn.jsdelivr.net/npm/firebase@13.2.0/firebase-analytics-compat.js
 		try{
 			// Android
 			if(window.hj_AnalyticsWebInterface) 
@@ -930,6 +930,7 @@ function get_app(os, cp){
 	}
 
 // FCM
+var HJ_FCM_VAPID_KEY = "BJGwjWY6MviBp3gKYq8yjJ7LQT-TUBfWphAMmq3biKDqINUv1s6l_qkvyEqF27ox3sxOoJCO_B7VDFS2qtYqozk";
 function hj_firebase_init(){
 	if(!!window.firebase){
 		firebase.initializeApp({
@@ -945,7 +946,6 @@ function hj_firebase_init(){
 
 		if(!check_hjapp() && firebase.messaging.isSupported()){
 			let m = firebase.messaging();
-			m.usePublicVapidKey("BJGwjWY6MviBp3gKYq8yjJ7LQT-TUBfWphAMmq3biKDqINUv1s6l_qkvyEqF27ox3sxOoJCO_B7VDFS2qtYqozk");
 			m.onMessage((payload) => {
 				let d = payload["data"];
 				new Notification(d["title"], {
@@ -979,7 +979,7 @@ function hj_fcm_init(onfinish){
 			switch(permission){
 				case "granted":
 					let m = firebase.messaging();
-					m.getToken().then((currentToken) => {
+					m.getToken({vapidKey: HJ_FCM_VAPID_KEY}).then((currentToken) => {
 						if(currentToken){
 							hj_fcm_register(currentToken, onfinish);
 						}
@@ -991,15 +991,7 @@ function hj_fcm_init(onfinish){
 						onfinish();
 						// console.warn("Error occurred while retrieving token. ", e);
 					});
-
-					m.onTokenRefresh(() => {
-						m.getToken().then((refreshedToken) => {
-							hj_fcm_register(refreshedToken, onfinish);
-						}).catch((e) => {
-							onfinish();
-							// console.warn("Unable to retrieve refreshed token ", e);
-						});
-					});
+					// Token 更新由 SDK 於 getToken() 時自動處理（v9+ 已移除 onTokenRefresh）
 				break;
 
 				case "denied":
