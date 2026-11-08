@@ -3,32 +3,32 @@
 var btn_alias = "img";
 
 // 相片載入後淡入；破圖不顯示（capture 才能收到 img的 load/error事件）
-document.addEventListener("load", function(e){
+function img_onload(e){
 	let el = e.target;
-	if(el.tagName=="IMG" && el.closest(".img_wall")) el.parentNode.classList.add("img-loaded");
-}, true);
-document.addEventListener("error", function(e){
-	let el = e.target;
-	if(el.tagName=="IMG" && el.closest(".img_wall")) el.parentNode.remove();
-}, true);
+	if(el.tagName!="IMG" || !el.closest(".img_wall")) return;
+	if(e.type=="load") el.parentNode.classList.add("img-loaded");
+	else el.parentNode.remove();
+}
+document.addEventListener("load", img_onload, true);
+document.addEventListener("error", img_onload, true);
 
 hj_getScript("//cdn.jsdelivr.net/npm/@webcreate/infinite-ajax-scroll@3.1.0/dist/infinite-ajax-scroll.min.js").then(function(){
 	$(function(){
 		let ias = new InfiniteAjaxScroll(".img_wall", {
-				item: ".img_wall>*",
-				next: ".pager_next",
-				pagination: ".pager",
-				bind: false,
-				spinner: {
-					element: ".bouncingLoader",
-					delay: 600
-				}
-			});
+			item: ".img_wall>*",
+			next: ".pager_next",
+			pagination: ".pager",
+			bind: false,
+			spinner: {
+				element: ".bouncingLoader",
+				delay: 600
+			}
+		});
 
 		ias.on("append", function(e){
 			// 跨頁同月份，移除重複的月份標題
 			let first = e.items[0],
-				last = $(".img_wall .img_month").last()[0];
+				last = $(".img_wall>.img_month").last()[0];
 			if(first && last && first.classList.contains("img_month") && first.dataset.month==last.dataset.month){
 				e.items = e.items.slice(1);
 			}
@@ -43,16 +43,12 @@ hj_getScript("//cdn.jsdelivr.net/npm/@webcreate/infinite-ajax-scroll@3.1.0/dist/
 			};
 		});
 		ias.on("appended", function(e){
-			if(e["items"].length==0) $(".no_more").fadeIn();
+			if(e.items.length==0) $(".no_more").fadeIn();
 		});
 
-		(img_layout()=="masonry" ? img_masonry_layout(".img_wall") : Promise.resolve()).then(function(){
-			ias.bind();
-		});
+		(img_layout()=="masonry" ? img_masonry_layout(".img_wall") : Promise.resolve()).then(() => ias.bind());
 
-		$(".pager").hide().delay(1000).queue(function(){
-			$(this).dequeue();
-		});
+		$(".pager").hide();
 	});
 });
 
@@ -64,13 +60,10 @@ $(function(){
 		img_layout_set(this.dataset.img_layout);
 	});
 	$(".nav_btn[data-gotop]").on("click", function(){
-		img_scrolltop();
+		$("html,body").stop().scrollTop(0);
 	});
 	$(".nav_btn[data-add],.img_empty").on("click", function(){
 		hj_href("d?img=1");
-	});
-	$(".vip_only").on("click", function(){
-		hj_href("d?plans=1");
 	});
 	$(document).on("click", ".img_wall img[data-post_id]", function(){
 		read_post(this.dataset.post_id);
@@ -98,40 +91,42 @@ function img_layout(){
 	return $(".img_wall").attr("data-layout") || "grid";
 }
 function img_layout_set(layout){
-	let $wall = $(".img_wall");
 	if(layout==img_layout()) return;
 
+	let $wall = $(".img_wall"),
+		$body = $("body");
+
 	setcookie("img_layout", layout, 365);
-	$(".img_layout [data-img_layout]").removeClass("active").filter("[data-img_layout='"+layout+"']").addClass("active");
+	$(".img_layout [data-img_layout]").each(function(){
+		$(this).toggleClass("active", this.dataset.img_layout==layout);
+	});
 
 	// 立即回頂：html 設有 scroll-behavior: smooth，平滑捲動會與重新排版同時進行而卡頓
 	window.scrollTo({top: 0, behavior: "instant"});
 
-	if(layout=="masonry"){
-		let $body = $("body"),
-			wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-		// 轉場動畫：masonry 排版較耗時，以免畫面停住
-		$body.addClass("loading");
-
-		// 待轉場動畫繪出後再排版
-		requestAnimationFrame(() => requestAnimationFrame(() => {
-			// 改為立即載入：lazy 圖片在排版前疊於頂部，可能永遠不載入
-			$wall.find("img").attr("loading", "eager");
-			$wall.attr("data-layout", layout);
-
-			// 排版完成即結束（未載入的圖片多時最多等 1.5 秒），且至少顯示 300ms 避免一閃而過
-			Promise.all([
-				Promise.race([img_masonry_layout($wall[0]), wait(1500)]),
-				wait(300)
-			]).finally(() => $body.removeClass("loading"));
-		}));
-	}
-	else{
+	if(layout!="masonry"){
 		img_masonry_destroy();
 		$wall.attr("data-layout", layout);
-		$("body").removeClass("loading"); // masonry 排版中途切回時，一併結束轉場
+		$body.removeClass("loading"); // masonry 排版中途切回時，一併結束轉場
+		return;
 	}
+
+	// 轉場動畫：masonry 排版較耗時，以免畫面停住
+	const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+	$body.addClass("loading");
+
+	// 待轉場動畫繪出後再排版
+	requestAnimationFrame(() => requestAnimationFrame(() => {
+		// 改為立即載入：lazy 圖片在排版前疊於頂部，可能永遠不載入
+		$wall.find("img").attr("loading", "eager");
+		$wall.attr("data-layout", layout);
+
+		// 排版完成即結束（未載入的圖片多時最多等 1.5 秒），且至少顯示 300ms 避免一閃而過
+		Promise.all([
+			Promise.race([img_masonry_layout($wall[0]), wait(1500)]),
+			wait(300)
+		]).finally(() => $body.removeClass("loading"));
+	}));
 }
 
 // masonry 套件：僅在需要時載入
@@ -150,16 +145,13 @@ function img_masonry_layout(el){
 	return img_masonry_libs().then(() => {
 		if(gen!=msnry_gen) return;
 
-		if(!msnry){
-			msnry = new Masonry(".img_wall", {
-				itemSelector: ".img_wall .msnry-item",
-				columnWidth: ".img_wall figure",
-				gutter: 20,
-				percentPosition: true,
-				transitionDuration: 0 // 淡入交給 CSS
-				// resize: false
-			});
-		}
+		msnry = msnry || new Masonry(".img_wall", {
+			itemSelector: ".img_wall .msnry-item",
+			columnWidth: ".img_wall figure",
+			gutter: 20,
+			percentPosition: true,
+			transitionDuration: 0 // 淡入交給 CSS
+		});
 
 		// 依 DOM 順序放出已載入的連續段；只 appended 不 layout，舊圖不會移動
 		let pending = $(el).find("figure").addBack("figure").get(), raf = 0;
@@ -167,8 +159,10 @@ function img_masonry_layout(el){
 			raf = 0;
 			if(gen!=msnry_gen) return;
 			let ready = [];
-			while(pending.length && pending[0].dataset.loaded) ready.push(pending.shift());
-			ready = ready.filter(f => f.isConnected);
+			while(pending.length && pending[0].dataset.loaded){
+				let f = pending.shift();
+				if(f.isConnected) ready.push(f);
+			}
 			if(ready.length==0) return;
 			ready.forEach(f => f.classList.add("msnry-item"));
 			msnry.appended(ready);
@@ -200,18 +194,10 @@ function img_masonry_destroy(){
 	$(".img_wall figure").removeClass("msnry-item").removeAttr("data-loaded");
 }
 
-function img_scrolltop($e){
-	($e||$("html,body")).stop().scrollTop(0);
-}
-
 function read_post(post_id){
-	post_id = post_id || 0;
-	if(post_id<1 || typeof hj_username=="undefined"){
-		hj_href("account");
-	}
-	else{
-		let u = hj_username+"/"+post_id;
-		if(/iOS|Android/i.test(check_hjapp())) window.open(location.origin+"/"+u, "_blank");
-		else hj_href(u);
-	}
+	if(!(post_id>0)) return hj_href("account");
+
+	let u = hj_username+"/"+post_id;
+	if(/iOS|Android/i.test(check_hjapp())) window.open(location.origin+"/"+u, "_blank");
+	else hj_href(u);
 }

@@ -103,7 +103,7 @@ function hj_getScript(url, onsuccess, onerror, attrs){
 		p = p || {};
 			p["repo"] = "repo" in p ? p["repo"] : "heartyme/web.hearty.me";
 			p["path"] = "path" in p ? p["path"] : "";
-			p["commit"] = "commit" in p ? p["commit"] : "f3cee89a354f77d6cef56b83eb1e4d350d1fb237"; // "main"
+			p["commit"] = "commit" in p ? p["commit"] : "a670dd4641dc28e833c426832f181a966b82183f"; // "main"
 
 		onsuccess = onsuccess || {};
 		onerror = onerror || {};
@@ -158,7 +158,7 @@ function hj_getFile(url, filename, callback){
 }
 
 function hj_jsdelivr(){
-	return "//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@41214/";
+	return "//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@a670dd4641dc28e833c426832f181a966b82183f/";
 }
 
 // 語系檔
@@ -1118,3 +1118,56 @@ function post_font(font_id){
 		return _h("a-fonts-"+font_id);
 	}
 }
+
+// 定位：經緯度（約 1.1 公里精度），快取於 localStorage: hearty_gps（24 小時）；天氣由後端於新增日記時查詢
+function hearty_gps_cache(){
+	try{
+		var gps = JSON.parse(localStorage.getItem("hearty_gps"));
+		if(gps && Date.now()-gps.t<864e5) return gps;
+	}catch(e){}
+	return null;
+}
+
+var hearty_gps_pending = null, // 進行中的定位，避免重複請求
+	hearty_gps_state = ""; // 定位授權狀態：granted / prompt / denied（瀏覽器不支援查詢時為空值）
+
+// 回傳 promise，resolve 時帶入 {latitude, longitude, t}；refresh 為真時略過快取
+// 定位逾時 8 秒（不含使用者回應授權視窗的時間），整體上限 20 秒（防止授權視窗被關閉而不回呼）
+function hearty_gps(refresh){
+	var gps = !refresh && hearty_gps_cache();
+	if(gps) return $.Deferred().resolve(gps).promise();
+	if(hearty_gps_pending) return hearty_gps_pending;
+
+	var d = $.Deferred(), timer = setTimeout(d.reject, 20000);
+	hearty_gps_pending = d.promise();
+	d.always(function(){
+		clearTimeout(timer);
+		hearty_gps_pending = null;
+	});
+
+	if(!navigator.geolocation) d.reject();
+	else navigator.geolocation.getCurrentPosition(function(pos){
+		gps = {
+			latitude: +pos.coords.latitude.toFixed(2),
+			longitude: +pos.coords.longitude.toFixed(2),
+			t: Date.now()
+		};
+		try{localStorage.setItem("hearty_gps", JSON.stringify(gps));}catch(e){}
+		d.resolve(gps);
+	}, d.reject, {
+		enableHighAccuracy: false, // 查天氣只需城市等級精度
+		maximumAge: 18e5, // 30 分鐘內的裝置定位結果可沿用
+		timeout: 8000
+	});
+
+	return hearty_gps_pending;
+}
+
+// 記錄授權狀態；已授權時於背景更新位置（不呼叫後端），新增日記時即可直接使用
+if(navigator.permissions && navigator.permissions.query && navigator.geolocation)
+	navigator.permissions.query({name: "geolocation"}).then(function(status){
+		(status.onchange = function(){
+			hearty_gps_state = this.state;
+			if(this.state=="granted") hearty_gps(true);
+		}).call(status);
+	}).catch($.noop);

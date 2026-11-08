@@ -31,7 +31,6 @@ body{
 	overflow-y: hidden;
 	scroll-snap-type: x mandatory;
 	scroll-behavior: smooth;
-	scrollbar-width: none;
 	background-image: url(//i.hearty.app/HyCw2lg.png);
 	background-repeat: repeat;
 	background-position: center;
@@ -64,9 +63,6 @@ body{
 	text-align: center;
 	user-select: none;
 }
-	.alice_inner > [data-flex1]{
-		margin: auto;
-	}
 	.alice_inner [data-quote] img{
 		width: auto;
 		height: auto;
@@ -90,7 +86,6 @@ body{
 	height: 98vh;
 	max-height: 100%;
 	scroll-behavior: smooth;
-	scrollbar-width: none;
 }
 .alice_inner [data-opinions] ul{
 	list-style: none;
@@ -99,7 +94,6 @@ body{
 	border: 1px dashed #555;
 	border-radius: .75em;
 	box-shadow: rgba(0,0,0,.1) 1px 1px 1em 1px;
-	background: rgba(255,255,255,.5);
 	background: linear-gradient(to bottom,rgba(255,255,255,.5),rgba(255,255,255,1));
 	word-break: break-word;
 	word-wrap: break-word;
@@ -108,7 +102,6 @@ body{
 	display: block;
 	position: sticky;
 	float: left;
-	top: .2em;
 	top: env(safe-area-inset-top, 0);
 	content: attr(title);
 	width: calc(100% - 5em);
@@ -149,10 +142,8 @@ body{
 	display: flex;
 	align-items: flex-start;
 	flex-flow: row nowrap;
+	clear: both;
 }
-	.alice_inner [data-opinions] .opinions{
-		clear: both;
-	}
 .alice_inner [data-opinions] .opinions div{
 	display: inline-block;
 }
@@ -410,15 +401,16 @@ body{
 		text-overflow: ellipsis;
 		overflow: hidden;
 	}
+		.goodnight .profile li[data-gender]::before{
+			margin-right: .4em;
+		}
 		.goodnight .profile li[data-gender="1"]::before{
 			content: "\f222";
 			color: #1e90ff;
-			margin-right: .4em;
 		}
 		.goodnight .profile li[data-gender="2"]::before{
 			content: "\f221";
 			color: #ff1493;
-			margin-right: .4em;
 		}
 		.goodnight .profile li[title]::after{
 			content: attr(title);
@@ -528,18 +520,13 @@ body{
 	align-items: center;
 	justify-content: center;
 	flex-flow: row wrap;
-	height: auto;
-	/* min-height: 100%; */
 	margin: auto 1em;
 }
 	.directory_inner > div{
 		position: relative;
 		margin: .9em;
-
-		width: auto;
 		min-width: 22%;
 		max-width: 22%;
-		height: auto;
 		min-height: 350px;
 
 		border-radius: .75em;
@@ -619,10 +606,6 @@ body{
 	.alice_inner [data-opinions] ul, 
 	.alice_inner [data-opinions][data-off]{
 		display: none;
-	}
-	.alice_inner [data-opinions] > div{
-		width: 80%;
-		margin: 0 auto;
 	}
 	.goodnight .profile .profile_btns{
 		font-size: small;

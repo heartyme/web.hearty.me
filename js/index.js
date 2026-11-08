@@ -92,7 +92,7 @@ function home_init(){
 		if(!!revoke && revoke>timestamping()) reset_suspended(!0, revoke);
 
 		// Email 認證 Cookie (3分鐘)
-			revoke = Number(getcookie("hearty_email_verification_suspended"));
+		revoke = Number(getcookie("hearty_email_verification_suspended"));
 		if(!!revoke && revoke>timestamping()) email_verification_suspended(!0, revoke);
 
 		if(/(sign(in|up)|apply)/.test(location.hash.substring(1))){
@@ -105,11 +105,8 @@ function home_init(){
 
 		// 12月自動換聖誕版 Logo (檔名加 .xmas)
 		if(new Date().getMonth()==11){
-			$("img[data-xmas]").each(function(){
-				let img = ($(this).attr("src")||"").split('.'), 
-					ext = img.pop();
-				img.push("xmas", ext);
-				$(this).attr({src: img.join(".")});
+			$("img[data-xmas]").attr("src", function(i, src){
+				return (src||"").replace(/(\.[^.]*)$/, ".xmas$1");
 			});
 		}
 
@@ -208,24 +205,13 @@ function background_ipad(){
 
 // 登入
 function signin(para){
-	var $f = $(".authform"), 
-		$s = $("#status"), 
-		$a = $("#account"), 
+	var $a = $("#account"), 
 		$p = $("#password"), 
 		$b = $("body"), 
-		account = $a.val().toLowerCase(), 
-		via_API = !!window.via_API; // 透過 API
+		account = $a.val().toLowerCase();
 
-	if(account.length<3){
-		shake($f);
-		toast(_h("i-signin-2"));
-		$a[0]?.focus(); return;
-	}
-	else if($p.val().length<6){
-		shake($f);
-		toast(_h("i-signin-8"));
-		$p[0]?.focus(); return;
-	}
+	if(account.length<3) return auth_error(_h("i-signin-2"), $a);
+	if($p.val().length<6) return auth_error(_h("i-signin-8"), $p);
 
 	hj_update_ts({
 		action: "signin", 
@@ -234,7 +220,7 @@ function signin(para){
 		ip: $b.attr("data-ip") || "", 
 		cc: $b.attr("data-cc") || "", 
 		app: +(!!check_hjapp() || check_hjpwa()), 
-		via_API: via_API
+		via_API: !!window.via_API // 透過 API
 	}).then(function(r){
 		switch(r["Status"]){
 			case 1:
@@ -242,14 +228,11 @@ function signin(para){
 			break;
 
 			case 2:
-				shake($f);
-				toast(_h("i-signin-"+(account.indexOf("@")<0 ? 3 : 4), {$user: account}));
-				$a[0]?.focus();
+				auth_error(_h("i-signin-"+(account.indexOf("@")<0 ? 3 : 4), {$user: account}), $a);
 			break;
 
 			case 3:
-				shake($f);
-				toast(_h("i-signin-5", {$user: account}));
+				auth_error(_h("i-signin-5", {$user: account}));
 				msg(_h("i-signin-6", {$user: account}));
 			break;
 
@@ -258,9 +241,7 @@ function signin(para){
 			break;
 
 			default:
-				shake($f);
-				toast(_h("i-signin-7"));
-				$p.val("").trigger("focus");
+				auth_error(_h("i-signin-7"), $p.val(""));
 			break;
 		}
 	}).fail(function(){
@@ -272,8 +253,7 @@ function signin(para){
 		$("#signin").hide(); $(".loading-bars").show();
 
 		// Cookie 記憶
-		if(!$("a.toggler").hasClass("off")) setcookie("hearty_account", account, 90);
-		else setcookie("hearty_account", "", 90);
+		setcookie("hearty_account", $("a.toggler").hasClass("off") ? "" : account, 90);
 
 		// 登入後跳轉
 		toast(_h("i-signin-1", {$user: account}));
@@ -296,7 +276,7 @@ function signin(para){
 		if(!!window.via_API){
 			redirect = Return_URL;
 			redirect += (redirect.indexOf("?")<0?"?":"&")+"Hearty_Signin="+val["token_signin"]; // 網址帶 Token 參數
-	    	location.assign(redirect);
+			location.assign(redirect);
 		}
 		else if(!!getUrlPara("r")){
 			location.assign(htmlspecialchars(getUrlPara("r")).replace("？", "?").replace(/＆/g, "&"));
@@ -332,62 +312,35 @@ function signup(){
 	var $a = $("#account"), 
 		// 移除 @及隨後字串，避免 ID 誤填為 Email
 		account = $a.val().split('@')[0].toLowerCase().replace(/[^a-z0-9]/gi, "");
-		$a.val(account);
+	$a.val(account);
 
 	// 防呆機制 (避免 ID 誤填為 Email)
 	// .replace(/((g(|oogle)|y(|7)|hot|fox|live|zoho|proton|rocket)mail|outlook|msn|live|passport|aol|ya(hoo|ndex)|qq|1(26|63)|icloud|mac|me)(com([a-z]{2}|)|[a-z]{2})/gi, "")
 
-	var $f = $(".authform"), 
-		$s = $("#status"), 
-		$e = $("#email"), 
+	var $e = $("#email"), 
 		$p = $("#password"), 
 		$p2 = $("#password2"), 
 		email = $e.val().toLowerCase().replace(/\s+/g, ''), 
 		email_domain = email.split("@").pop(), 
 		password = $p.val(), 
-		password2 = $("#password2").val(), 
+		password2 = $p2.val(), 
 		// nickname = $('#nickname').val(), 
 		// gender = isNaN($("input[name=gender]:checked").val()) ? 0 : $("input[name=gender]:checked").val(), 
 		referrer = getUrlPara("ref") || "", 
 		referral = document.referrer || "", 
 		timezone = !window.Intl ? "Asia/Taipei" : new Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Taipei";
 
-	if(!isNaN(account)){
-		shake($f);
-		toast(_h("i-signup-0"));
-		$a[0]?.focus(); return;
-	}
-	else if(account.length<4 || account.length>20){
-		shake($f);
-		toast(_h("i-signup-1"));
-		$a[0]?.focus();
-		return;
-	}
-	else if(email.length<6 || !/@/.test(email)){
-		shake($f);
-		toast(_h("i-signup-2"));
-		$e[0]?.focus();
-		return;
-	}
-	else if(/relay\.firefox|nien\.co|heart/.test(email_domain)||email_domain=="email.com"){
-		shake($f);
-		toast(_h("i-signup-3"));
-		$e.val("").trigger("focus");
-		return;
-	}
+	if(!isNaN(account)) return auth_error(_h("i-signup-0"), $a);
+	else if(account.length<4 || account.length>20) return auth_error(_h("i-signup-1"), $a);
+	else if(email.length<6 || !/@/.test(email)) return auth_error(_h("i-signup-2"), $e);
+	else if(/relay\.firefox|nien\.co|heart/.test(email_domain)||email_domain=="email.com") return auth_error(_h("i-signup-3"), $e.val(""));
 	else if(password.length<6 || password.length>20){
-		shake($f);
-		toast(_h("i-signup-4"));
 		$p2.val("");
-		$p.val("").trigger("focus");
-		return;
+		return auth_error(_h("i-signup-4"), $p.val(""));
 	}
 	else if(password!=password2){
-		shake($f);
-		toast(_h("i-signup-5"));
 		$p2.val("");
-		$p.val("").trigger("focus");
-		return;
+		return auth_error(_h("i-signup-5"), $p.val(""));
 	}
 	// 不建議使用 Yahoo! 信箱
 	else if(/yahoo\.co/.test(email_domain) && !confirm(_h("i-signup-6"))){
@@ -428,8 +381,7 @@ function signup(){
 	}).always(function(r, status){
 		if(status=="success" && (r["disposable"]||"")==true){
 			signup.busy = false;
-			toast(_h("i-signup-14"));
-			shake($f); $e.val("").trigger("focus");
+			auth_error(_h("i-signup-14"), $e.val(""));
 			return;
 		}
 		signup_submit();
@@ -504,32 +456,25 @@ function signup(){
 
 				case 2:
 					box("signin");
-					toast(_h("i-signup-10")); shake($f);
-					$a[0]?.focus();
+					auth_error(_h("i-signup-10"), $a);
 				break;
 
 				case 3:
 					box("signin");
-					toast(_h("i-signup-11")); shake($f);
-					$a.val(email).trigger("focus");
+					auth_error(_h("i-signup-11"), $a.val(email));
 				break;
 
 				case 4:
-					toast(_h("i-signup-12"));
-					shake($f);
-					$a[0]?.focus();
+					auth_error(_h("i-signup-12"), $a);
 				break;
 
 				case 5:
-					toast(_h("i-signup-13"));
-					shake($f);
-					$e[0]?.focus();
+					auth_error(_h("i-signup-13"), $e);
 				break;
 
 				case 9:
-				    toast(_h("i-signup-15"));
-				    shake($f);
-				    msg();
+					auth_error(_h("i-signup-15"));
+					msg();
 				break;
 
 				case 8:
@@ -550,12 +495,9 @@ function signup(){
 
 // 密碼重設
 function hj_reset(){
-	var account = $("#account").val().toLowerCase();
-	if(account.length<3){
-		shake($(".authform"));
-		toast(_h("i-reset-3"));
-		$("#account")[0]?.focus(); return;
-	}
+	var $a = $("#account"), 
+		account = $a.val().toLowerCase();
+	if(account.length<3) return auth_error(_h("i-reset-3"), $a);
 
 	hj_update_ts({
 		action: "password_reset", 
@@ -582,9 +524,7 @@ function hj_reset(){
 			break;
 
 			default:
-				shake($(".authform"));
-				toast(_h("i-reset-7"));
-				$("#account")[0]?.focus();
+				auth_error(_h("i-reset-7"), $a);
 			break;
 		}
 	}).fail(function(){
@@ -674,8 +614,8 @@ function ts_init(){
 
 		// 需勾選但尚未勾選：彈窗提醒 (送出動作仍保留，勾選完成後自動送出)
 		if(ts.interactive) msg('<i class="fal fa-info-circle"></i> '+_h("i-captcha-1"), "", function(){
-				shake($("#captcha>div"));
-			});
+			shake($("#captcha>div"));
+		});
 
 		if(hj_update_ts.busy) return dfd.promise();
 		hj_update_ts.busy = true;
@@ -692,14 +632,12 @@ function ts_init(){
 	}
 	// 後端回傳 8：Turnstile 驗證未通過
 	function ts_failed(){
-		shake($(".authform"));
-		toast(_h("i-captcha-0"));
+		auth_error(_h("i-captcha-0"));
 	}
 
 // 登入/註冊切換
 function box(toggle){
-	var $s = $("#status"), 
-		$a = $("#account"), 
+	var $a = $("#account"), 
 		$p = $("#password"), 
 		$sup = $(".signup"), 
 		$sin = $(".signin"), 
@@ -713,10 +651,10 @@ function box(toggle){
 			$tog_sin.css({color: "#222", background: "transparent"});
 
 			toast(_h("i-box-3"));
-		    $a.add($p).attr({onkeypress: "press_enter(event,'signup')"});
-		    $sup.show(); $sin.add($res).hide("slide");
-		    password_show(!0);
-		    if(!!$p.val().length) password2_show(!0);
+			$a.add($p).attr({onkeypress: "press_enter(event,'signup')"});
+			$sup.show(); $sin.add($res).hide("slide");
+			password_show(!0);
+			if(!!$p.val().length) password2_show(!0);
 		break;
 
 		case "signin":
@@ -724,22 +662,21 @@ function box(toggle){
 			$tog_sup.css({color: "#222", background: "transparent"});
 
 			toast(_h("i-box-4"));
-		    $a.add($p).attr({onkeypress: "press_enter(event,'signin')"});
-			$sup.add($res).hide("slide"); $sin.show(); 
+			$a.add($p).attr({onkeypress: "press_enter(event,'signin')"});
+			$sup.add($res).hide("slide"); $sin.show();
 			password_show(!0); password2_show(!1);
 		break;
 
 		case "reset":
 			toast(_h("i-box-5"));
 			$a.attr({onkeypress: "press_enter(event,'hj_reset')"});
-		    $sup.add($sin).hide("slide"); $res.show();
-		    password_show(!1);
-
+			$sup.add($sin).hide("slide"); $res.show();
+			password_show(!1);
 		break;
 	}
 
 	var title = _h("i-box-"+(toggle=="signup" ? 6 : 7)), 
-		maxlength = toggle== "signup" ? 20 : 64, 
+		maxlength = toggle=="signup" ? 20 : 64, 
 		reg = toggle=="signup" ? "/[^a-z0-9]/g" : "/[^a-z0-9_.@-]/g", 
 		oninput = "this.value=(this.value||'').toLowerCase().replace("+reg+",'')";
 
@@ -754,6 +691,12 @@ function box(toggle){
 }
 	function toast(t){
 		return $("#status").text(t||"").show();
+	}
+	// 驗證失敗：表單晃動、顯示訊息並聚焦欄位
+	function auth_error(t, $el){
+		shake($(".authform"));
+		toast(t);
+		$el?.[0]?.focus();
 	}
 
 function password_reveal($btn){
@@ -792,13 +735,10 @@ function reset_suspended(on, revoke){
 	$r.toggleClass("pure-button-default pure-button-gray");
 
 	function Timer(duration, display){
-		var timer = duration, minutes, seconds;
+		var timer = duration, 
+			pad = function(n){return String(Math.floor(n)).padStart(2, "0");};
 		return window.setInterval(function(){
-			minutes = parseInt(timer/60, 10)
-			seconds = parseInt(timer%60, 10);
-			minutes = minutes<10 ? "0"+minutes : minutes;
-			seconds = seconds<10 ? "0"+seconds : seconds;
-			display.text(_h("i-timer", {$min: minutes, $sec: seconds}));
+			display.text(_h("i-timer", {$min: pad(timer/60), $sec: pad(timer%60)}));
 			if(--timer<0){
 				window.clearInterval(reset_suspended_timer);
 				reset_suspended(!1);
@@ -814,7 +754,7 @@ function language_switch(lang, title){
 
 	// Cookie 及選單同步
 	if(lang=="init"){
-		var lang = parseInt(getcookie("hearty_language"));
+		lang = parseInt(getcookie("hearty_language"));
 
 		// 為空
 		if(isNaN(lang)){

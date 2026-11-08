@@ -829,100 +829,55 @@ function toolbelt_btn_clicked($btn){
 	}
 }
 
-function sticker__draggable_handle(bundle_id, asset_id){
-	var $a = $(".bundle .asset[data-asset_id='"+asset_id+"']"), 
-		$i = $a.children(".sticker_img"), 
-		editor_width = $("#editor").width(), 
-		editor_scrolled = $(".bk-page").scrollTop() || 0, 
-		editor_topmargin = $("#editor").get(0)?.offsetTop, 
-		top = $a.position().top + editor_scrolled - editor_topmargin, // + 已滾動區域 - #editor 與 .bk-page 的高度差
-		left = $a.get(0)?.offsetLeft, // $a.position().left
-		right = editor_width-(left+$i.width())-30;
-
-	// 已旋轉項之右邊界修正
-	if(right>0 && $i.length>0){
-		right = Math.max(
-			0, 
-			Math.ceil(right+$i.width()-$i.get(0)?.getBoundingClientRect()?.width)
-		);
-	}
-
-	var pos = {
-		top: top, 
-		left: left, // alt: $a.offset().left
-		right: right, 
-		align_right: left+$a.width()/2 > Math.floor(editor_width/2) ? 1 : 0
-	};
-
-	return {
-		pos: pos, 
-		overflow: {top: top>0, left: left>0, right: right>0}
-	};
-}
-
+// 方向鍵移動、Enter/Esc/Space 黏貼、Backspace/Delete 刪除（電腦）
 function sticker__editor_hotkeys(on, bundle_id, asset_id){
-	$(document).off("keydown");
+	$(document).off("keydown.sticker");
+	if(!on) return;
 
-	if(on){
-		$(document).on("keydown", function(e){
-			e.preventDefault();
+	var d = {bundle_id: bundle_id, asset_id: asset_id}, 
+		steps = {37: [-15, 0], 38: [0, -15], 39: [15, 0], 40: [0, 15]}; // Left, Up, Right, Down
 
-			var $a = $(".bundle .asset[data-asset_id='"+asset_id+"']"), 
-				before = {
-					top: parseInt($a.css("top")) || 0, 
-					left: parseInt($a.css("left")) || 0
-				}, 
-				current = Object.assign({}, before); // $.extend(true, {}, before)
+	$(document).on("keydown.sticker", function(e){
+		switch(e.keyCode){
+			case 13: // Enter
+			case 27: // Escape
+			case 32: // Space
+				e.preventDefault();
+				sticker__paste(d, true);
+				return;
 
-			switch(e.keyCode){
-				case 13: // Enter
-				case 27: // Escape
-				case 32: // Space
-					sticker__paste({bundle_id: bundle_id, asset_id: asset_id}, true);
-					return;
-				break;
+			case 8: // Backspace
+			case 46: // Delete
+				e.preventDefault();
+				sticker__remove(d);
+				return;
+		}
 
-				case 37: // Left
-					current.left -= 15;
-				break;
+		var step = steps[e.keyCode];
+		if(!step) return;
+		e.preventDefault();
 
-				case 38: // Up
-					current.top -= 15;
-				break;
+		// 以排版座標限制在 #editor 內
+		var $a = sticker__dom(asset_id).$a, 
+			a = $a.get(0), 
+			editor = $("#editor").get(0), 
+			$p = $(".bk-page"), 
+			x = a.offsetLeft-editor.offsetLeft, 
+			y = a.offsetTop-editor.offsetTop-editor.clientTop, 
+			dx = Math.min(Math.max(x+step[0], 0), Math.max(editor.clientWidth-a.offsetWidth, 0))-x, 
+			dy = Math.max(y+step[1], 0)-y;
 
-				case 39: // Right
-					current.left += 15;
-				break;
+		$a.stop(true, true).animate({
+			left: (parseFloat(a.style.left) || 0)+dx, 
+			top: (parseFloat(a.style.top) || 0)+dy
+		}, 25);
 
-				case 40: // Down
-					current.top += 15;
-				break;
-
-				case 8: // Backspace
-				case 46: // Delete
-					sticker__remove({bundle_id: bundle_id, asset_id: asset_id}); return;
-				break;
-			}
-
-			var c = sticker__draggable_handle(bundle_id, asset_id);
-
-			// 超出左邊
-			if(!c["overflow"]["left"]) current["left"] = 5;
-			// 超出右邊
-			else if(!c["overflow"]["right"]) current["left"] = before["left"]-15;
-			// 超出上邊
-			else if(!c["overflow"]["top"]) current["top"] = before["top"]+15;
-			// 範圍內
-			else sticker__update(bundle_id, asset_id, "position", c["pos"]);
-
-			$a.animate(current, 25);
-
-			// 保持在視窗內
-			var view = parseInt($a.get(0)?.offsetTop-$(".bk-page").height()*2/5);
-			if(view<$(".bk-page").height()+100)
-				$(".bk-page").animate({scrollTop: view}, 60);
-		});
-	}
+		// 保持在視窗內
+		var top = a.offsetTop+dy, 
+			scrolled = $p.scrollTop() || 0;
+		if(top<scrolled || top+a.offsetHeight>scrolled+$p.height())
+			$p.stop().animate({scrollTop: Math.floor(top-$p.height()*2/5)}, 60);
+	});
 }
 
 
@@ -1342,6 +1297,11 @@ function book__initialize(open){
 
 // 啟動：編輯區
 function editable__initialize(){
+	// 剪下貼紙期間，點擊編輯區即黏貼（貼紙本身的 click 已 stopPropagation）
+	$("#editor").on("click", function(){
+		if(sticker__paste(null, true)) saved(false);
+	});
+
 	// Prevent Page Scroll while Moving Stickers: stackoverflow.com/a/27286193 
 	if(is_touch_device()){
 		$(".bk-page").get(0)?.addEventListener("touchmove", function(e){
@@ -1887,31 +1847,16 @@ function stickers__initialize(){
 
 // 初始化：設置單張貼紙屬性
 function sticker__initialize(bundle_id, asset_id, sticker){
-	var $a = $(".bundle .asset[data-asset_id='"+asset_id+"']"), 
-		$i = $a.children(".sticker_img"), 
-		blank = sticker__new_blank("asset", bundle_id, sticker);
+	var blank = sticker__new_blank("asset", bundle_id, sticker);
+	["angle", "size", "position"].forEach(function(k){
+		if(!(k in sticker)) sticker[k] = blank[k];
+	});
 
-	if("angle" in sticker)
-		$i.css({transform: "rotate("+sticker["angle"]["deg"]+"deg)"});
-	else
-		sticker["angle"] = blank["angle"];
-
-	if("size" in sticker)
-		$i.css({
-			width: sticker["size"]["width"], 
-			height: sticker["size"]["height"]
-		});
-		// $i.width(sticker["size"]["width"]).height(sticker["size"]["height"]);
-	else
-		sticker["size"] = blank["size"];
-
-	if("position" in sticker)
-		$a.css({
-			"top": sticker["position"]["top"], 
-			"left": sticker["position"]["left"]
-		});
-	else
-		sticker["position"] = blank["position"];
+	sticker__dom(asset_id).$i.css({
+		transform: "rotate("+(Number(sticker["angle"]["deg"]) || 0)+"deg)", 
+		width: sticker["size"]["width"], 
+		height: sticker["size"]["height"]
+	});
 
 	if(current_post()["editable"]) sticker__editor_initialize(bundle_id, asset_id, sticker);
 	else sticker__paste({bundle_id: bundle_id, asset_id: asset_id});
@@ -1920,30 +1865,25 @@ function sticker__initialize(bundle_id, asset_id, sticker){
 // 初始化：設置貼紙編輯功能
 function sticker__editor_initialize(bundle_id, asset_id, sticker){
 	var touch_device = is_touch_device(), 
-		$a = $(".bundle .asset[data-asset_id='"+asset_id+"']"), 
-		$i = $a.children(".sticker_img");
+		el = sticker__dom(asset_id), 
+		$a = el.$a, 
+		$i = el.$i, 
+		deg = Number(sticker["angle"]["deg"]) || 0, // 目前角度（handle、滾輪、手勢共用）
+		width_max = function(){return $("#editor_editable").width()*0.85}, 
+		handle_rotating = false, // 拖曳 handle 中（否則為滑鼠滾輪）
+		rotated = function(ui){
+			deg = ui.angle.degrees;
+			sticker__update(bundle_id, asset_id, {angle: {deg: deg}});
+		};
 
-	// # Draggable
+	// # Draggable：只移動相對位置，黏貼時才換算存檔（sticker__move_commit）
 	$a.draggable({
-		start: function(e, ui){
-			if(touch_device) $i.addClass("dragging");
-			else $i.addClass("grabbing");
-			if($i.hasClass("dragthis")) $i.removeClass("dragthis");
+		start: function(){
+			$i.addClass(touch_device ? "dragging" : "grabbing").removeClass("dragthis");
 		}, 
-		stop: function(e, ui){
-			/* plugin default
-				ui.position.top;
-				ui.position.left;
-				ui.position.right = editor_width-(ui.position.left+$(this).width());
-				ui.position.align_right = (ui.position.left+$(this).width()/2) > Math.floor($("#editor").width()/2) ? 1 : 0;
-			*/
-
+		stop: function(e){
 			e.stopPropagation();
-			var c = sticker__draggable_handle(bundle_id, asset_id);
-			sticker__update(bundle_id, asset_id, "position", c["pos"]);
-
-			if(touch_device) $i.removeClass("dragging");
-			else $i.removeClass("grabbing");
+			$i.removeClass("dragging grabbing");
 		}, 
 		snap: true, 
 		containment: "#editor", 
@@ -1953,218 +1893,110 @@ function sticker__editor_initialize(bundle_id, asset_id, sticker){
 		cancel: ".ui-rotatable-handle"
 	});
 
-	// jQueryUI Rotatable
-	var angle = sticker["angle"]["deg"], 
-		angle_rad = angle/57.296, 
-		params = {
-		angle: angle_rad, // format: rad
+	// # jQueryUI Rotatable（handle + 滑鼠滾輪）
+	$i.rotatable({
+		angle: deg*Math.PI/180, // format: rad
 		rotationCenterOffset: {top: 0, left: 0}, 
-		// 觸發：handle 旋轉
-		start: function(e){
-			$i.data("rotate-mode", 1);
+		wheelRotate: true, 
+		start: function(){
+			handle_rotating = true;
 		}, 
-		// 觸發：handle + 滾輪旋轉
 		rotate: function(e, ui){
-			// 滑鼠滾輪
-			if($i.data("rotate-mode")===0){
+			// 滑鼠滾輪（不觸發 start、stop）
+			if(!handle_rotating){
 				e.stopPropagation(); // 防止頁面滾動
-				/* ALT: 
-				if(e.cancelable){ // segmentfault.com/a/1190000007621605
-					if(!e.defaultPrevented) e.preventDefault();
-				}
-				*/
-
-				angle_rad = ui.angle.current; angle = ui.angle.degrees;
-				sticker__update(bundle_id, asset_id, "angle", {deg: angle, rad: angle_rad});
-				sticker__rotation_margin_fixes(bundle_id, asset_id);
+				rotated(ui);
 			}
 		}, 
-		// 觸發：handle 旋轉
 		stop: function(e, ui){
-			angle_rad = ui.angle.current; angle = ui.angle.degrees;
-			sticker__update(bundle_id, asset_id, "angle", {deg: angle, rad: angle_rad});
-			$i.data("rotate-mode", 0);
-			sticker__rotation_margin_fixes(bundle_id, asset_id);
-		}, 
-		rotationCenterOffset: {top: 0, left: 0}, 
-		wheelRotate: true
-	};
-	$i.rotatable(params).data("rotate-mode", 0);
-
-	// Assign Handles
-	$i.find(".ui-rotatable-handle").remove();
-  	var se = $("<div>", {class: "ui-rotatable-handle", title: _h("e-sticker-1")});
-		if(!touch_device){
-			var ne = se.clone(),
-				nw = se.clone(),
-				sw = se.clone();
-			ne.addClass("ui-rotatable-handle-ne");
-			nw.addClass("ui-rotatable-handle-nw");
-			sw.addClass("ui-rotatable-handle-sw");
-			$i.append(ne, nw, sw);
+			handle_rotating = false;
+			rotated(ui);
 		}
-		// 手機版，handle-se 旋轉與縮放共用
-		se.addClass("ui-rotatable-handle-se segrip");
-		$i.append(se);
-
-	// Event Binding
-	$i.find("div[class*='ui-rotatable-handle-']").on("mousedown", function(e){
-		$i.rotatable("instance").startRotate(e);
 	});
-	// # OFF: $i.rotatable("disable");
 
-	// # Resizable
+	// 旋轉 handle：電腦四角；手機僅右下（旋轉與縮放共用）
+	$i.find(".ui-rotatable-handle").remove();
+	(touch_device ? ["se"] : ["ne", "nw", "sw", "se"]).forEach(function(corner){
+		$("<div>", {
+			class: "ui-rotatable-handle ui-rotatable-handle-"+corner, 
+			title: _h("e-sticker-1")
+		}).on("mousedown", function(e){
+			$i.rotatable("instance").startRotate(e);
+		}).appendTo($i);
+	});
+
+	// # Resizable（電腦）
 	if(!touch_device){
-		var aspect_ratio = $i.width()/$i.height(), 
-			handles = touch_device ? {
-				// ### 將右下旋轉掛載縮放 (手機)
-				// se: ".segrip"
-			} : {
-				n: ".ngrip", e: ".egrip", s: ".sgrip"
-			};
+		var aspect_ratio = sticker["size"]["width"]/sticker["size"]["height"] || 1;
 		$i.resizable({
 			resize: function(e, ui){
 				$a.css({"min-width": ui.size.width});
 			}, 
 			stop: function(e, ui){
-				sticker__update(bundle_id, asset_id, "size", {
-					width: ui.size.width, 
-					height: Math.round(ui.size.height)
-				});
+				var width = ui.size.width, 
+					height = width/aspect_ratio;
 
-				// Position Reset
-				$(this).height(ui.size.width/aspect_ratio).css({top: 0, left: 0});
+				$(this).height(height).css({top: 0, left: 0}); // 維持比例、位置歸零
+				sticker__update(bundle_id, asset_id, {size: {width: width, height: height}});
 			}, 
 			containment: "#editor", 
 			aspectRatio: true, 
 			grid: 5, 
 			minWidth: 80, 
 			minHeight: 80, 
-			maxWidth: $("#editor_editable").width()*0.85, 
+			maxWidth: width_max(), 
 			maxHeight: 640, 
-			handles: handles
+			handles: {n: ".ngrip", e: ".egrip", s: ".sgrip"}
 		});
-		// # OFF: $i.resizable("disable");
 	}
-
-	// Mobile Editing
-	if(touch_device){
-		$(".ui-resizable-n,.ui-resizable-e,.ui-resizable-s").remove();
-
-		// # Rotatable
-		$i.get(0)?.addEventListener("touchmove", function(e){
-			if("touches" in e){
-				var dist = {x: 0, y: 0, sum: 0}, 
-					sum = hj__cache({bucket: "hearty_sticker_finger_gap"}) || null, 
-					gap = 0, 
-					width = $i.width(), 
-					height = $i.height(), 
-					width_ceil = {max: $("#editor_editable").width()*0.85, min: 80}, 
-					zoom_ratio = 1;
-
-				if(!$i.data("aspect_ratio")){
-					var aspect_ratio = width/height; $i.data({aspect_ratio: aspect_ratio});
-				}
-				else{
-					var aspect_ratio = $i.data("aspect_ratio");
-				}
-
-				if(e.touches.length>1){
-					dist["x"] = Math.abs(e.touches[1].pageX-e.touches[0].pageX);
-					dist["y"] = Math.abs(e.touches[1].pageY-e.touches[0].pageY);
-					dist["sum"] = Math.floor(Math.sqrt(Math.floor(
-						dist["x"]**2+dist["y"]**2
-					)));
-
-					// 減去舊資料
-					if(sum!==null) gap = dist["sum"]-sum;
-					gap = isNaN(gap) ? 0 : gap;
-					hj__cache({set: true, bucket: "hearty_sticker_finger_gap", data: dist["sum"]});
-
-					// 計算新的寬高
-					zoom_ratio = gap/width*0.4;
-					width += width*zoom_ratio;
-					height = width/aspect_ratio;
-
-					if(width<width_ceil["min"]){
-						height *= width_ceil["min"]/width;
-						width = width_ceil["min"];
-					}
-					else if(width>width_ceil["max"]){
-						height *= width_ceil["max"]/width;
-						width = width_ceil["max"];
-					}
-
-					width = Math.round(width*1000)/1000;
-					height = Math.round(height*1000)/1000;
-
-					var icon_size = Math.floor(Math.min(width, height)*0.45);
-					$i.width(width).height(height).css({
-						"font-size": icon_size>100 ? 100 : icon_size
-					});
-
-					// 回存
-					sticker__update(bundle_id, asset_id, "size", {"width": width, "height": height});
-
-					// 圖示
-					if(Math.abs(gap)>0 && $i.hasClass("rotating")) $i.removeClass("rotating");
-					$i.addClass("resizing");
-					if($i.hasClass("dragthis")) $i.removeClass("dragthis");
-				}
-			}
-
-		}, {passive: true});
-
-		$i.get(0)?.addEventListener("touchend", function(e){
-			hj__cache({set: true, bucket: "hearty_sticker_finger_gap"});
-
-			$i.removeClass("resizing");
-		}, {passive: true});
+	// # 手機：長按剪下；雙指縮放＋旋轉
+	else{
+		$i.children(".ui-resizable-handle").remove();
 
 		// interact.js (Long Press)
-		interact(".asset[data-asset_id='"+asset_id+"']").on("hold", function(e){
-			if(!$(".asset[data-asset_id='"+asset_id+"'] .sticker_editing").length){
+		interact(".asset[data-asset_id='"+asset_id+"']").on("hold", function(){
+			if(!$i.hasClass("sticker_editing")){
 				sticker__cut({bundle_id: bundle_id, asset_id: asset_id});
 				hj_vibrate(30);
 			}
 		});
 
-		var angle = parseFloat(sticker["angle"]["deg"]), angle_rad = angle/57.296;
-		interact(".asset[data-asset_id='"+asset_id+"'] .sticker_img").gesturable({
+		// 手勢期間只更新畫面，結束時才回存
+		var start = {};
+		sticker__interact(asset_id).gesturable({
+			onstart: function(){
+				var i = $i.get(0);
+				start = {width: i.offsetWidth, ratio: i.offsetWidth/i.offsetHeight || 1};
+			}, 
 			onmove: function(e){
-				angle += e.da; // format: deg
+				deg += e.da; // format: deg
+				var width = Math.min(Math.max(start.width*e.scale, 80), width_max()), 
+					height = width/start.ratio, 
+					frame = sticker__frame({width: width, height: height}, deg);
 
 				$i.css({
-					"transform": "rotate("+angle+"deg)"
-				});
+					width: width, 
+					height: height, 
+					transform: "rotate("+deg+"deg)", 
+					"--icon-size": Math.min(Math.floor(Math.min(width, height)*0.45), 100)+"px"
+				}).removeClass("dragthis");
+				$a.css({"min-width": frame.width, "max-height": frame.height});
 
-				if(angle>360) angle -= 360;
-				else if(angle<0) angle += 360;
-				angle_rad = angle/57.296;
-
-				sticker__update(bundle_id, asset_id, "angle", {deg: angle, rad: angle_rad});
-				sticker__rotation_margin_fixes(bundle_id, asset_id);
-
+				// 圖示
 				if(Math.abs(e.da)>0.5) $i.removeClass("resizing").addClass("rotating");
-				hj_log("* 更新貼紙角度 "+asset_id+"："+parseFloat(angle).toFixed(2)+' °');
+				else if(Math.abs(e.ds)>0.001) $i.removeClass("rotating").addClass("resizing");
+			}, 
+			onend: function(){
+				var i = $i.removeClass("resizing rotating").get(0);
+				sticker__update(bundle_id, asset_id, {
+					size: {width: i.offsetWidth, height: i.offsetHeight}, 
+					angle: {deg: deg}
+				});
+				hj_log("* 更新貼紙角度 "+asset_id+"："+deg.toFixed(2)+" °");
 			}
-		}).on({
-			gestureend: function(e){
-				$i.removeClass("rotating");
-			}
-		});
-		// # OFF: interact(".bundle .asset_"+asset_id+" .sticker_img").gesturable({enabled: false});
-
-		/* Click-Twice Issue Solved ( www.sitepoint.com/community/t/what-is-best-mouse-event-for-click-on-mobile-devices/263472/4 )
-			$a.on("mouseover", function(){
-				$(this).trigger("click");
-			});
-		*/
-
-		$i.css({
-			"transform": "rotate("+angle+"deg)"
 		});
 	}
+
 	sticker__paste({bundle_id: bundle_id, asset_id: asset_id});
 	hj_log("🏮 初始化貼紙："+bundle_id+"（"+asset_id+"）");
 }
@@ -2177,7 +2009,6 @@ function stickers__detach(){
 
 // 新增貼紙
 function sticker__oncreate(sticker, locked){
-	var post_id = current_post()["post_id"];
 	if(Number(locked)>0){
 		nav_toggle($(".stickerbook"), false);
 		hj_upgrade_toggle(true);
@@ -2195,12 +2026,12 @@ function sticker__oncreate(sticker, locked){
 function sticker__create(item, bundle_id){
 	if(!current_post()["editable"]) return false;
 	var r = sticker__lookup("page"), 
-		page = "page" in r[1] ? r[1]["page"] : {}, 
-		bundles = "bundles" in r[1] ? r[1]["bundles"] : [], 
+		page = r[1]["page"], 
+		bundles = r[1]["bundles"], 
 		new_bundle = bundle_id==null, 
 		asset_id = sticker__uniqID(), 
-		asset_max = {width: 160, height: 160}, 
-		asset_ratio = Math.min(asset_max.width/item.width, asset_max.height/item.height);
+		asset_ratio = Math.min(160/item.width, 160/item.height), // 最大 160 x 160
+		target_top = 0;
 	var bundle;
 
 	item["width"] = Math.ceil(item.width*asset_ratio);
@@ -2209,91 +2040,43 @@ function sticker__create(item, bundle_id){
 
 	// 需建立新 bundle
 	if(new_bundle){
-		bundle_id = sticker__uniqID();
-		bundle = sticker__new_blank("bundle", bundle_id, item);
-
-		// 1. 設置新貼紙的絕對位置，於所有貼紙之後，以不影響現有排版的預覽
-		var sum_arr = bundles.map(function(v, i){
-			return bundles[i]["position"]["sum"]
-		}); sum_arr.push(0); // sum_arr: 至少給個 0，避免 Math.max 輸出無限
-
-		var last_sum_in_bundles = Math.max.apply(null, sum_arr);
-
-		// 更新其 top
-		bundle["position"]["top"] = last_sum_in_bundles; page[bundle_id] = bundle;
-
-		// 2. 定焦在貼紙可貼，並將新貼紙貼於捲動窗格中央
-		var editor_scrolled = $(".bk-page").scrollTop() || 0, 
-			editor_readable = {
-				width: $("#editor").width() || 0, 
-				height: $(".bk-page").height() || 0
-			}, 
-			editor_topmargin = $("#editor").get(0)?.offsetTop;
+		var $p = $(".bk-page"), 
+			editor_topmargin = $("#editor").get(0)?.offsetTop || 0, 
+			editor_scrolled = $p.scrollTop() || 0;
 
 		// 視窗定焦
 		if(editor_scrolled<editor_topmargin){
 			editor_scrolled = editor_topmargin;
-			$(".bk-page").animate({scrollTop: editor_scrolled}, 100);
+			$p.animate({scrollTop: editor_scrolled}, 100);
 		}
 
-		// 貼紙位置
-		var pos = {
-			// 自絕對位置向上移動像素 (負值)
-			move: {
-				top: editor_scrolled
-				// 在手機上需加上標題列+圖片之高 (電鬧上則否)
-				 + (is_touch_device() ? editor_topmargin : 0)
+		// 目標位置：捲動窗格中央
+		target_top = Math.max(Math.floor(editor_scrolled-editor_topmargin+$p.height()*0.5-item["height"]+50), 0);
 
-				 - editor_readable["height"]*0.4
-				 - last_sum_in_bundles
-			}, 
-			// 絕對位置
-			def: {
-				top: editor_scrolled
-				 - editor_topmargin
-				 + editor_readable["height"]*0.5
-				 - item["height"]
-				 + 50, 
-				left: !item["align_right"] ? 
-					editor_readable["width"]*0.1||0 : // 靠左
-					editor_readable["width"]-item["width"]||0, // 靠右
-			}
-		}, 
-		default_position = {
-			top: Math.ceil(pos["move"]["top"]), 
-			left: Math.round(pos["move"]["left"])
-		};
+		// 先置於所有貼紙之後，以不影響現有排版的預覽
+		bundle_id = sticker__uniqID();
+		bundle = page[bundle_id] = sticker__new_blank("bundle", bundle_id, item);
+		bundle["position"]["top"] = Math.max.apply(null, bundles.map(function(b){
+			return b["position"]["sum"] || 0;
+		}).concat(0));
+		bundles.push(bundle);
 	}
 	// 加入既存 bundle
 	else{
-		var default_position = null;
 		bundle = page[bundle_id];
 	}
 
-	// 寫入 asset
-	page[bundle_id]["assets"][asset_id] = bundle["assets"][asset_id] = sticker__new_blank("asset", bundle_id, item);
-
-	// 回存
-	bundles = Object.keys(page).map(function(k){return page[k]});
+	// 寫入 asset、回存、建立 DOM
+	bundle["assets"][asset_id] = sticker__new_blank("asset", bundle_id, item);
 	sticker__save_local(bundles);
+	sticker__createDOM(bundle_id, bundle);
 
-	// 建立 DOM
-	sticker__createDOM(bundle_id, bundle, default_position);
-
-	// 排版對位：將預設位置覆寫暫存 & 回傳資料庫
 	if(new_bundle){
-		bundle["position"] = bundle["assets"][asset_id]["position"] = {
-			top: Math.floor(pos["def"]["top"]), 
-			left: Math.round(pos["def"]["left"]), 
-			right: 0, 
-			align_right: 1
-		};
-		page[bundle_id]["assets"][asset_id] = bundle["assets"][asset_id];
-
-		// position 暫存
-		sticker__update(bundle_id, asset_id, "position", 
-			bundle["assets"][asset_id]["position"]
-		);
+		// 以相對位移移到目標位置，黏貼時由 sticker__move_commit 落定
+		var $a = sticker__dom(asset_id).$a, 
+			editor_width = $("#editor").get(0)?.clientWidth || 0, 
+			left = Math.max(editor_width-$a.get(0).offsetWidth, 0);
+		$a.css({top: target_top-sticker__lookup("asset", bundle_id, asset_id)[1]["asset"]["position"]["top"]});
 
 		// DB
 		var asset = bundle["assets"][asset_id];
@@ -2303,10 +2086,10 @@ function sticker__create(item, bundle_id){
 			data: {
 				bundle_id: bundle_id, 
 				asset_id: asset_id, 
-				bundle_top: bundle["position"]["top"], 
-				bundle_left: bundle["position"]["left"],  
-				bundle_right: bundle["position"]["right"], 
-				bundle_align_right: bundle["position"]["align_right"], 
+				bundle_top: target_top, 
+				bundle_left: left, 
+				bundle_right: 0, 
+				bundle_align_right: 1, 
 				item_num: asset["item_num"], 
 				asset_width: asset["size"]["width"], 
 				asset_height: asset["size"]["height"]
@@ -2322,7 +2105,7 @@ function sticker__create(item, bundle_id){
 				break;
 
 				case 3:
-					msg(_h("e-sticker-4"), '<i class="fas fa-star"></i> '+_h("e-sticker-5"), function(){  
+					msg(_h("e-sticker-4"), '<i class="fas fa-star"></i> '+_h("e-sticker-5"), function(){
 						hj_upgrade_toggle(true);
 					});
 					return;
@@ -2336,41 +2119,33 @@ function sticker__create(item, bundle_id){
 
 	// 開書
 	open_book(true);
-	// hj_vibrate(30);
 
 	hj_log("➕ 新增貼紙："+bundle_id+"（"+asset_id+"）");
 }
 
 // 新增貼紙 DOM
-function sticker__createDOM(bundle_id, bundle, default_pos){
-	var $a, $b, $i, asset, item;
-
-	// bundles
-	$b = $("<div>", {
+function sticker__createDOM(bundle_id, bundle){
+	var $b = $("<div>", {
 			class: "bundle", 
 			"data-bundle_id": bundle_id, 
 			html: $("<div>", {class: "bundle_innerbox"}), 
 			onContextMenu: "return false;"
-		})
-		.data("bundle-id", bundle_id)
-		.insertBefore("#editor_editable");
+		}).insertBefore("#editor_editable");
 
-	// assets
 	for(let asset_id in bundle["assets"]){
-		asset = bundle["assets"][asset_id];
-
-		$a = $(".hj-sample .asset").clone().attr({
+		let asset = bundle["assets"][asset_id], 
+			$a = $(".hj-sample .asset").clone().attr({
 				title: asset["item_name"], 
 				"data-editing": 1, 
 				"data-bundle_id": bundle_id, 
 				"data-asset_id": asset_id
 			})
-			.data("asset-id", asset_id)
-			.fadeTo("slow", 0.35);
-		$b.children(".bundle_innerbox").append($a);
+			.css({opacity: 0.35})
+			.appendTo($b.children(".bundle_innerbox")), 
+			$i = $a.children(".sticker_img");
 
-		$i = $(".asset[data-asset_id='"+asset_id+"'] .sticker_img");
-		$i.width(asset["size"]["width"]).height(asset["size"]["height"]).addClass("dragthis").css({
+		// 尺寸、角度由 sticker__initialize 設定
+		$i.addClass("dragthis").css({
 			"background-image": "url('//i.hearty.app/b/images/stickers/"+asset["set_alias"]+"/"+asset["item_num"]+".png')"
 		});
 		if(is_touch_device()){
@@ -2378,50 +2153,21 @@ function sticker__createDOM(bundle_id, bundle, default_pos){
 				e.stopPropagation();
 			}, {passive: true});
 		}
+		$a.fadeTo("slow", 1);
 
-		// 原有：直接顯示
-		if(default_pos==null)
-			$a.fadeTo("slow", 1);
-		// 新增：設起始位置
-		else
-			setTimeout(function(){ // Known Deferred Issue
-				$a.animate(default_pos, 150).fadeTo("slow", 1);
-			}, 0);
-
-		sticker__initialize(bundle_id, asset_id, bundle["assets"][asset_id]);
+		sticker__initialize(bundle_id, asset_id, asset);
 	}
 }
 
-// 貼紙已旋轉，需以三角函數計算出 bundle 的外框空間
-function sticker__rotation_margin_fixes(bundle_id, asset_id){
-	var $a = $(".bundle .asset[data-asset_id='"+asset_id+"']"), 
-		$i = $a.children(".sticker_img");
-
-	if($i.length<1) return;
-	var bundle_width = Math.floor($i.get(0)?.getBoundingClientRect()?.width*0.9), 
-		bundle_height = Math.floor($i.get(0)?.getBoundingClientRect()?.height*0.9);
-
-	hj_log("貼紙尺寸："+bundle_width+" x "+bundle_height);
-	if(!bundle_width || !bundle_height) return false;
-
-	// .asset 容器尺寸
-	sticker__update(bundle_id, asset_id, "size", {
-		width: bundle_width, 
-		height: bundle_height
-	}, true);
-
-	$a.css({
-		"min-width": bundle_width, 
-		"max-height": bundle_height
-	});
-
-	/* Sol B (三角函數)
-	angle_rad = Math.abs(angle_rad);
-	var r = ((angle_rad > Math.PI*0.5 && angle_rad < Math.PI*1) || (angle_rad > Math.PI*1.5 && angle_rad < Math.PI*2)) ? Math.PI - angle_rad : angle_rad, 
-		w = Math.abs( Math.sin(r)*$i.height()+Math.cos(r)*$i.width() ), 
-		h = Math.abs( Math.sin(r)*$i.width()+Math.cos(r)*$i.height() );
-	$a.width(w).height(h);
-	*/
+// 旋轉後外框：以三角函數由原尺寸換算（不量測畫面，各裝置一致），0.9 為收邊係數
+function sticker__frame(size, deg){
+	var rad = (Number(deg) || 0)*Math.PI/180, 
+		cos = Math.abs(Math.cos(rad)), 
+		sin = Math.abs(Math.sin(rad));
+	return {
+		width: Math.floor((cos*size["width"]+sin*size["height"])*0.9), 
+		height: Math.floor((sin*size["width"]+cos*size["height"])*0.9)
+	};
 }
 
 // 空白格式
@@ -2451,354 +2197,289 @@ function sticker__new_blank(scope, bundle_id, item){
 	return blank;
 }
 
-// 排版：調整 bundle 項次位置
-function sticker__exec(mode, bundle, bundles){
-	var adjusted = false;
+// 排版：移除 bundle，其餘貼紙維持原位
+function sticker__exclude(bundle_id){
+	sticker__calc(sticker__bundles().filter(function(bundle){
+		return bundle["id"]!=bundle_id;
+	}));
 
-	if(bundles==null){
-		var r = sticker__lookup("page");
-		if(r[0]) var page = r[1]["page"], bundles = r[1]["bundles"];
-		else return false;
-	}
-	switch(mode){
-	    case "add": // 調整項 i & i++
-	    	var len = bundles.length;
+	$(".bundle[data-bundle_id='"+bundle_id+"']").fadeOut(200, function(){
+		$(this).remove();
+		$(".hj-styles style[data-bundle_id='"+bundle_id+"']").remove();
+		sticker__place();
+	});
+}
 
-	    	// 唯一項
-		    if(!len){
-		    	bundles.push(bundle);
-		    }
-		    else{
-				for(let i=0; i<len; i++){
-					// 調整 i++ 項
-					if(adjusted){
-						// 若原空間不足，為騰出空間，則將 i++ 項(含)以後，全數下移
-						if(bundles[i]["position"]["sum"]>bundles[i]["position"]["top"]){
-							var push = bundles[i]["position"]["sum"]-bundles[i]["position"]["top"];
-							for(let k=i; k<len; k++)
-								bundles[k]["position"]["top"] += push;
-						}
-
-					}
-					else{
-						// 置於 i項之前，或作為最末項
-						if(bundles[i]["position"]["top"]>bundle["position"]["top"] || i+1===len){
-							bundles[i]["position"]["topmargin"] = i>0 ? 
-								bundles[i]["position"]["top"]-bundles[i-1]["position"]["sum"] : // 排中
-								bundles[i]["position"]["top"]; // 排頭
-
-							bundles[i]["position"]["sum"] = 
-								bundles[i]["position"]["top"]+bundles[i]["size"]["height"];
-
-							// 插入
-							bundles.splice(i, 0, bundle);
-							adjusted = true;
-						}
-					}
-
-				}
-		    }
-
-			// 回存	
-			sticker__save_local(bundles);
-
-			// DOM 排版
-			sticker__createDOM(bundle["id"], bundle);
-
-			return sticker__place(sticker__calc(sticker__order(bundles)));
-		break;
-
-	    case "remove":
-		    for(let i=0; i<bundles.length; i++){
-				// 調整 i 項
-				if(bundles[i]["id"]==bundle["id"]){
-					bundles.splice(i, 1); // 剔除陣列元素
-					adjusted = true;
-				}
-				// 調整同側 i+1 項 (若存在)
-				else if(!!adjusted && 
-						bundles[i]["position"]["align_right"]==bundles[i-1]["position"]["align_right"]
-					){
-						bundles[i]["position"]["topmargin"] += 
-						(bundles[i-1]["position"]["topmargin"]+bundles[i-1]["size"]["height"]);
-
-					adjusted = false;
-				}
-		    }
-
-			// 回存
-			sticker__save_local(bundles);	
-
-			// DOM 排版
-			$(".bundle[data-bundle_id='"+bundle["id"]+"']").fadeOut(200, function(){$(this).remove()});
-
-			return sticker__place(bundles);
-		break;
-	}	
+// 讀取 bundles（未傳入時取暫存）
+function sticker__bundles(bundles){
+	return bundles || sticker__lookup("page")[1]["bundles"];
 }
 
 // 排版：依各 bundle 絕對高度排序
 function sticker__order(bundles){
-	if(bundles==null){
-		var r = sticker__lookup("page");
-		if(r[0]) var page = r[1]["page"], bundles = r[1]["bundles"];
-		else return false;
-	}
+	bundles = sticker__bundles(bundles);
 
 	// 排序陣列
-	if(bundles.length>1)
-		bundles.sort(function(x, y){
-			return x["position"]["top"] - y["position"]["top"];
-		});
+	bundles.sort(function(x, y){
+		return x["position"]["top"]-y["position"]["top"];
+	});
 
 	// 排序 DOM
 	bundles.forEach(function(bundle){
-		$(".bundle[data-bundle_id='"+bundle["id"]+"']").detach().insertBefore("#editor_editable"); // .prependTo("#editor");
+		$(".bundle[data-bundle_id='"+bundle["id"]+"']").insertBefore("#editor_editable");
 	});
 	return bundles;
 }
 
 // 排版：計算 bundle 各項數值
-function sticker__calc(bundles, mode, bundle_assigned){
-	if(bundles==null){
-		var r = sticker__lookup("page");
-		if(r[0]) 
-			var page = r[1]["page"], bundles = r[1]["bundles"];
-		else 
-			return false;
-	}
+function sticker__calc(bundles){
+	bundles = sticker__bundles(bundles);
 
-	// 調整貼紙位置
-	switch(mode){
-	    case "add":
-	    	bundles = sticker__exec("add", bundle_assigned, bundles);
-		break;
-
-	    case "remove":
-	    	bundles = sticker__exec("remove", bundle_assigned, bundles);
-		break;
-	}
-
-	var sides = ["left", "right"], 
-		last = {
+	var last = {
 			alignment: "", 
 			top: 0, 
 			sum: {left: 0, right: 0}
 		};
 
-	bundles.forEach(function(bundle, i){
-		// 分邊
-		var alignment = bundle["position"]["align_right"], 
-			alignment_opposite = alignment;
-		alignment = sides[alignment];
-		alignment_opposite = sides[alignment_opposite^=1];
+	bundles.forEach(function(bundle){
+		var p = bundle["position"], 
+			alignment = Number(p["align_right"]) ? "right" : "left";
 
 		// top 值需大於 0
-		bundle["position"]["top"] = Math.max(bundle["position"]["top"], 0);
+		p["top"] = Math.max(p["top"], 0);
 
 		// 計算上邊界
-		// 非首項且與前組為對邊者
-		if(i>0 && alignment!==last["alignment"]){
-			// 減去對邊前組的 topmargin
-			bundle["position"]["topmargin"] = bundle["position"]["top"] - last["top"];
+		// 非首項且與前組為對邊者：減去對邊前組的 top
+		if(last["alignment"] && alignment!==last["alignment"]){
+			p["topmargin"] = p["top"]-last["top"];
 		}
+		// 否則：top 值需大於同邊的前一組 sum，再減去之
 		else{
-			// top 值需大於同邊的前一組 sum
-			bundle["position"]["top"] = Math.max(bundle["position"]["top"], last["sum"][alignment]+1);
-
-			// 減去前組的 sum
-			bundle["position"]["topmargin"] = bundle["position"]["top"] - last["sum"][alignment];
+			p["top"] = Math.max(p["top"], last["sum"][alignment]+1);
+			p["topmargin"] = p["top"]-last["sum"][alignment];
 		}
 		// topmargin 值需大於 0
-		bundle["position"]["topmargin"] = Math.max(bundle["position"]["topmargin"], 0);
+		p["topmargin"] = Math.max(p["topmargin"], 0);
 
 		// 計算 sum：絕對高度 + 自有高度
-		last["sum"][alignment] = bundle["position"]["sum"] = bundle["position"]["top"]+bundle["size"]["height"];
+		last["sum"][alignment] = p["sum"] = p["top"]+bundle["size"]["height"];
 
-			// 若與前者同邊，則覆寫對邊 sum (為對應 complement)
-			if(i>0 && alignment==last["alignment"])
-				for(let a in last["sum"]) last["sum"][a] = bundle["position"]["sum"]; // ALT: last["sum"][alignment_opposite] = last["sum"][alignment];
+		// 若與前者同邊，則覆寫對邊 sum (為對應 complement)
+		if(alignment==last["alignment"]) last["sum"] = {left: p["sum"], right: p["sum"]};
 
 		// asset 數值自 bundle 繼承
 		for(let asset_id in bundle["assets"]){
-			bundle["assets"][asset_id]["position"]["top"] = bundle["position"]["top"];
-			bundle["assets"][asset_id]["position"]["topmargin"] = bundle["position"]["topmargin"];
-			bundle["assets"][asset_id]["position"]["align_right"] = bundle["position"]["align_right"];
+			var ap = bundle["assets"][asset_id]["position"];
+			ap["top"] = p["top"];
+			ap["topmargin"] = p["topmargin"];
+			ap["align_right"] = p["align_right"];
 		}
 
-		// 回存準備
-		bundles[i] = bundle;
-
-		// 寫入暫存
 		last["alignment"] = alignment;
-		last["top"] = bundle["position"]["top"];
+		last["top"] = p["top"];
 
-		if(i===0) sticker__top_edge(bundle);
-
-		hj_log("📄 調整貼紙位置 "+bundle["id"]+"："+JSON.stringify(bundle["position"]));
+		hj_log("📄 調整貼紙位置 "+bundle["id"]+"："+JSON.stringify(p));
 	});
 
 	sticker__save_local(bundles); // 回存
 	return bundles;
 }
 
-// 上緣置中貼紙(top<50px)，走滿版
-function sticker__top_edge(bundle){
-	return false;
-
-	if(bundle==null){
-		var r = sticker__lookup("page");
-		if(r[0] && r[1]["bundles"].length>0){
-			bundle = r[1]["bundles"][0];
-		}
-		else{
-			$("#editor_editable").css({"padding-top": "1em"});
-			return false;
-		}
-	}
-
-	var editor_width = $("#editor").width();
-	if(bundle["position"]["top"]<50 && (bundle["position"]["left"]>editor_width/4 && bundle["position"]["left"]<editor_width*3/5)){
-		var $a = $(".bundle:first .asset");
-		if($a.length>0)
-			$("#editor_editable").css({
-				"padding-top": Math.ceil($a.get(0)?.getBoundingClientRect()?.height)+"px"
-				// ALT: (bundle["position"]["top"]+bundle["size"]["height"]+10)+"px"
-			});
-	}
-	else{
-		$("#editor_editable").css({"padding-top": "1em"});
-	}
-	return true;
+// 水平位置：夾限於內文寬度內，避免在較窄的裝置上超出邊界（不改寫資料）
+function sticker__effective_x(pos, width){
+	var x = Math.max(Number(pos[Number(pos["align_right"]) ? "right" : "left"]) || 0, 0), 
+		editor_width = $("#editor").get(0)?.clientWidth || 0;
+	return editor_width>0 ? Math.min(x, Math.max(editor_width-width, 0)) : x;
 }
 
-// 排版：更新 Dom 上邊界
+// 排版：更新 DOM（上邊界、左右對齊、float 配對）
 function sticker__place(bundles){
-	if(bundles==null){
-		var r = sticker__lookup("page");
-		if(r[0]) 
-			var page = r[1]["page"], bundles = r[1]["bundles"];
-		else 
-			return false;
-	}
+	bundles = sticker__bundles(bundles);
 
 	var $s = $(".hj-styles");
 	bundles.forEach(function(bundle){
-		if(!$s.children("style[data-bundle_id='"+bundle["id"]+"']").length){
-			$s.append($("<style>", {"data-bundle_id": bundle["id"]}));
-		}
-		else{
-			var s = !bundle["position"]["align_right"] ? 
-				'.bundle.bundle_left[data-bundle_id="'+bundle["id"]+'"]::before{height:'+bundle["position"]["topmargin"]+'px}' : // 靠左
-				'.bundle.bundle_right[data-bundle_id="'+bundle["id"]+'"]::before{height:'+bundle["position"]["topmargin"]+'px}'; // 靠右
-			$s.children("style[data-bundle_id='"+bundle["id"]+"']").text(s);
-		}
+		var id = bundle["id"], 
+			p = bundle["position"], 
+			align_right = !!Number(p["align_right"]), 
+			$b = $(".bundle[data-bundle_id='"+id+"']"), 
+			$style = $s.children("style[data-bundle_id='"+id+"']"), 
+			x = sticker__effective_x(p, $b.find(".asset").get(0)?.offsetWidth || 0);
+
+		// 上下
+		if(!$style.length) $style = $("<style>", {"data-bundle_id": id}).appendTo($s);
+		$style.text('.bundle[data-bundle_id="'+id+'"]::before{height:'+p["topmargin"]+'px}');
+
+		// 左右
+		$b.toggleClass("bundle_left", !align_right).toggleClass("bundle_right", align_right)
+			.children(".bundle_innerbox")
+			.toggleClass("alignment_left", !align_right).toggleClass("alignment_right", align_right)
+			.css({
+				"margin-left": align_right ? 0 : x, 
+				"margin-right": align_right ? x : 0, 
+				width: ""
+			});
 	});
 
 	// 將 float 元素成對配對
 	$("#editor .complement").remove();
-	$("#editor .bundle").each(function(i){
-		var c1 = $(this).attr("class").split(" "), 
-			c2 = $("#editor .bundle").length>i+1 ? $(this).nextAll("#editor .bundle").eq(0).attr("class").split(" ") : [];
-
-		if(c1.indexOf("bundle_left")>=0 && c2.indexOf("bundle_left")>=0)
+	var $bs = $("#editor .bundle");
+	$bs.each(function(i){
+		var $n = $bs.eq(i+1);
+		if($(this).hasClass("bundle_left") && $n.hasClass("bundle_left"))
 			$(this).after($("<div>", {class: "complement complement_right"}));
-		else if(c1.indexOf("bundle_right")>=0 && c2.indexOf("bundle_right")>=0)
+		else if($(this).hasClass("bundle_right") && $n.hasClass("bundle_right"))
 			$(this).after($("<div>", {class: "complement complement_left"}));
 	});
 	return bundles;
 }
 
 // 查詢：讀取 + 剖析資料
+// 回傳 [是否查有, {bundles, page, bundle, asset}]；page 與 bundles 為同一參照
 function sticker__lookup(scope, bundle_id, asset_id){
-	var raw = hj__cache({bucket: "hearty_sticker_cache__"+current_post()["post_id"]}), 
-		r = [r!==null, JSON.parse(raw) || []], 
-		callback = [false, {}];
+	var bundles = JSON.parse(hj__cache({bucket: "hearty_sticker_cache__"+current_post()["post_id"]})) || [], 
+		page = {}, 
+		d = {bundles: bundles, page: page};
 
-	if(r[0]){
-		var page = {}, bundles = r[1];
-		var bundle;
+	bundles.forEach(function(bundle){
+		page[bundle["id"]] = bundle;
+	});
 
-		// 陣列轉物件
-		bundles.forEach(function(bundle){
-			page[bundle["id"]] = bundle;
-		});
+	if(scope=="page") return [true, d];
+	if(!(bundle_id in page)) return [false, d];
 
-		callback[1]["page"] = bundles.length>0 ? page : {};
-		callback[1]["bundles"] = bundles.length>0 ? bundles : [];
+	d["bundle"] = page[bundle_id];
+	if(scope=="bundle") return [true, d];
 
-		// 回傳 page
-		if(scope=="page"){
-			callback[0] = true;
-			callback[1]["status"] = 4;
-		}
-		// 查有 bundle
-		else if(bundle_id in page){
-			bundle = callback[1]["bundle"] = page[bundle_id];
-
-			// 查有 asset
-			if(scope=="asset" && asset_id in bundle["assets"]){
-				callback[0] = true;
-				callback[1]["status"] = 3;
-				callback[1]["asset"] = bundle["assets"][asset_id];
-			}
-			// 查無 asset
-			else{
-				callback[0] = scope=="bundle";
-				callback[1]["status"] = 2;
-			}
-		}
-		// 查無 bundle
-		else{
-			callback[0] = false;
-			callback[1]["status"] = 1;
-		}
-	}
-	else{
-		callback[0] = false;
-		callback[1]["status"] = 0;
-	}
-		return callback;
-	/*
-		callback[1]["status"]
-		0. 無陣列
-		1. 無 bundle
-		2. 有 bundle、無 asset
-		3. 都有
-		4. 有 page
-	*/
+	d["asset"] = (d["bundle"]["assets"] || {})[asset_id];
+	return [!!d["asset"], d];
 }
 
-// 更新資料
-function sticker__update(bundle_id, asset_id, label, data, bundle_only){
+// 更新資料：asset 的 size、angle、position（position 同步至 bundle）；bundle 尺寸一律為旋轉後外框
+// data 例：{size: {width, height}, angle: {deg}, position: {...}}；傳 {} 則只重算外框
+function sticker__update(bundle_id, asset_id, data){
 	var r = sticker__lookup("asset", bundle_id, asset_id);
-	var page, bundles;
+	if(!r[0]) return false;
 
-	// 資料處理
-	if(label=="angle"){
-		data["deg"] = Math.abs(data["deg"])>=360 ? Math.abs(data["deg"]).toFixed(0)-360 : data["deg"].toFixed(0);
-		data["rad"] = Math.abs(data["rad"])>=Math.PI*2 ? (Math.abs(data["rad"])-Math.PI*2).toFixed(5) : data["rad"].toFixed(5);
-	}
-	else{
-		for(let k in data) data[k] = Math.max(Math.floor(data[k]), 0); // 正整數
-	}
+	var asset = r[1]["asset"], 
+		bundle = r[1]["bundle"];
 
-	if(r[0] && label in r[1]["asset"]){
-		page = r[1]["page"];
-
-		// 更新 asset
-		if(!bundle_only) page[bundle_id]["assets"][asset_id][label] = data;
-
-		// 更新 bundle
-		if(["position", "size"].indexOf(label)>=0) page[bundle_id][label] = data;
-	}
-	else{
-		return false;
+	for(let label in data){
+		let v = data[label];
+		if(label=="angle"){
+			let deg = (Math.round(Number(v["deg"]) || 0)%360+360)%360;
+			v = data[label] = {deg: deg, rad: Number((deg*Math.PI/180).toFixed(5))};
+		}
+		else{
+			for(let k in v) v[k] = Math.max(Math.floor(v[k]), 0); // 正整數
+		}
+		asset[label] = v;
+		if(label=="position") bundle[label] = v;
 	}
 
-	bundles = Object.keys(page).map(function(k){return page[k]});
-	sticker__save_local(bundles);
-	hj_log("💾 暫存貼紙 "+bundle_id+"（"+asset_id+"）的 "+label+" 為："+JSON.stringify(data));
+	// 外框：更新 .asset，並回存為 bundle 尺寸
+	if(asset["size"]){
+		var frame = sticker__frame(asset["size"], (asset["angle"] || {})["deg"]);
+		if(frame.width && frame.height){
+			bundle["size"] = frame;
+			sticker__dom(asset_id).$a.css({"min-width": frame.width, "max-height": frame.height});
+		}
+	}
+
+	sticker__save_local(r[1]["bundles"]);
+	hj_log("💾 暫存貼紙 "+bundle_id+"（"+asset_id+"）："+JSON.stringify(data)+"，外框："+JSON.stringify(bundle["size"]));
+	return true;
+}
+
+// 貼紙 DOM
+function sticker__dom(asset_id){
+	var $a = $(".bundle .asset[data-asset_id='"+asset_id+"']");
+	return {$b: $a.closest(".bundle"), $a: $a, $i: $a.children(".sticker_img")};
+}
+
+// 貼紙手勢（interact.js：同一 selector 才是同一個 Interactable）
+function sticker__interact(asset_id){
+	return interact(".asset[data-asset_id='"+asset_id+"'] .sticker_img");
+}
+
+// 換算剪下期間的位移（拖曳、方向鍵）：以排版座標計算，不受 3D transform 影響
+// 回傳 sticker__update 的資料；未剪下或無法換算時回傳 {}
+function sticker__move_commit(bundle_id, asset_id){
+	var $a = sticker__dom(asset_id).$a, 
+		a = $a.get(0), 
+		editor = $("#editor").get(0);
+	if(!a || !editor || !$a.data("cut")) return {};
+
+	var editor_width = editor.clientWidth, 
+		width = a.offsetWidth, 
+		left = Math.min(Math.max(a.offsetLeft-editor.offsetLeft, 0), Math.max(editor_width-width, 0)), 
+		dy = parseFloat(a.style.top) || 0, 
+		r = sticker__lookup("asset", bundle_id, asset_id);
+
+	$a.removeData("cut").css({left: 0, top: 0});
+	if(!r[0] || !editor_width) return {};
+
+	return {position: {
+		top: r[1]["asset"]["position"]["top"]+dy, 
+		left: left, 
+		right: editor_width-left-width, 
+		align_right: left+width/2>editor_width/2 ? 1 : 0
+	}};
+}
+
+// 切換編輯狀態：剪下（on = true）、黏貼（on = false）
+function sticker__edit_mode(bundle_id, asset_id, on, scrollintoview){
+	var el = sticker__dom(asset_id), 
+		$a = el.$a, 
+		$i = el.$i, 
+		$p = $(".bk-page"), 
+		$e = $(".editor_toolbelt"), 
+		touch_device = is_touch_device();
+
+	// 編輯器（唯讀日記不會初始化外掛）
+	if(current_post()["editable"]){
+		var act = on ? "enable" : "disable";
+		$a.draggable(act);
+		$i.rotatable(act);
+		if(touch_device){
+			sticker__interact(asset_id).gesturable({enabled: on});
+		}
+		else{
+			$i.resizable(act);
+			sticker__editor_hotkeys(on, bundle_id, asset_id);
+		}
+		$("#editor_editable").prop({contenteditable: !on});
+
+		// 貼紙簿
+		$(".mh-head .btn_stickerbook,.stickerbook .stickerlist").toggle(!on);
+		if(on) nav_toggle($(".stickerbook"), false);
+	}
+	$("#editor_editable").toggleClass("readonly", on)[on ? "disableSelection" : "enableSelection"]();
+
+	// 貼紙：編輯框、握把、刪除鈕；其餘貼紙半透明
+	$a.attr("data-editing", on ? 1 : 0);
+	$i.toggleClass("sticker_editing", on).toggleClass("sticker_static", !on);
+	$i.children(".ui-resizable-handle,.ui-rotatable-handle")[on ? "fadeIn" : "hide"]();
+	$i.children(".detach")[on ? "fadeIn" : "fadeOut"]();
+	$("#editor .bundle .sticker_static").not($i).fadeTo("fast", on ? 0.5 : 1);
+
+	// 工具列鈕
+	$e.find(".kits")[on ? "hide" : "fadeIn"]();
+	$e.find(".sticker span")[on ? "fadeIn" : "hide"]();
+
+	// 手機：剪下時隱藏日記上方並捲至貼紙，黏貼後還原
+	if(touch_device){
+		$p.find("header,.frame").toggle(!on);
+		if(on){
+			$p.css({"border-top": "none"}).get(0)?.scroll({
+				top: Math.floor($a.get(0).offsetTop-$p.height()/4), 
+				behavior: "instant"
+			});
+		}
+		else{
+			if(scrollintoview) $p.scrollTop(($p.scrollTop() || 0)+($("#editor").get(0)?.offsetTop || 0));
+			$p.css({"border-top": "1em solid transparent"});
+		}
+	}
 }
 
 // 剪下貼紙
@@ -2808,92 +2489,21 @@ function sticker__cut(d){
 
 	var bundle_id = d["bundle_id"], 
 		asset_id = d["asset_id"], 
-		$b = $(".bundle[data-bundle_id='"+bundle_id+"']"), 
-		$a = $b.find(".asset[data-asset_id='"+asset_id+"']"), 
-		$i = $a.children(".sticker_img"), 
-		$e = $(".editor_toolbelt"), 
-		r = sticker__lookup("asset", bundle_id, asset_id), 
-		touch_device = is_touch_device();
-	var pos;
+		el = sticker__dom(asset_id), 
+		r = sticker__lookup("asset", bundle_id, asset_id);
 
-	if(r[0] && "position" in r[1]["asset"]){
-		pos = r[1]["asset"]["position"];
-		$b.children(".bundle_innerbox").css({
-			top: pos["top"], left: pos["left"]
-		});
-
-		// 左右
-		var px = !pos.align_right ? 
-			pos["left"] : // L
-			-1*(pos["right"]+Math.floor($i.get(0)?.getBoundingClientRect()?.width*1.05)); // R
-		$a.animate({left: px}, 0);
-	}
-	else{
-		$b.remove();
+	if(!r[0]){
+		el.$b.remove();
 		return false;
 	}
 
-	// 編輯器
-	$a.draggable("enable");
-	$i.rotatable("enable").children(".ui-resizable-handle,.ui-rotatable-handle").fadeIn();
-	if(touch_device){
-		interact(".asset[data-asset_id='"+asset_id+"'] .sticker_img").gesturable({enabled: true});
-	}
-	else{
-		$i.resizable("enable");
-		sticker__editor_hotkeys(true, bundle_id, asset_id);
-	}
-
-	// CSS 切換
-	$("#editor_editable")
-		.addClass("readonly")
-		.prop({contenteditable: false})
-		.disableSelection();
-
-	$b.children(".bundle_innerbox").width(0).css({
-		"margin-left": "-1px", 
-		"margin-right": "-1px"
+	// 原地剪下：innerbox 寬度歸 0 讓文字回流，.asset 以相對位移留在原位
+	el.$b.children(".bundle_innerbox").width(0);
+	el.$a.data("cut", true).css({
+		left: Number(r[1]["asset"]["position"]["align_right"]) ? -el.$a.get(0).offsetWidth : 0
 	});
 
-	$i.addClass("sticker_editing").removeClass("sticker_static");
-	$("#editor .bundle .sticker_static").fadeTo("fast", 0.5);
-
-	// 剪下鈕
-	$a.attr("data-editing", 1);
-
-	// 工具列鈕
-	$(".editor_toolbelt #paste,#editor").attr({onclick: "sticker__paste("+JSON.stringify({bundle_id: bundle_id, asset_id: asset_id})+",true);saved(false)"});
-	$i.children(".detach").fadeIn();
-	$e.find(".kits").hide(); $e.find(".sticker span").fadeIn();
-
-	// 貼紙簿
-	$(".mh-head .btn_stickerbook,.stickerbook .stickerlist").hide();
-	nav_toggle($(".stickerbook"), false);
-
-	// 隱藏日記上方
-	if(touch_device){
-		$(".bk-page").find("header,.frame").hide();
-
-		$(".bk-page").css({"border-top": "none"}).get(0)?.scroll({
-			top: Math.floor(pos["top"]-$(".bk-page").height()*1/4), 
-			behavior: "instant"
-		});
-		/* LEGACY
-		$(".bk-page").removeClass("scroll-smoothly").scrollTop(
-			Math.floor(pos["top"]-$(".bk-page").height()*1/4)
-		).css({"border-top": "none"});
-		*/
-	}
-
-	/* iOS Fix (iOS Safari Menu Bar Covered)
-	if(check_OS("iOS"))
-		setTimeout(function(){
-			switch($e.css("bottom")){
-				case "0px": $e.css("bottom", "-1px"); break;
-				case "-1px": $e.css("bottom", "0px"); break;
-			}
-		}, 1000);
-	*/
+	sticker__edit_mode(bundle_id, asset_id, true);
 
 	hj_log("✂️ 剪下貼紙："+bundle_id+"（"+asset_id+"）");
 	return true;
@@ -2901,124 +2511,19 @@ function sticker__cut(d){
 
 // 黏上貼紙
 function sticker__paste(d, scrollintoview){
-	var $i = $(".bk-page .sticker_editing");
-	if(!$i.length) return false;
+	var $editing = $(".bk-page .sticker_editing");
+	if(!$editing.length) return false;
 
-	var bundle_id = !(d==null) && "bundle_id" in d ? d["bundle_id"] : $i.attr("data-bundle-id"), 
-		asset_id = !(d==null) && "asset_id" in d ? d["asset_id"] : $i.attr("data-asset-id"), 
-		$b = $(".bundle[data-bundle_id='"+bundle_id+"']"), 
-		$a = $b.find(".asset[data-asset_id='"+asset_id+"']"), 
-		$i = $a.children(".sticker_img"), 
-		$s = $(".hj-styles"), 
-		bundles = sticker__calc(sticker__order()), // 排序 + 重算
-		r = sticker__lookup("asset", bundle_id, asset_id), 
-		touch_device = is_touch_device();
-	var pos;
+	d = d || $editing.parent().get(0).dataset;
+	var bundle_id = d["bundle_id"], 
+		asset_id = d["asset_id"];
 
-	if(r[0] && "position" in r[1]["asset"]){
-		pos = r[1]["asset"]["position"];
+	// 位移＋外框一次回存 → 排序、重算、排版
+	// （剪下期間外框已隨旋轉、縮放即時更新，故先量測位移不受影響）
+	sticker__update(bundle_id, asset_id, sticker__move_commit(bundle_id, asset_id));
+	sticker__place(sticker__calc(sticker__order()));
 
-		// 對齊靠左
-		if(!pos.align_right){
-			$b.addClass("bundle_left").removeClass("bundle_right");
-			$b.children(".bundle_innerbox").addClass("alignment_left").removeClass("alignment_right");
-
-			// 上下
-			if(!$s.children("style[data-bundle_id='"+bundle_id+"']").length)
-				$s.append($("<style>", {"data-bundle_id": bundle_id}));
-			$s.children("style[data-bundle_id='"+bundle_id+"']").text(".bundle[data-bundle_id='"+bundle_id+"'].bundle_left::before{height:"+pos["topmargin"]+"px}");
-
-			// 左右
-			$b.children(".bundle_innerbox").css({
-				"margin-left": pos.left+"px", 
-				"margin-right": 0
-			});
-		}
-		// 對齊靠右
-		else{
-			$b.addClass("bundle_right").removeClass("bundle_left");
-			$b.children(".bundle_innerbox").addClass("alignment_right").removeClass("alignment_left");
-
-			// 上下
-			if(!$s.children("style[data-bundle_id='"+bundle_id+"']").length)
-				$s.append($("<style>", {"data-bundle_id": bundle_id}));
-			$s.children("style[data-bundle_id='"+bundle_id+"']").text(".bundle[data-bundle_id='"+bundle_id+"'].bundle_right::before{height:"+pos["topmargin"]+"px}");
-			// 左右
-			$b.children(".bundle_innerbox").css({
-				"margin-left": 0, 
-				"margin-right": pos.right+"px"
-			});
-		}
-		if(cssFeatureSupported("width", "min-content")) $b.children(".bundle_innerbox").width("min-content").height("min-content");
-		else if(cssFeatureSupported("width", "min-intrinsic")) $b.children(".bundle_innerbox").width("min-intrinsic").height("min-intrinsic");
-		else $b.children(".bundle_innerbox").width("auto").height("auto");
-	}
-
-	// DOM 排版
-	sticker__place(bundles);
-	$("#editor .bundle .sticker_static").fadeTo("fast", 1);
-
-	// 工具列鈕
-	$i.children(".detach").fadeOut();
-	$(".editor_toolbelt .sticker a").hide(); $(".editor_toolbelt .kits").fadeIn();
-
-	// 顯示日記上方
-	if(touch_device){
-		$(".bk-page").find("header,.frame").show();
-		var editor_topmargin = $("#editor").get(0)?.offsetTop, 
-			editor_scrolled = $(".bk-page").scrollTop() || 0, 
-			$p = $(".bk-page");
-
-		if(scrollintoview) $p.scrollTop(editor_scrolled+editor_topmargin);
-		$p.css({"border-top": "1em solid transparent"});
-	}
-
-/*
-	// 顯示日記上方
-	if(touch_device){
-		$(".bk-page").find("header, .frame").show();
-		$(".bk-page").css("border-top", "1em solid transparent");
-	}
-
-	// 聚焦於貼圖
-	if(scrollintoview){
-		var editor_topmargin = $("#editor").get(0)?.offsetTop, 
-			editor_scrolled = $(".bk-page").scrollTop() || 0;
-
-		if("scrollIntoViewIfNeeded" in $i.get(0)) $i.get(0)?.scrollIntoViewIfNeeded();
-		else if("scrollIntoView" in $i.get(0)) $i.get(0)?.scrollIntoView();
-		else $(".bk-page").scrollTop(editor_scrolled+editor_topmargin);
-	}
-*/
-	sticker__rotation_margin_fixes(bundle_id, asset_id);
-
-	// 編輯器
-	$a.attr("data-editing", 0).css({top: 0, left: 0});
-	$i.children(".ui-resizable-handle,.ui-rotatable-handle").hide();
-	if(current_post()["editable"]){
-		$a.draggable("disable");
-		$i.rotatable("disable");
-		if(touch_device){
-			interact(".bundle .asset[data-asset_id='"+asset_id+"'] .sticker_img").gesturable({enabled: false});
-		}
-		else{
-			$i.resizable("disable");
-			sticker__editor_hotkeys(false, bundle_id, asset_id);
-		}
-
-		$("#editor_editable").prop({contenteditable: true});
-
-		// 貼紙簿
-		$(".mh-head .btn_stickerbook,.stickerbook .stickerlist").show();
-	}
-
-	$("#editor").removeAttr("onclick");
-
-	$("#editor_editable")
-		.removeClass("readonly")
-		.enableSelection();
-
-	$i.addClass("sticker_static").removeClass("sticker_editing");
+	sticker__edit_mode(bundle_id, asset_id, false, scrollintoview);
 
 	hj_log("📋 黏貼貼紙："+bundle_id+"（"+asset_id+"）");
 	return true;
@@ -3030,7 +2535,7 @@ function sticker__remove(d){
 		bundle_id = d["bundle_id"], 
 		asset_id = d["asset_id"];
 	if(sticker__paste({bundle_id: bundle_id, asset_id: asset_id})){
-		sticker__exec("remove", {id: bundle_id}); sticker__top_edge();
+		sticker__exclude(bundle_id);
 		hj_vibrate(30);
 		if($("#editor .bundle").length<2) nav_toggle($(".stickerbook"), true);
 		createCaretPlacer(false);
@@ -4274,7 +3779,6 @@ function post_query(post_id, via_backbtn){
 			$subject.text(post["title_decoded"]).attr({title: post["title_decoded"]});
 
 			// Stickers
-			sticker__top_edge(); // reset
 			stickers__initialize();
 
 			// 多媒體
@@ -4511,7 +4015,7 @@ function post_query(post_id, via_backbtn){
 	}
 
 // 新增文章
-function post_create(pos, $btn){
+function post_create(pos, $btn, gps_prompted){
 	open_book(true);
 	toolbelt_btn_clicked($btn);
 
@@ -4524,33 +4028,22 @@ function post_create(pos, $btn){
 		!/Hearty_macOS\/2\.0\./i.test(navigator.userAgent||"") // 非 macOS 2.0.x 版
 		// !check_hjapp("macOS") // 非 macOS 所有版本
 	 ){
-		gps = JSON.parse(decodeURIComponent(getcookie("hearty_position_gps")) || false);
-		if(!gps && pos && confirm("⛅ "+_h("e-gps-0"))){
-			// 天氣(或未)載入後，新增文章
-			var $positioning_deferred = $.Deferred();
-			$.when($positioning_deferred).then(function(){
-				post_create(false);
-				alertify.success('<i class="fal fa-cloud"></i> '+_h("e-gps-2"));
+		gps = hearty_gps_cache();
+		// 已授權則直接定位；已拒絕則不再詢問
+		if(!gps && pos && hearty_gps_state!="denied" && (hearty_gps_state=="granted" || confirm("⛅ "+_h("e-gps-0")))){
+			// 定位完成或失敗（逾時由 hearty_gps 控制）後，新增文章（天氣由後端查詢）
+			$mask.show();
+			hearty_gps().always(function(){
+				$mask.fadeOut();
+				post_create(false, undefined, true);
 			}).fail(function(){
-				post_create(false);
 				alertify.error('<i class="fal fa-map-marker-alt-slash"></i> '+_h("e-gps-3"));
 
 				if(!is_touch_device() && check_browser("Chrome"))
 					msg('<img src="//i.hearty.app/i/icons/gps_chrome.url.png"><br>'+_h("e-gps-4"));
 			});
 
-			// 抓到天氣
-			$.when(window.positioning_gps_deferred).done(function(){
-				$positioning_deferred.resolve();
-			}); positioning_gps_trigger(!0);
-
-			// 未取得天氣 fallback
-			$mask.show().delay(5000).queue(function(){
-				$positioning_deferred.reject();
-				$(this).fadeOut().dequeue();
-			});
-
-			msg("⛅ "+_h("e-gps-1"));
+			if(hearty_gps_state!="granted") msg("⛅ "+_h("e-gps-1"));
 			return;
 		}
 	}
@@ -4564,9 +4057,7 @@ function post_create(pos, $btn){
 		action: "post_create", 
 		title: title, 
 		location_lat: gps["latitude"]||"", 
-		location_lon: gps["longitude"]||"", 
-		place: gps["address"]||"", 
-		weather_id: gps["weather_id"]||""
+		location_lon: gps["longitude"]||""
 	}).then(function(r){
 		switch(r["Status"]){
 			case 1:
@@ -4575,6 +4066,10 @@ function post_create(pos, $btn){
 
 				r = r["Values"];
 				var post_id = r["post_id"];
+
+				// 經詢問而開啟定位，且後端查得天氣
+				if(gps_prompted && r["weather_id"])
+					alertify.success('<i class="fal fa-cloud"></i> '+_h("e-gps-2"));
 
 				$("<li>", {
 					title: "📝 "+title, 

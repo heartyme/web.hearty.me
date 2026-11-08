@@ -2,14 +2,13 @@
 
 @import url(//cdn.jsdelivr.net/npm/cssgram@0.1.3/source/css/cssgram.min.css);
 
-*, 
-*::before, 
+*,
+*::before,
 *::after{
 	box-sizing: inherit;
 }
 html{
 	box-sizing: border-box;
-	appearance: none;
 }
 body{
 	margin: 0;
@@ -18,16 +17,16 @@ body{
 	background-repeat: repeat;
 	background-position: center;
 }
-	html, 
-	body, 
-	.feed, 
+	html,
+	body,
+	.feed,
 	.feed div{
 		scrollbar-width: none;
 	}
 
-a:link, 
-a:visited, 
-a:hover, 
+a:link,
+a:visited,
+a:hover,
 a:active{
 	text-decoration: none;
 	cursor: pointer;
@@ -45,13 +44,12 @@ a:active{
 	margin: 0 auto;
 	scroll-snap-type: x mandatory;
 	scroll-behavior: smooth;
-	scrollbar-width: none;
 	background-image: url("//i.hearty.app/HyCw2lg.png");
 	background-repeat: repeat;
 	background-position: center;
 }
-.feed li[data-gender]::before, 
-.page article a[href]::after, 
+.feed li[data-gender]::before,
+.page article a[href]::after,
 .goog-te-gadget-simple::before{
 	font-family: "Font Awesome 5 Pro";
 	margin-right: .4em;
@@ -74,8 +72,8 @@ a:active{
 	align-items: center;
 	justify-content: center;
 }
-.feed .pager, 
-.feed .bouncingLoader, 
+.feed .pager,
+.feed .bouncingLoader,
 .feed .no_more{
 	text-align: center;
 	padding: 1em 0;
@@ -113,8 +111,7 @@ a:active{
 		bottom: 0;
 		width: 100%;
 		height: 2.5em;
-		background: rgba(255,255,255,.5);
-		background: linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,1));
+		background: linear-gradient(to bottom, rgba(255,255,255,0), #fff);
 		pointer-events: none;
 	}
 
@@ -132,14 +129,18 @@ a:active{
 		letter-spacing: 2px;
 		transition: box-shadow .2s ease-in;
 	}
-		.feed_wall article[data-username="hearty"], 
-		.feed_wall article[data-username="nien"], 
-		.feed_wall article[data-username="jianny"]{
+		.feed_wall article:hover{
+			box-shadow: rgba(0,0,0,.3) 1px 1px 1em 1px;
+		}
+		.feed_wall article[data-active]{
+			box-shadow: 1px 1px 6px 8px rgba(87,63,55,.3);
+		}
+
+		/* 團隊成員 */
+		.feed_wall article:is([data-username="hearty"], [data-username="nien"], [data-username="jianny"]){
 			border: 1px solid #c68e78;
 		}
-			.feed_wall article[data-username="hearty"]::before, 
-			.feed_wall article[data-username="nien"]::before, 
-			.feed_wall article[data-username="jianny"]::before{
+			.feed_wall article:is([data-username="hearty"], [data-username="nien"], [data-username="jianny"])::before{
 				font-family: "Font Awesome 5 Pro";
 				font-weight: 300;
 				content: "\f336";
@@ -148,9 +149,7 @@ a:active{
 				font-size: larger;
 				color: #c68e78;
 			}
-			.feed_wall article[data-username="hearty"]::after, 
-			.feed_wall article[data-username="nien"]::after, 
-			.feed_wall article[data-username="jianny"]::after{
+			.feed_wall article:is([data-username="hearty"], [data-username="nien"], [data-username="jianny"])::after{
 				position: absolute;
 				content: "Team";
 				top: -1em;
@@ -164,34 +163,18 @@ a:active{
 				letter-spacing: 1px;
 			}
 
-		.feed_wall article:hover{
-			box-shadow: rgba(0,0,0,.3) 1px 1px 1em 1px;
-		}
-		.feed_wall article[data-active]{
-			box-shadow: 1px 1px 6px 8px rgba(87,63,55,.3);
-		}
-
-	.feed_wall article h2, 
+	.feed_wall article h2,
 	.story article h2{
 		white-space: pre-wrap;
 		text-align: justify;
 		margin: .2em auto;
 	}
-	/* 標題不換行版本
-	.feed_wall article h2, 
-	.story article h2{
-		white-space: nowrap;
-		text-overflow: ellipsis;
-		overflow: hidden;
-		margin: .2em auto;
-	}
-	*/
-		.feed_wall article h2[title]::before, 
+		.feed_wall article h2[title]::before,
 		.story article h2[title]::before{
 			content: attr(title);
 		}
 
-	.feed_wall p, 
+	.feed_wall p,
 	.story p{
 		text-align: justify;
 		text-justify: inter-character;
@@ -209,6 +192,7 @@ a:active{
 		cursor: pointer;
 	}
 
+	/* 預覽最後一行淡出 */
 	.feed_wall [data-last]{
 		position: relative;
 		display: block;
@@ -216,12 +200,8 @@ a:active{
 		.feed_wall [data-last]::before{
 			content: "";
 			position: absolute;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			background: rgba(255,255,255,.6);
-			background: linear-gradient(to bottom,rgba(255,255,255,.2),rgba(255,255,255,1));
+			inset: 0;
+			background: linear-gradient(to bottom, rgba(255,255,255,.2), #fff);
 		}
 
 	/* 連結 */
@@ -238,9 +218,9 @@ a:active{
 			content: "\f08e";
 		}
 
-	.page article a:link, 
-	.page article a:visited, 
-	.page article a:hover, 
+	.page article a:link,
+	.page article a:visited,
+	.page article a:hover,
 	.page article a:active{
 		color: #b56b4f;
 	}
@@ -278,24 +258,19 @@ a:active{
 			text-decoration-style: double;
 		}
 
-.bouncingLoader > div, 
-.bouncingLoader::before, 
+/* 載入中 */
+.bouncingLoader > div,
+.bouncingLoader::before,
 .bouncingLoader::after{
+	content: "";
 	width: 13px;
 	height: 13px;
 	background: #F16D6E;
 	border-radius: 50%;
 	animation: bouncing-loader .6s infinite alternate;
 }
-.bouncingLoader > div, 
-.bouncingLoader::before, 
-.bouncingLoader::after{
-	content: "";
-}
 .bouncingLoader > div{
-	 margin: 0 5px;
-}
-.bouncingLoader > div{
+	margin: 0 5px;
 	animation-delay: .2s;
 }
 .bouncingLoader::after{
@@ -332,13 +307,11 @@ a:active{
 	justify-content: center;
 
 	/* handle overflow caused by rotate */
-	width: 100%;
-		width: calc(100% - 4px);
-	height: inherit;
-		height: calc(100vh - 4px);
+	width: calc(100% - 4px);
+	height: calc(100vh - 4px);
 
 	padding: 1.5em 0;
-	transform: rotate(0.8deg);
+	transform: rotate(.8deg);
 	scroll-behavior: smooth;
 	overflow-y: scroll;
 	content-visibility: auto;
@@ -365,17 +338,17 @@ a:active{
 		background: url(//i.hearty.app/XCR4X1w.png), #fff;
 		box-shadow: 0 0 5px rgba(0,0,0,.2), inset 0 0 3em rgba(0,0,0,.1);
 	}
-		.sheet::before, 
+		.sheet::before,
 		.sheet::after{
 			position: absolute;
 			width: 15em;
 			height: .6em;
-			content: ' ';
+			content: " ";
 			left: .75em;
 			bottom: .75em;
 			background: transparent;
 			transform: skew(-5deg) rotate(-5deg);
-			box-shadow: 0 6px .75em rgba(0, 0, 0, .3);
+			box-shadow: 0 6px .75em rgba(0,0,0,.3);
 			z-index: -1;
 		}
 		.sheet::after{
@@ -419,7 +392,7 @@ a:active{
 	.feed .nav_btn.fa-chevron-up{
 		position: absolute;
 	}
-	.feed .nav_btn:hover, 
+	.feed .nav_btn:hover,
 	.feed .page_publish:hover{
 		color: #fff;
 		background: #666;
@@ -427,7 +400,6 @@ a:active{
 
 .feed .page_publish{
 	position: absolute;
-	bottom: .8em;
 	bottom: env(safe-area-inset-bottom, .8em);
 	left: 0;
 	margin: 0;
@@ -463,7 +435,7 @@ a:active{
 	.feed .article_buttom [data-clk]{
 		cursor: pointer;
 	}
-	.feed .article_buttom .fa-share-alt:hover::before, 
+	.feed .article_buttom .fa-share-alt:hover::before,
 	.feed .article_buttom .fa-flag:hover::before{
 		font-weight: 900;
 	}
@@ -488,6 +460,7 @@ a:active{
 	display: inline-flex;
 	flex-flow: row nowrap;
 }
+	/* 大頭貼旋轉 (網址結尾 #1~#3) */
 	[data-a][style$='#1");']{
 		transform: rotate(90deg);
 	}
@@ -511,10 +484,10 @@ a:active{
 	.feed .article_buttom .avatar [data-a]{
 		margin: 0;
 		width: 2em;
-			min-width: 2em; /* force not to resize */
+		min-width: 2em; /* force not to resize */
 		height: 2em;
 	}
-		.feed .avatar [data-a]:hover, 
+		.feed .avatar [data-a]:hover,
 		.feed .profile li[data-btn]:hover{
 			opacity: 1;
 			filter: brightness(1.05);
@@ -525,8 +498,8 @@ a:active{
 		content: "\f005";
 		font-family: "Font Awesome 5 Pro";
 		font-weight: 900;
-    	left: 6px;
-    	bottom: -3px;
+		left: 6px;
+		bottom: -3px;
 		font-size: x-small;
 		color: gold;
 		text-shadow: -1px 0 #888, 0 1px #888, 1px 0 #888, 0 -1px #888;
@@ -544,10 +517,7 @@ a:active{
 	position: fixed;
 	display: none;
 	content-visibility: auto;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
+	inset: 0;
 	background: rgba(255,255,255,.5);
 	z-index: 3;
 	-webkit-backdrop-filter: blur(2px);
@@ -557,8 +527,8 @@ a:active{
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: inherit;
-	height: inherit;
+	width: 100%;
+	height: 100%;
 }
 .feed .profile ul{
 	display: block;
@@ -586,7 +556,6 @@ a:active{
 			width: 8em;
 			height: 8em;
 			border: 1.5px solid rosybrown;
-			/* filter: saturate(1.1); */
 			cursor: pointer;
 		}
 		.feed .profile li[data-gender="1"]::before{
@@ -604,7 +573,7 @@ a:active{
 			padding: .5em;
 			background: #aaa;
 			color: #fff;
-			opacity: 0.9;
+			opacity: .9;
 			border-radius: .8em;
 			cursor: not-allowed;
 			transition: all .2s linear;
@@ -612,9 +581,6 @@ a:active{
 			.feed .profile [data-btn="active"]{
 				background: rosybrown;
 				cursor: pointer;
-			}
-			.feed .profile [data-btn]:hover{
-				filter: brightness(1.1);
 			}
 
 	.feed .profile .profile_btns{
@@ -651,7 +617,7 @@ a:active{
 	.goog-te-gadget-simple::before{
 		content: "\f0ac\00a0";
 	}
-	.goog-te-banner-frame.skiptranslate, 
+	.goog-te-banner-frame.skiptranslate,
 	#goog-gt-tt{
 		display: none !important;
 	}
@@ -659,9 +625,6 @@ a:active{
 
 /* 電腦 & not iPad Pro Portrait */
 @media only screen and (min-width: 1025px) and (orientation: landscape){
-	.feed .page_back{
-		display: none;
-	}
 	.feed .page{
 		flex: 5;
 	}
