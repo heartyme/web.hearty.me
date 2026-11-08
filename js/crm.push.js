@@ -1,3 +1,24 @@
+/* crm.push.js 效率改善版
+ 
+對應 hood/push.php。將原本「奇偶兩條 chain、每筆一次 XHR」的群發模式，
+改為「一次 POST 整批 → 讀 SSE 串流逐筆更新 UI」。
+
+本檔相對於 crm.push.js的異動：
+1. send_push_bulk() 移除 $d.odd()/even() 分流呼叫 send_push(true, ...) 的邏輯，改呼叫新的 send_push_bulk_stream($d)。
+2. 新增 send_push_bulk_stream($d)：
+- 蒐集 template + recipients（fcm_id/fcmtoken/device/username/nickname）
+- fetch POST 到 send_push_bulk action
+- 用 response.body.getReader() + TextDecoder 串流解析
+- 以 "\n\n" 切 SSE frame，逐筆丟給 handle_sse_frame()
+3. 新增 handle_sse_frame(frame, li_map)：
+- 解析 event: / data: 兩種 line
+- status=1（成功）prepend 到 .result；status=3（skip）出 alertify 略過提示
+- error_code=404 → 呼叫既有 revoke_fcmtoken action
+- event: done → hj_loading(false) 先關 loading，再更新統計、播 dingdong（若有勾）、彈完成對話框
+4. 保留 send_push() / send_push_exec()：仍用於單筆點擊測試發送。
+未動：get_sent_stats / get_recipients / template_prefill(ing) / empty_recipients / filter_recipients / filter_all / uid_toggle / dingdong / filter_finished 等函式。
+*/
+
 "use strict";
 
 $(function(){
@@ -256,22 +277,152 @@ function send_push(bulk, $btn){
 	}
 
 	function send_push_bulk(){
-		let $d = $(".recipients li[data-sent_today='0']"), 
+		let $d = $(".recipients li[data-sent_today='0']"),
 			d = $d.length;
 
 		if(d>0){
 			alertify.set({labels: {ok: "取消", cancel: '<i class="fas fa-inbox-out"></i> 確定群發'}, buttonReverse: false});
 			alertify.confirm('<i class="fal fa-comments-alt"></i> 即將推播至 '+d+"台裝置", function(e){
-				if(!e){
-					// ref: stackoverflow.com/a/3672400
-					send_push(true, $d.odd().attr({"data-bulk": "odd"}).eq(0) );
-					send_push(true, $d.even().attr({"data-bulk": "even"}).eq(0) );
-				}
+				if(!e) send_push_bulk_stream($d);
 			});
 		}
 		else{
 			msg('<i class="far fa-exclamation-triangle"></i> 沒有可發送的裝置，請先行查詢');
 		}
+	}
+
+	function send_push_bulk_stream($d){
+		let $push = $(".push_data"),
+			template = {
+				title: ($push.find("[data-title]").val() || "").trim(),
+				body: ($push.find("[data-body]").val() || "").trim(),
+				url: ($push.find("[data-url]").val() || "https://hearty.me").trim(),
+				tag: ($push.find("[data-tag]").val() || "hj-default").trim()
+			};
+
+		if(template.title.length<2 || template.body.length<4){
+			msg('<i class="far fa-exclamation-triangle"></i> 請填寫推播訊息'); return;
+		}
+
+		let recipients = $d.map(function(){
+			let d = this.dataset;
+			return {
+				fcm_id: Number(d.fcm_id || 0),
+				fcmtoken: (d.fcmtoken || "").trim(),
+				device: Number(d.device || 0),
+				username: (d.username || "").trim(),
+				nickname: (d.nickname || "").trim()
+			};
+		}).get();
+
+		let li_map = {};
+		$d.each(function(){ li_map[this.dataset.fcmtoken] = this; });
+
+		hj_loading(true);
+
+		let body = "action=send_push_bulk"
+			+"&template="+encodeURIComponent(JSON.stringify(template))
+			+"&recipients="+encodeURIComponent(JSON.stringify(recipients));
+
+		fetch(location.href, {
+			method: "POST",
+			headers: {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"},
+			body: body,
+			credentials: "same-origin"
+		}).then(function(response){
+			if(!response.ok || !response.body) throw new Error("HTTP "+response.status);
+			let reader = response.body.getReader(),
+				decoder = new TextDecoder("utf-8"),
+				buf = "";
+
+			function pump(){
+				return reader.read().then(function(r){
+					if(r.done){ hj_loading(false); return; }
+					buf += decoder.decode(r.value, {stream: true});
+					let sep;
+					while((sep = buf.indexOf("\n\n")) >= 0){
+						let frame = buf.slice(0, sep);
+						buf = buf.slice(sep+2);
+						handle_sse_frame(frame, li_map);
+					}
+					return pump();
+				});
+			}
+			return pump();
+		}).catch(function(e){
+			hj_loading(false);
+			alertify.error('<i class="far fa-exclamation-triangle"></i> 異常：'+(e && e.message || JSON.stringify(e)));
+		});
+	}
+
+	function handle_sse_frame(frame, li_map){
+		let event_name = "message", data = "";
+		frame.split("\n").forEach(function(line){
+			if(line.indexOf("event:")===0) event_name = line.slice(6).trim();
+			else if(line.indexOf("data:")===0) data += line.slice(5).trim();
+		});
+		if(!data) return;
+
+		let payload;
+		try{ payload = JSON.parse(data); } catch(e){ return; }
+
+		if(event_name==="done"){
+			hj_loading(false);
+			get_sent_stats();
+			if($("input[name='done_dingdong']:checked").length) dingdong();
+			msg('<i class="far fa-comments-alt"></i> 推播群發完畢 (已寄 '+numberWithCommas(payload.sent||0)+'，略過 '+numberWithCommas(payload.skipped||0)+'，失敗 '+numberWithCommas(payload.failed||0)+')', "好耶", function(){
+				$(window).scrollTop(0);
+			});
+			return;
+		}
+
+		let li = li_map[payload.fcmtoken];
+
+		// FCM 404 → revoke token
+		if(payload.error_code===404){
+			hj_update__push({
+				action: "revoke_fcmtoken",
+				fcmtoken: payload.fcmtoken
+			}).then(function(r){
+				if(r["Status"]==1){
+					alertify.success('<i class="far fa-comment-alt-times"></i> token # '+numberWithCommas(payload.fcm_id)+" 已註銷");
+				}
+				else{
+					alertify.error('<i class="far fa-exclamation-circle"></i> token # '+numberWithCommas(payload.fcm_id)+" 註銷失敗");
+				}
+			});
+		}
+
+		let $res = $(".result");
+		$res.children().slice(19).remove();
+
+		if(payload.status===3){
+			alertify.error('<i class="fas fa-exclamation-triangle"></i> 略過重複：'+payload.username+" (# "+numberWithCommas(payload.fcm_id)+")");
+		}
+		else{
+			$("<ol>", {
+				title: payload.nickname,
+				onclick: "$(this).fadeOut('fast');",
+				"data-username": payload.username,
+				"data-success": +(payload.status===1),
+				html: $("<li>", {
+						"data-device": payload.device,
+						text: payload.username+" (#"+numberWithCommas(payload.fcm_id)+")"
+					}).add($("<li>", {
+						text: payload.title
+					})).add($("<li>", {
+						text: payload.body
+					})).add($("<li>", {
+						title: payload.url,
+						text: "🌐 "+payload.url
+					})).add($("<li>", {
+						title: payload.tag,
+						text: "🔖 "+payload.tag
+					}))
+			}).prependTo($res).fadeIn();
+		}
+
+		if(li) li.remove();
 	}
 	function filter_finished(hide){
 		let $r = $(".recipients");

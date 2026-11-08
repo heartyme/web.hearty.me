@@ -1,3 +1,12 @@
+/* crm.mail.js — Email 群發改 SSE
+對應 hood/mail.php 的 send_mail_bulk action。將原本「setInterval 每 2秒寄一封」
+改為「一次 POST 整批 user_id → 讀 SSE 串流逐筆更新 UI」。
+- send_mail_bulk_stream()：蒐集模板 + user_ids，fetch POST 後串流解析
+- handle_sse_frame()：start / 逐筆 (status 1 成功、0 失敗、3 略過) / done
+- mail_render()：變數替換，單筆寄送與串流預覽共用
+- Google Forms log 改由後端寫入；單筆點擊寄送 send_mail() 維持原樣
+*/
+
 "use strict";
 
 $(function(){
@@ -203,7 +212,7 @@ function get_recipients(){
 							email_verified = parseInt(u["email_verified"]);
 						return $("<li>", {
 							onclick: sent_today>0 ? 
-								"alertify.error('* 略過寄送 "+u["username"]+"')" : 
+								"alertify.error('* 略過寄送 '+htmlspecialchars(this.dataset.username))" : 
 								"send_mail(false,$(this))", 
 							title: "✉️ "+u["nickname"]+" ("+u["username"]+") "+(email_verified>0 ? "✔" : ""), 
 							"data-user_id": u["user_id"], 
@@ -245,10 +254,8 @@ function send_mail(bulk, $btn){
 		user_id = (d["user_id"] || "").trim(), 
 		username = (d["username"] || "").trim(), 
 		nickname = (d["nickname"] || username || "").trim(), 
-		email = (d["email"] || "").trim(), 
-		month = new Date().getMonth()+1, 
-		domain = $push.find("[data-sender_domain]").val() || "notify.heartymail.com", 
-		subject = ($push.find("[data-subject]").val() || "").trim(), 
+		email = (d["email"] || "").trim(),
+		domain = $push.find("[data-sender_domain]").val() || "notify.heartymail.com",
 		mail = {
 			sender: {
 				name: ($push.find("[data-sender]").val() || "Hearty Journal 溫度日記").trim(), 
@@ -276,19 +283,14 @@ function send_mail(bulk, $btn){
 		return false;
 	}
 
-	mail["content"]["subject"] = c["subject"]
-		.replace(/\{{user_id}}/g, user_id)
-		.replace(/\{{username}}/g, username)
-		.replace(/\{{nickname}}/g, nickname)
-		.replace(/\{{email}}/g, email)
-		.replace(/\{{month}}/g, month);
-	mail["content"]["body"] = c["body"]
-		.replace(/\{{subject}}/g, subject)
-		.replace(/\{{user_id}}/g, user_id)
-		.replace(/\{{username}}/g, username)
-		.replace(/\{{nickname}}/g, nickname)
-		.replace(/\{{email}}/g, email)
-		.replace(/\{{month}}/g, month);
+	let rendered = mail_render(c, {
+		user_id: user_id,
+		username: username,
+		nickname: nickname,
+		email: email
+	});
+	mail["content"]["subject"] = rendered["subject"];
+	mail["content"]["body"] = rendered["body"];
 
 	if(bulk){
 		send_mail_exec(mail, bulk, $btn);
@@ -300,6 +302,24 @@ function send_mail(bulk, $btn){
 		});
 	}
 }
+	// 個人化變數 (同 hood/mail.php send_mail_bulk 的 $render)
+	function mail_render(c, u){
+		let month = new Date().getMonth()+1,
+			subject = c["subject"]
+				.replace(/\{{user_id}}/g, u["user_id"])
+				.replace(/\{{username}}/g, u["username"])
+				.replace(/\{{nickname}}/g, u["nickname"])
+				.replace(/\{{email}}/g, u["email"])
+				.replace(/\{{month}}/g, month),
+			body = c["body"]
+				.replace(/\{{subject}}/g, c["subject"])
+				.replace(/\{{user_id}}/g, u["user_id"])
+				.replace(/\{{username}}/g, u["username"])
+				.replace(/\{{nickname}}/g, u["nickname"])
+				.replace(/\{{email}}/g, u["email"])
+				.replace(/\{{month}}/g, month);
+		return {subject: subject, body: body};
+	}
 
 	function send_mail_exec(mail, bulk, $btn){
 		let username = mail["recipient"]["username"], 
@@ -394,25 +414,142 @@ function send_mail(bulk, $btn){
 		if(d>0){
 			alertify.set({labels: {ok: "取消", cancel: '<i class="fas fa-inbox-out"></i> 確定群發'}, buttonReverse: false});
 			alertify.confirm('<i class="fal fa-envelope-open-text"></i> 即將寄送至 '+d+"組 Emails", function(e){
-				if(!e){
-					window.send_bulk = setInterval(function(){
-						let $d = $(".recipients li[data-sent_today='0']"), 
-							d = $d.length;
-
-						if($d.length>0){
-							send_mail(true, $d.eq(0).attr("data-sent_today", 1));
-						}
-						else{
-							clearInterval(send_bulk);
-							window.send_bulk = null;
-						}
-					}, 2000);
-				}
+				if(!e) send_mail_bulk_stream($d);
 			});
 		}
 		else{
 			msg('<i class="far fa-exclamation-triangle"></i> 沒有可發信的 Email，請先行查詢');
 		}
+	}
+
+	// 一次 POST 整批 → 讀 SSE 串流逐筆更新 (ref: crm.push2.js)
+	function send_mail_bulk_stream($d){
+		let $push = $(".push_data"),
+			template = {
+				sender: {
+					domain: $push.find("[data-sender_domain]").val() || "notify.heartymail.com",
+					list: $("select[name='list']").val()||0
+				},
+				content: {
+					subject: ($push.find("[data-subject]").val() || "").trim(),
+					body: ((!!window.tinymce && !!tinymce.activeEditor) ? tinymce.activeEditor.getContent() : ($push.find("[data-body]").val()||"")).trim(),
+					tag: ($push.find("[data-tag]").val()||"")
+				}
+			};
+
+		if(template.content.subject.length<4 || template.content.body.length<6){
+			msg('<i class="far fa-exclamation-triangle"></i> 沒有填寫信件內容'); return;
+		}
+
+		let user_ids = $d.map(function(){
+			return Number(this.dataset.user_id || 0);
+		}).get();
+
+		let li_map = {};
+		$d.each(function(){ li_map[this.dataset.user_id] = this; });
+
+		window.send_bulk = true;
+		hj_loading(true);
+
+		let body = "action=send_mail_bulk"
+			+"&template="+encodeURIComponent(JSON.stringify(template))
+			+"&user_ids="+encodeURIComponent(JSON.stringify(user_ids)),
+			finished = false;
+
+		function stream_end(err){
+			window.send_bulk = null;
+			hj_loading(false);
+			if(!finished) alertify.error('<i class="far fa-exclamation-triangle"></i> 群發中斷'+(err ? "："+err : "，請重新查詢後再試"));
+		}
+
+		fetch(location.href, {
+			method: "POST",
+			headers: {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"},
+			body: body,
+			credentials: "same-origin"
+		}).then(function(response){
+			if(!response.ok || !response.body) throw new Error("HTTP "+response.status);
+			let reader = response.body.getReader(),
+				decoder = new TextDecoder("utf-8"),
+				buf = "";
+
+			function pump(){
+				return reader.read().then(function(r){
+					if(r.done){ stream_end(); return; }
+					buf += decoder.decode(r.value, {stream: true});
+					let sep;
+					while((sep = buf.indexOf("\n\n")) >= 0){
+						let frame = buf.slice(0, sep);
+						buf = buf.slice(sep+2);
+						if(handle_sse_frame(frame, li_map, template.content)) finished = true;
+					}
+					return pump();
+				});
+			}
+			return pump();
+		}).catch(function(e){
+			stream_end(e && e.message || JSON.stringify(e));
+		});
+	}
+
+	// 回傳 true 表示收到 done
+	function handle_sse_frame(frame, li_map, content){
+		let event_name = "message", data = "";
+		frame.split("\n").forEach(function(line){
+			if(line.indexOf("event:")===0) event_name = line.slice(6).trim();
+			else if(line.indexOf("data:")===0) data += line.slice(5).trim();
+		});
+		if(!data) return false;
+
+		let payload;
+		try{ payload = JSON.parse(data); } catch(e){ return false; }
+
+		if(event_name==="start"){
+			alertify.success('<i class="fal fa-paper-plane"></i> 開始寄送 '+numberWithCommas(payload.sendable||0)+' 封 (略過 '+numberWithCommas(payload.skipped||0)+'，每秒 '+(payload.rate||0)+' 封)');
+			return false;
+		}
+
+		if(event_name==="done"){
+			hj_loading(false);
+			window.send_bulk = null;
+			get_sent_stats();
+			if($("input[name='done_dingdong']:checked").length) dingdong();
+			msg('<i class="fal fa-envelope-open"></i> 批次群發完成 (已寄 '+numberWithCommas(payload.sent||0)+'，略過 '+numberWithCommas(payload.skipped||0)+'，失敗 '+numberWithCommas(payload.failed||0)+')', "好耶", function(){
+				$(window).scrollTop(0);
+			});
+			return true;
+		}
+
+		let li = li_map[payload.user_id];
+
+		if(payload.status===3){
+			alertify.error('<i class="far fa-exclamation-triangle"></i> 略過重複寄發：'+payload.nickname+" ("+payload.username+")");
+		}
+		else{
+			if(payload.status!==1){
+				alertify.error('<i class="far fa-exclamation-triangle"></i> 發信失敗：<br><b>'+(payload.username||"").substr(0,20)+"</b>");
+				console.error(payload.error);
+			}
+
+			let rendered = mail_render(content, payload),
+				$res = $(".result");
+			$res.children().slice(19).remove(); // 只留前 19個，減少 loading
+
+			$("<ol>", {
+				title: payload.nickname,
+				onclick: "hj_preview(true,$(this).data('html'))",
+				"data-username": payload.username,
+				"data-success": +(payload.status===1),
+				html: $("<li>", {"data-device": ""}).text(payload.username)
+						.add($("<li>", {text: rendered["subject"]}))
+						.add($("<li>", {html: rendered["body"]}))
+			}).data({
+				html: rendered["body"]
+			}).prependTo($res).fadeIn();
+		}
+
+		if(li) li.remove();
+		return false;
 	}
 /*
 	function send_mail_bulk__legacy(){
