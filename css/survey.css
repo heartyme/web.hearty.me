@@ -7,17 +7,16 @@
 }
 html{
 	box-sizing: border-box;
-	appearance: none;
 }
 body{
-	background: linear-gradient(135deg, #e2d1c3 0%, #fdfcfb 100%), #e2d1c3;
-	background-attachment: fixed;
+	background: linear-gradient(135deg, #e2d1c3 0%, #fdfcfb 100%) fixed, #e2d1c3;
 	min-height: 99vh;
 	scrollbar-width: none;
 	overscroll-behavior: none;
 }
+
+/* 版面 */
 .survey{
-	width: 95%;
 	width: calc(100% - 2em);
 	max-width: 720px;
 	margin: 1em auto;
@@ -25,13 +24,16 @@ body{
 	line-height: 2;
 	scroll-behavior: smooth;
 }
+.survey header,
+.survey .intro{
+	border-bottom: 1px dashed #aaa;
+}
 .survey header{
 	position: sticky;
 	top: 0;
 	padding: .8em 0;
 	letter-spacing: 2px;
 	background: inherit;
-	border-bottom: 1px dashed #aaa;
 }
 .survey header .title{
 	margin: .6em;
@@ -60,132 +62,33 @@ body{
 	font-size: smaller;
 	letter-spacing: .5px;
 	color: #222;
-	border-bottom: 1px dashed #aaa;
 	text-align: justify;
 }
+
+/* 題目 */
 .survey > ul{
 	padding: 0 0 0 1em;
 	letter-spacing: 1px;
 }
-	.survey li[data-question]::before{
-		display: block;
-		content: attr(data-question);
-		margin: 3.5em 0 .6em 0;
-		color: #444;
-	}
-	.survey li[data-question][data-required]::before{
-		content: attr(data-question) " *";
-	}
-
-.survey .sortable{
-	display: inline-block;
-	padding: 0 0 0 2em;
-	border: 1px solid rosybrown;
-	border-radius: .6em;
+.survey li[data-question]::before{
+	display: block;
+	content: attr(data-question);
+	margin: 3.5em 0 .6em;
+	color: #444;
 }
-	.survey .sortable li{
-		padding: .2em 0;
-		line-height: 2;
-		cursor: row-resize;
-	}
-	.survey .sortable li:nth-child(odd){
-		background: rgba(204,204,204,.2);
-	}
-	.survey .sortable li:nth-child(even){
-		background: rgba(255,255,255,.2);
-	}
-	.survey .sortable li:nth-child(1){
-		border-radius: 0 .6em 0 0;
-	}
-	.survey .sortable li:not(:last-child){
-		border-bottom: 1px dashed #ccc;
-	}
-	.survey .sortable li::after{
-		font-family: "Font Awesome 5 Pro";
-		font-weight: 300;
-		content: "\f07d";
-		color: #555;
-		margin: 0 2em;
-	}
-	.survey .sortable li:hover::after{
-		color: #000;
-	}
-	.survey .sortable li.dragging{
-		background: #d6bbbb;
-	}
-
-.survey .hj_stars{
-	max-width: 720px;
-	line-height: 1.5;
-	margin: 0;
-	background: rgba(255,255,255,.8);
-	border: 1px solid rosybrown;
-	border-radius: .6em;
+.survey li[data-question][data-required]::before{
+	content: attr(data-question) " *";
 }
 .survey label{
 	white-space: nowrap;
 }
-.survey input[type="text"], 
-.survey input[type="email"], 
-.survey textarea{
-	width: 98%;
-	max-width: 720px;
-	border: 1px solid rosybrown;
-	background: rgba(255,255,255,.5);
-	box-shadow: inset 0 1px 3px #ddd;
-	border-radius: 1em;
-	margin: 0 auto;
-	padding: .5em 1em;
-	line-height: 1.6;
-	letter-spacing: 1px;
-	color: rosybrown;
-	caret-color: rosybrown;
-	outline: none;
-}
-.survey textarea{
-	width: 100%;
-	resize: none;
-}
-	.survey input::placeholder, 
-	.survey textarea::placeholder{
-		font-style: italic;
-	}
-
 .survey [data-checkboxes] label{
 	padding: 1em;
 	cursor: pointer;
 }
-.survey .btns_action{
-	display: flex;
-	justify-content: space-evenly;
-	list-style: none;
-	padding: 0;
-	text-align: center;
+.survey [data-unlock]{
+	display: none;
 }
-.survey .btns_action li{
-	display: inline-flex;
-	letter-spacing: 2px;
-	margin: .4em auto;
-	padding: .8em 1em;
-	border-radius: .6em;
-	color: #fff;
-	background-color: #666;
-	background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
-	cursor: pointer;
-	transition: filter .2s linear;
-}
-	.survey .btns_action li[data-active]{
-		background-color: #f16d6e;
-		cursor: pointer;
-	}
-	.survey .btns_action li[data-active]:hover{
-		filter: brightness(1.2);
-	}
-	.survey .btns_action li[data-fal]:hover::before, 
-	.survey .btns_action li[data-far]:hover::before{
-		font-weight: 900;
-	}
-
 .survey .reminder{
 	font-size: x-small;
 	color: #888;
@@ -195,12 +98,111 @@ body{
 	height: 100%;
 	vertical-align: middle;
 }
-.survey [data-unlock]{
-	display: none;
+
+/* 拖曳排序 */
+.survey .sortable{
+	display: inline-block;
+	padding: 0 0 0 2em;
+	border: 1px solid rosybrown;
+	border-radius: .6em;
+}
+.survey .sortable li{
+	padding: .2em 0;
+	line-height: 2;
+	background: rgba(255,255,255,.2);
+	cursor: row-resize;
+}
+.survey .sortable li:nth-child(odd){
+	background: rgba(204,204,204,.2);
+}
+.survey .sortable li:first-child{
+	border-radius: 0 .6em 0 0;
+}
+.survey .sortable li:not(:last-child){
+	border-bottom: 1px dashed #ccc;
+}
+.survey .sortable li::after{
+	content: "\f07d";
+	margin: 0 2em;
+	font-family: "Font Awesome 5 Pro";
+	font-weight: 300;
+	color: #555;
+}
+.survey .sortable li:hover::after{
+	color: #000;
 }
 .survey .dragging{
-	transition: all .2s ease-in;
 	background: rgba(255,255,255,.8);
+	transition: all .2s ease-in;
+}
+.survey .sortable li.dragging{
+	background: #d6bbbb;
+}
+
+/* 評分 */
+.survey .hj_stars{
+	max-width: 720px;
+	margin: 0;
+	line-height: 1.5;
+	background: rgba(255,255,255,.8);
+	border: 1px solid rosybrown;
+	border-radius: .6em;
+}
+
+/* 文字輸入 */
+.survey input[type="text"],
+.survey input[type="email"],
+.survey textarea{
+	width: 98%;
+	margin: 0 auto;
+	padding: .5em 1em;
+	line-height: 1.6;
+	letter-spacing: 1px;
+	color: rosybrown;
+	caret-color: rosybrown;
+	background: rgba(255,255,255,.5);
+	border: 1px solid rosybrown;
+	border-radius: 1em;
+	box-shadow: inset 0 1px 3px #ddd;
+	outline: none;
+}
+.survey textarea{
+	width: 100%;
+	resize: none;
+}
+.survey input::placeholder,
+.survey textarea::placeholder{
+	font-style: italic;
+}
+
+/* 按鈕 */
+.survey .btns_action{
+	display: flex;
+	justify-content: space-evenly;
+	list-style: none;
+	padding: 0;
+	text-align: center;
+}
+.survey .btns_action li{
+	display: inline-flex;
+	margin: .4em auto;
+	padding: .8em 1em;
+	letter-spacing: 2px;
+	color: #fff;
+	background: #666 linear-gradient(rgba(255,255,255,.3), rgba(255,255,255,0));
+	border-radius: .6em;
+	cursor: pointer;
+	transition: filter .2s linear;
+}
+.survey .btns_action li[data-active]{
+	background-color: #f16d6e;
+}
+.survey .btns_action li[data-active]:hover{
+	filter: brightness(1.2);
+}
+.survey .btns_action li[data-fal]:hover::before,
+.survey .btns_action li[data-far]:hover::before{
+	font-weight: 900;
 }
 
 @media screen and (max-width: 767px){
@@ -211,8 +213,8 @@ body{
 	.survey header .title{
 		font-size: 1.2em;
 	}
-	.survey .sortable li, 
-	.survey input::placeholder, 
+	.survey .sortable li,
+	.survey input::placeholder,
 	.survey textarea::placeholder{
 		font-size: smaller;
 	}

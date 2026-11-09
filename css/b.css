@@ -7,20 +7,16 @@
 }
 html{
 	box-sizing: border-box;
-	appearance: none;
 }
 body{
 	margin: 0;
-	background: url(//i.hearty.app/HyCw2lg.png);
-	background-repeat: repeat;
-	background-position: center center;
+	background: url(//i.hearty.app/HyCw2lg.png) center repeat;
 	scrollbar-width: none;
 	overscroll-behavior: none;
 	-webkit-touch-callout: none;
 }
 
-a:link, 
-a:visited, 
+a:any-link, 
 a:hover, 
 a:active{
 	text-decoration: none;
@@ -74,15 +70,15 @@ input[type="url"]{
 	font-size: smaller;
 	width: 90%;
 	min-width: 300px;
-	border: 1px solid #bc8f8f;
+	border: 1px solid rosybrown;
 	background: #fff;
 	box-shadow: inset 0 1px 3px #ddd;
 	border-radius: 2em;
 	padding: .5em 1em;
 	line-height: 2;
 	letter-spacing: 0;
-	color: #bc8f8f;
-	caret-color: #bc8f8f;
+	color: rosybrown;
+	caret-color: rosybrown;
 	outline: 0;
 }
 input[type="url"]{
@@ -94,14 +90,13 @@ table{
 	color: #222;
 	line-height: 1.6;
 }
-tr:not(th):nth-child(odd){
+tr:nth-child(odd){
 	background: rgba(234,234,234,.4);
 }
 tr:nth-child(even){
 	background: #eee;
 }
 td{
-	display: table-cell;
 	padding: .4em .6em;
 	vertical-align: middle;
 	text-align: center;
@@ -111,7 +106,7 @@ td{
 /* 手機 */
 @media screen and (max-width: 767px){
 	.blogger{
-		flex-flow: column; wrap;
+		flex-flow: column;
 		align-items: center;
 	}
 }

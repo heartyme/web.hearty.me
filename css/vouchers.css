@@ -9,7 +9,6 @@
 }
 html{
 	box-sizing: border-box;
-	appearance: none;
 }
 
 a:link, 
@@ -136,9 +135,9 @@ input[type="checkbox"]{
 		width: 100%;
 		line-height: 1.8;
 		color: #222;
-		margin: 0 auto 4em auto;
+		margin: 0 auto 4em;
 	}
-	tr:not(th):nth-child(odd){
+	tr:nth-child(odd){
 		background: rgba(234,234,234,.4);
 	}
 	tr:nth-child(even){
@@ -154,7 +153,6 @@ input[type="checkbox"]{
 		word-break: break-all;
 		word-wrap: break-word;
 		overflow: hidden;
-		text-overflow: ellipsis;
 		max-width: 25vw;
 	}
 	th{
@@ -250,8 +248,7 @@ input[type="checkbox"]{
 		.vouchers td[data-status="2"] ~ td[data-exp]::after{
 			content: "-";
 		}
-	.vouchers td[data-status="0"] ~ td:not([data-hide]), 
-	.vouchers td[data-status="2"] ~ td:not([data-hide]){
+	.vouchers td:is([data-status="0"], [data-status="2"]) ~ td:not([data-hide]){
 		opacity: .5;
 	}
 
@@ -271,9 +268,6 @@ input[type="checkbox"]{
 .vouchers tr, 
 .vouchers tbody[data-empty]:empty::before{
 	display: table-row;
-	align-items: center;
-	justify-content: center;
-	flex-flow: row wrap;
 }
 	.vouchers tbody[data-empty]:empty::before{
 		content: attr(data-empty);
@@ -298,7 +292,6 @@ header{
 }
 	header::before{
 		position: absolute;
-		display: block;
 		content: "";
 		top: 0;
 		width: 100%;
@@ -324,8 +317,7 @@ header [data-menu]{
 	display: flex;
 	flex: 1;
 	justify-content: space-evenly;
-	margin: 0 auto;
-	margin-top: env(safe-area-inset-top, 0);
+	margin: env(safe-area-inset-top, 0) auto 0;
 	padding: 1em 0;
 }
 	.tabs li{
@@ -336,7 +328,7 @@ header [data-menu]{
 		cursor: pointer;
 	}
 	.tabs li[data-active]{
-		border-bottom: 2px solid #d78b7b;
+		border-bottom-color: #d78b7b;
 		opacity: 1;
 		cursor: crosshair;
 	}
@@ -417,16 +409,23 @@ section ol{ /* section 可躲過 menu */
 			font-weight: 900;
 		}
 
+/* 全版浮層 */
+.eml, 
+.create, 
+.redeem_tutorial, 
+.hj_preview{
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
 .eml, 
 .create{
-	position: fixed;
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	width: 100%;
-	height: 100%;
-	top: 0;
-	left: 0;
 	background: rgba(255,255,255,.6);
 	-webkit-backdrop-filter: blur(5px);
 	backdrop-filter: blur(5px);
@@ -444,7 +443,7 @@ section ol{ /* section 可躲過 menu */
 		max-width: 100%;
 		border: 1px solid #ccc;
 		border-radius: .5em;
-		padding: 0 1em 1.2em 1em;
+		padding: 0 1em 1.2em;
 		background: rgba(255,255,255,.85);
 		box-shadow: rgba(0,0,0,.1) 1px 1px 1em 1px;
 		margin: auto 0; /* flex fix */
@@ -453,7 +452,6 @@ section ol{ /* section 可躲過 menu */
 		position: absolute;
 		top: -.3em;
 		right: -.3em;
-		display: block;
 		content: "\f057";
 		font-family: "Font Awesome 5 Duotone";
 		font-size: 2.4em;
@@ -472,10 +470,7 @@ section ol{ /* section 可躲過 menu */
 			content: "";
 			height: 6px;
 			opacity: .8;
-			background-image: url(//i.hearty.app/i/border_envelope.png);
-			background-position: 0 0;
-			background-repeat: repeat-x;
-			background-size: 40px 6px;
+			background: url(//i.hearty.app/i/border_envelope.png) 0 0 / 40px 6px repeat-x;
 			border-radius: .5em;
 		}
 
@@ -492,13 +487,11 @@ section ol{ /* section 可躲過 menu */
 	.create li, 
 	.eml li{
 		line-height: 2;
-		/* margin: .4em 0; */
 	}
 		.eml ul>li:first-child{
 			margin-top: 1em;
 		}
 		.eml ul li[title]::before{
-			float: left;
 			content: attr(title) "：";
 		}
 		.eml ul li[title][data-fal]::before{
@@ -583,23 +576,24 @@ section ol{ /* section 可躲過 menu */
 		.variables [data-voucher-timer]::before{
 			content: "\f34e";
 		}
+		.variables [data-voucher]::after, 
+		.variables [data-voucher-link]::after, 
+		.variables [data-voucher-email]::after, 
+		.variables [data-voucher-timer]::after{
+			font-size: initial;
+		}
 		.variables [data-voucher]::after{
 			content: "序號";
-			font-size: initial;
 		}
 		.variables [data-voucher-link]::after{
 			content: "兌換連結";
-			font-size: initial;
 		}
 		.variables [data-voucher-email]::after{
 			content: "E-mail";
-			font-size: initial;
 		}
 		.variables [data-voucher-timer]::after{
 			content: "期限倒數";
-			font-size: initial;
 		}
-
 
 .tox-tbtn[aria-label="儲存"]::before{
 	font-family: "Font Awesome 5 Pro";
@@ -609,7 +603,6 @@ section ol{ /* section 可躲過 menu */
 	.tox-tbtn[aria-label="儲存"] span{
 		display: none;
 	}
-
 
 .create .wrap > div{
 	display: flex;
@@ -622,8 +615,6 @@ section ol{ /* section 可躲過 menu */
 		min-width: 120px;
 		text-align: center;
 	}
-
-
 
 video::-webkit-media-controls-timeline{
 	display: none;
@@ -669,7 +660,6 @@ small{
 		content: attr(title);
 	}
 
-
 .toast_signin_reminder{
 	position: fixed;
 	min-width: 250px;
@@ -690,15 +680,10 @@ small{
 	}
 
 .redeem_tutorial{
-	position: fixed;
 	display: flex;
 	flex-flow: row wrap;
 	justify-content: space-evenly;
 	align-items: center;
-	width: 100%;
-	height: 100%;   
-	top: 0;
-	left: 0;
 	background: rgba(255,255,255,.8);
 	-webkit-backdrop-filter: blur(5px);
 	backdrop-filter: blur(5px);
@@ -738,12 +723,7 @@ small{
 	}
 
 .hj_preview{
-	position: fixed;
 	display: none;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
 	background: rgba(255,255,255,.6);
 }
 	.hj_preview > div{
@@ -805,7 +785,6 @@ small{
 [data-sample]{
 	display: none;
 }
-
 
 /* 手機 */
 @media screen and (max-width: 767px){

@@ -62,7 +62,7 @@ label[title]::after,
 		padding: .4em;
 		border-bottom: 2px solid transparent;
 		letter-spacing: 1px;
-		transition: border-bottom .5s ease-in-out;
+		transition: border-bottom-color .5s ease-in-out;
 		pointer-events: all;
 		cursor: pointer;
 	}
@@ -101,7 +101,10 @@ label[title]::after,
 		}
 
 .nav_account,
-.account [data-fbox]{
+.account [data-fbox],
+[data-email],
+.chat_btn,
+.hj_preview > div{
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -129,7 +132,6 @@ label[title]::after,
 	/* Hover Shine */
 	#profile_image::before{
 		position: absolute;
-		display: block;
 		content: "";
 		top: 0;
 		left: -75%;
@@ -143,7 +145,7 @@ label[title]::after,
 	}
 		@keyframes shine{
 			100%{
-				left: 125%;
+				transform: translateX(400%) skewX(-25deg);
 			}
 		}
 
@@ -226,13 +228,16 @@ label[title]::after,
 	}
 
 /* 性別 */
+/* 視覺隱藏，保留鍵盤操作與螢幕閱讀器 */
 input[type=radio].radio{
 	position: absolute;
-	padding: 0;
-	border: 0;
-	clip: rect(0 0 0 0);
 	width: 1px;
 	height: 1px;
+	margin: -1px;
+	padding: 0;
+	border: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
 }
 label.radio-label{
 	background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAgCAMAAAAsVwj+AAAAM1BMVEUAAABwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHDWwKf0AAAAEXRSTlMA/kmqcNgqEcHMix3oXzadexNO+h0AAADYSURBVCjPbZBBksUgCERBQAWj5v6nHTDml6mat4g2EO0WgjL6ffdRYJOqTOYpNT2aL1694ptHZ9jkqDQc8GNgAyM4IAMZcDAEED7gP4V26oZANxzcBAk/f7jZSsetNRwL5W2UpKyDVC3lnEy1/eKqiEbYDdOC375WHlAGV10zGW0/VTGM48X80826Lya+lbgfHYpuh8pL7wpXwOKJNg3Kip+2jiAYE/kzUSPfo2t4Bla3IqHFTSgDXN3z8ZzsyfoVzq8dam9jmXllmG8rmyiRimV4Kcl5Iv4B6rgFvRcIcmwAAAAASUVORK5CYII=);
@@ -378,7 +383,7 @@ label[for="gender_female"]{
 		cursor: pointer;
 	}
 	#birthday:hover{
-		border: 1px solid #555;
+		border-style: solid;
 	}
 	#age{
 		margin-left: .4em;
@@ -396,11 +401,6 @@ label[for="gender_female"]{
 }
 
 /* Email */
-[data-email]{
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
 	[data-email]::before{
 		content: attr(data-email);
 		cursor: pointer;
@@ -478,9 +478,6 @@ label[for="gender_female"]{
 
 .chat_btn{
 	position: fixed;
-	display: flex;
-	align-items: center;
-	justify-content: center;
 	width: 60px;
 	height: 54px;
 	font-size: 24px;
@@ -508,15 +505,11 @@ label[for="gender_female"]{
 }
 	.hj_preview > div{
 		position: relative;
-		display: flex;
-		align-items: center;
-		justify-content: center;
 		width: inherit;
 		height: inherit;
 	}
 	.hj_preview > div::after{
 		position: fixed;
-		display: block;
 		font-family: "Font Awesome 5 Duotone";
 		content: "\f057";
 		font-size: 3em;

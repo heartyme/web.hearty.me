@@ -9,8 +9,7 @@ html{
 	box-sizing: border-box;
 }
 body.pray{
-	background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
-	background-attachment: fixed;
+	background: #fff url(//i.hearty.app/XCR4X1w.png) center fixed;
 	overflow-x: hidden;
 	scroll-behavior: smooth;
 	scrollbar-width: none;
@@ -20,6 +19,8 @@ body.pray{
 	position: relative;
 	display: none;
 }
+
+/* 文字 */
 .pray_request h1{
 	color: #555;
 	letter-spacing: 1px;
@@ -38,32 +39,34 @@ body.pray{
 	color: #222;
 	letter-spacing: 1px;
 }
-.pray_request .pray_btn{
-	display: inline-block;
-	letter-spacing: 1px;
-	margin: .6em auto;
-	padding: .8em 1em;
+.pray_request [data-required]::before{
+	content: "*";
+	color: #f16d6e;
+	padding-right: .4em;
+}
+
+/* 按鈕 */
+.pray_request .pray_btn,
+.pray_request .row_btns li{
 	border-radius: .5em;
 	color: #fff;
 	background-color: #888;
+	letter-spacing: 1px;
+	cursor: pointer;
+}
+.pray_request .pray_btn{
+	display: inline-block;
+	margin: .6em auto;
+	padding: .8em 1em;
 	box-shadow: 0 1px 3px rgba(0,0,0,.1);
 	font-size: large;
 	font-weight: bold;
 	transition: filter .2s linear;
-	cursor: pointer;
-}
-.pray_request .pray_btn[data-active]{
-	background-color: #f16d6e;
-	background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
-}
-.pray_request .pray_btn.disabled{
-	background-color: #999;
-	cursor: not-allowed;
 }
 .pray_request .row_btns{
 	display: flex;
-	justify-content: space-around;
 	flex-flow: row nowrap;
+	justify-content: space-around;
 	list-style: none;
 	padding: 0;
 }
@@ -71,50 +74,37 @@ body.pray{
 	display: inline-flex;
 	margin: 1em auto;
 	padding: 1em 1.2em;
-	border-radius: .5em;
 	font-size: small;
-	color: #fff;
-	background-color: #888;
-	letter-spacing: 1px;
 	text-decoration: none;
-	cursor: pointer;
 }
+.pray_request .pray_btn[data-active],
 .pray_request .row_btns li[data-active]{
 	background-color: #f16d6e;
-	background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
+	background-image: linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,0));
 }
-.pray_request .pray_btn:hover, 
+.pray_request .pray_btn.disabled{
+	background-color: #999;
+	cursor: not-allowed;
+}
+.pray_request .pray_btn:hover,
 .pray_request .row_btns li:hover{
 	filter: brightness(1.2);
 }
-.pray_request .tb{
-	display: table;
-}
-.pray_request .tb_tr{
-	display: table-row;
-}
-.pray_request .tb_td{
-	display: table-cell;
-	vertical-align: middle;
-}
-.pray_request [data-required]::before{
-	content: "*";
-	color: #F16D6E;
-	padding-right: .4em;
-}
+
+/* 版面 */
 .pray_request .pageside{
 	position: relative;
 	float: left;
-    width: 45%;
+	width: 45%;
+	min-height: 100vh;
 	background-image: url(//i.hearty.app/i/illustrations/praying.jpg);
-	background-size: cover;
 	background-position: top center;
+	background-size: cover;
 	background-repeat: no-repeat;
 	border-right: 1px solid #ccc;
 	box-shadow: inset 0 0 20px 10px #fff;
-	min-height: 100vh;
 }
-.pray_request .pageside div, 
+.pray_request .pageside div,
 .pray_request .pray_mobile div{
 	position: absolute;
 	bottom: 0;
@@ -125,7 +115,7 @@ body.pray{
 	line-height: 2;
 	letter-spacing: 2px;
 	color: saddlebrown;
-	background: linear-gradient(to bottom, rgba(255,255,255,.4) 0%,rgba(255,255,255,.6) 100%);
+	background: linear-gradient(rgba(255,255,255,.4),rgba(255,255,255,.6));
 	border-radius: .5em .5em 0 0;
 }
 .pray_request .application_wrapper{
@@ -146,8 +136,10 @@ body.pray{
 }
 .pray_request .notice{
 	text-align: center;
-	margin: 0 2vw .5em 2vw;
+	margin: 0 2vw .5em;
 	padding: .8em .4em;
+	font-size: medium;
+	line-height: 2;
 	letter-spacing: 1px;
 	color: #222;
 	background: #f9edbe;
@@ -155,14 +147,22 @@ body.pray{
 	border-radius: .5em;
 	cursor: pointer;
 }
+
+/* 代禱單 */
 .pray_request .request_form{
 	display: none;
 	padding: .8em 1.6em;
 }
 .pray_request .tb{
+	display: table;
 	width: 100%;
 }
+.pray_request .tb_tr{
+	display: table-row;
+}
 .pray_request .tb_td{
+	display: table-cell;
+	vertical-align: middle;
 	padding: .3em 0;
 	line-height: 2;
 }
@@ -196,18 +196,27 @@ body.pray{
 	display: flex;
 	align-items: center;
 }
+/* 頭像：background-image 由 pray.php 內嵌 */
 .pray_request .person > div:first-child{
-	float: left;
 	width: 3em;
 	height: 3em;
 	border-radius: 50%;
-	cursor: pointer;
+	background-position: center;
+	background-size: cover;
+	background-repeat: no-repeat;
 }
 .pray_request .person span{
 	margin-left: 1em;
 }
 .pray_request .gender{
 	margin-left: .6em;
+}
+.pray_request .fa-mars{
+	color: #6bb6ff;
+}
+.pray_request .fa-venus{
+	padding-left: .4em;
+	color: #ff61b6;
 }
 .pray_request .tip{
 	padding: .8em;
@@ -223,71 +232,50 @@ body.pray{
 }
 .pray_request .submit{
 	display: flex;
-    align-items: center;
-    justify-content: center;
+	align-items: center;
+	justify-content: center;
 }
-.pray_request input, 
+
+/* 輸入框 */
+.pray_request input,
 .pray_request textarea{
 	max-width: 98%;
-	border: 1px solid #ccc;
-	background: transparent;
 	margin: .4em 0;
 	padding: .5em 1em;
-	border-radius: 2em;
 	color: #222;
+	background: transparent;
+	border: 1px solid #ccc;
+	border-radius: 2em;
+	box-shadow: inset 0 1px 3px #ddd;
 	caret-color: rosybrown;
 	outline: none;
-	box-shadow: inset 0 1px 3px #ddd;
 }
-.pray_request input:focus, 
+.pray_request input:focus,
 .pray_request textarea:focus{
 	box-shadow: 1px 1px 6px 2px rgba(187,120,94,.5);
 }
-.pray_request input::placeholder, 
+.pray_request input::placeholder,
 .pray_request textarea::placeholder{
 	font-style: italic;
 }
 .pray_request input[name="name"]{
 	width: 140px;
 }
-.pray_request input[name="email"], 
+.pray_request input[name="email"],
 .pray_request textarea{
 	width: 98%;
 }
 .pray_request textarea{
 	resize: none;
 }
-.pray_request .fa-mars{
-	color: #6bb6ff;
-}
-.pray_request .fa-venus{
-	padding-left: .4em;
-	color: #ff61b6;
-}
-.pray_request .sent, 
+
+/* 送出後 */
+.pray_request .sent,
 .pray_request .faith{
 	display: none;
 	padding: 1em .8em;
 	border-radius: .5em;
 	background: rgba(255,255,255,.25);
-}
-.pray_request .person > div:first-child{
-	background-size: cover;
-	background-position: center;
-	background-repeat: no-repeat;
-}
-.pray_request .notice{
-	text-align: center;
-	margin: 0 2vw .5em 2vw;
-	padding: .8em .4em;
-	letter-spacing: 1px;
-	color: #222;
-	background: #f9edbe;
-	font-size: medium;
-	line-height: 2;
-	border: 1px solid #f0c36d;
-	border-radius: .5em;
-	cursor: pointer;
 }
 .pray_request .bible_quote{
 	margin: 1em 3vw;
@@ -295,7 +283,7 @@ body.pray{
 	color: #222;
 	border-bottom: 1px dotted #ccc;
 }
-.pray_request .bible_quote::before, 
+.pray_request .bible_quote::before,
 .pray_request .bible_quote::after{
 	display: block;
 	font-family: "Font Awesome 5 Pro";
@@ -313,7 +301,7 @@ body.pray{
 	margin-left: .4em;
 	text-align: right;
 }
-.pray_request .bible_quote span, 
+.pray_request .bible_quote span,
 .pray_request .bible_quote p{
 	display: block;
 	padding: 0 2.5em;
@@ -339,19 +327,14 @@ body.pray{
 		display: block;
 		width: 100%;
 		height: 75vh;
-		background-size: cover;
-		background-image: url(//i.hearty.app/i/illustrations/praying.jpg);
-		background-position: center;
-		background-repeat: no-repeat;
-		background-attachment: fixed;
+		background: url(//i.hearty.app/i/illustrations/praying.jpg) center / cover no-repeat fixed;
 	}
-		/* iOS Fix */
-		@supports (-webkit-touch-callout: none){
-			.pray_mobile{
-				background-attachment: scroll !important;
-			}
+	/* iOS 不支援 fixed 背景 */
+	@supports (-webkit-touch-callout: none){
+		.pray_mobile{
+			background-attachment: scroll;
 		}
-
+	}
 	.pray_request .row_btns{
 		flex-flow: column-reverse wrap;
 	}

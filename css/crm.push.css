@@ -7,7 +7,6 @@
 }
 html{
 	box-sizing: border-box;
-	appearance: none;
 	scroll-behavior: smooth;
 }
 body{
@@ -42,7 +41,7 @@ a:active{
 		cursor: pointer;
 	}
 	.tabs li[data-active]{
-		border-bottom: 2px solid #d78b7b;
+		border-bottom-color: #d78b7b;
 		opacity: 1;
 		cursor: not-allowed;
 	}
@@ -104,8 +103,7 @@ textarea{
 		resize: vertical;
 	}
 input[type="number"]{
-	width: 90px;
-	min-width: 120px;
+	width: 120px;
 	text-align: center;
 }
 input[data-title], 
@@ -155,9 +153,7 @@ li[data-device="0"]::before{
 li[data-device="1"]::before{
 	content: "\f10a";
 }
-li[data-device="2"]::before{
-	content: "\f3ce";
-}
+li[data-device="2"]::before, 
 li[data-device="3"]::before{
 	content: "\f3ce";
 }
@@ -191,7 +187,6 @@ li[data-device="5"]::before{
 	background-color: #f16d6e;
 	background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
 	letter-spacing: 1px;
-	text-decoration: none;
 	cursor: pointer;
 }
 .notify_btns li:hover{
@@ -236,9 +231,6 @@ small{
 	padding: .8em 0;
 	text-align: center;
 }
-.notify h3[title]::after{
-	content: attr(title);
-}
 .user_data h3{
 	position: sticky;
 	top: 0;
@@ -277,10 +269,7 @@ small{
 		cursor: not-allowed;
 	}
 
-.recipient_data ul.recipients > li[title]::after{
-	content: attr(title);
-}
-	.recipient_data ul.recipients > li[data-sent_today="1"]{
+.recipient_data ul.recipients > li[data-sent_today="1"]{
 		opacity: .5;
 		background: #eee;
 		cursor: not-allowed;
@@ -299,22 +288,21 @@ small{
 	min-height: 8em;
 	height: 100%;
 	border-radius: .4em;
-	background-image: linear-gradient(to bottom,rgba(251,245,237,1),rgba(255,255,255,.8));
+	background-image: linear-gradient(to bottom,#fbf5ed,rgba(255,255,255,.8));
 }
 .recipient_data .result ol{
 	position: relative;
 	display: none;
 	list-style: none;
 	padding: .4em;
-	border: 1px #f0c36d solid;
+	border: 1px solid #f0c36d;
 	border-radius: .4em;
 	color: #555;
 	background: #fbf3d5;
 	cursor: pointer;
 	max-width: 300px;
 	max-height: 200px;
-	overflow-x: hidden;
-	overflow-y: scroll;
+	overflow: hidden scroll;
 }
 .recipient_data .result ol:not(:first-child){
 	margin: 1em auto;
@@ -342,6 +330,9 @@ small{
 			color: #ff7f8a;
 		}
 
+/* 以 title 顯示文字 */
+.notify h3[title]::after, 
+.recipient_data ul.recipients > li[title]::after, 
 label[title]::after{
 	content: attr(title);
 }
@@ -415,7 +406,7 @@ label[title]::after{
 	border: 1px solid #555;
 	border-radius: 50%;
 	cursor: pointer;
-	transition: all .2s ease-in;
+	transition: color .2s ease-in, background-color .2s ease-in;
 }
 	.notify .page_up:hover{
 		color: #fff;

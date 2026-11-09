@@ -76,7 +76,6 @@ a:active{
 	align-items: center;
 	justify-content: center;
 	height: auto;
-	min-height: 92vh;
 	min-height: calc(100vh - 5em);
 	padding: 3.6em 0 2em 0;
 	transition: filter .05s linear;
@@ -88,7 +87,6 @@ a:active{
 	align-items: center;
 	top: 0;
 	width: 100%;
-	background: rgba(255,255,255,.95);
 	background: linear-gradient(to top,rgba(255,255,255,.8),rgba(255,255,255,1));
 	z-index: 2;
 }
@@ -126,7 +124,6 @@ a:active{
 	font-size: large;
 	line-height: 1.8;
 	overflow-wrap: break-word;
-		word-wrap: break-word;
 	word-break: keep-all;
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -186,7 +183,6 @@ a:active{
 	line-break: loose;
 	white-space: pre-wrap;
 	overflow-wrap: break-word;
-		word-wrap: break-word;
 	word-break: break-word; /* break-all */
 	caret-color: rosybrown;
 	color: #222;
@@ -261,7 +257,6 @@ a:active{
 #editor_editable.tbrl{
 	writing-mode: vertical-rl;
 	letter-spacing: 1.5px;
-	color: #222;
 }
 #editor_editable.tbrl::first-letter{ 
 	font-size: 160%;
@@ -317,9 +312,7 @@ a:active{
 	.bundle_innerbox{
 		position: static;
 		display: inline-block;
-		width: auto;
 		width: min-content;
-		height: auto;
 		height: min-content;
 	}
 	.alignment_left{
@@ -366,7 +359,6 @@ a:active{
 		border-radius: 1.5em;
 		filter: contrast(1.1);
 		box-shadow: rgba(0,0,0,.1) 1px 1px 2.5em 1px; /* 同原 font-size: 2.5em 下的 1em */
-		cursor: move;
 		cursor: grab;
 		transition: outline-color .2s linear;
 	}
@@ -376,7 +368,6 @@ a:active{
 	}
 	.asset .sticker_editing.grabbing{
 		outline: 3px dashed #999;
-		cursor: move;
 		cursor: grabbing;
 	}
 	.asset .sticker_editing::before{
@@ -659,7 +650,6 @@ a:active{
 		display: block;
 		min-width: 270px;
 		overflow-wrap: break-word;
-			word-wrap: break-word;
 		word-break: break-word;
 		padding: .8em .6em .8em 2.2em;
 		text-indent: -1.4em;
@@ -719,9 +709,7 @@ a:active{
 		cursor: pointer;
 	}
 		@keyframes btn_finish_editing{
-			from{background: rgba(215,139,123,.9)}
 			50%{background: rgba(215,139,123,.6)}
-			to{background: rgba(215,139,123,.9)}
 		}
 
 .hj .disabled{
@@ -754,7 +742,6 @@ a:active{
 		padding: 0 .8em;
 		word-break: keep-all;
 		overflow-wrap: break-word;
-			word-wrap: break-word;
 		cursor: pointer;
 	}
 	.hj_rmenu li[data-icon]::before{
@@ -789,7 +776,7 @@ a:active{
 	backdrop-filter: blur(5px);
 }
 .popup-underlayer > div, 
-.image-zoom> div{
+.image-zoom > div{
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1240,7 +1227,7 @@ a:active{
 
 	/* 裁剪 */
 	.popup.crop{
-    	min-width: 90%;
+		min-width: 90%;
 	}
 		.popup.crop .row a{
 			display: inline-block;
@@ -1270,9 +1257,6 @@ a:active{
 		}
 
 
-	.popup.feedback{
-		color: #555;
-	}
 	.popup.feedback form{
 		display: none;
 	}
@@ -1383,7 +1367,6 @@ a:active{
 	.popup.feedback .support_pincode[data-pincode]::after{
 		content: attr(data-pincode);
 		font-weight: bold;
-		-webkit-text-decoration: underline; /* Safari */
 		text-decoration: underline;
 		letter-spacing: 2px;
 	}
@@ -1513,7 +1496,6 @@ a:active{
 	white-space: nowrap;
 	word-break: keep-all;
 	overflow-wrap: break-word;
-		word-wrap: break-word;
 	text-overflow: ellipsis;
 	overflow: hidden;
 	outline: none;
@@ -2028,7 +2010,6 @@ a:active{
 	content: "\f057";
 	top: .1em;
 	right: .1em;
-	color: #999;
 	background: #eaeaea;
 	padding: 0 2px;
 }
@@ -2144,7 +2125,6 @@ a:active{
 		}
 
 	.warning-underlayer [data-normal]{
-		background: #c78f7a;
 		background: linear-gradient(to bottom,rgba(199,143,122,1),rgba(199,143,122,.8));
 	}
 	.warning-underlayer [data-blink]{
@@ -2194,6 +2174,7 @@ a:active{
 	pointer-events: none;
 }
 .bk-list .bk-cover{
+	overflow: hidden;
 	cursor: pointer;
 }
 .bk-list .bk-cover, 
@@ -2242,13 +2223,6 @@ body.hj,
 	scrollbar-width: none;
 }
 
-/*
-A child div (.catalog[data-desktop]) isn't scrollable wrapped in an absolute positioned element (.bk-cover-back) on Firefox and Safari macOS. Thus, the scrollbar is shown to scroll manually by user (scrollbar-width).
-*/
-.catalog[data-desktop]{
-	scrollbar-width: thin;
-}
-
 
 .bk-list .bk-book, 
 .bk-list .bk-front, 
@@ -2261,8 +2235,10 @@ A child div (.catalog[data-desktop]) isn't scrollable wrapped in an absolute pos
 	max-height: 920px;
 }
 .bk-list .bk-left{
+	position: absolute;
 	width: 40px;
 	left: -20px;
+	transform: rotate3d(0,1,0,-90deg);
 }
 /* 寬度跟隨 .bk-list（.bk-book 有 transform，是 absolute 子元素的 containing block），
 	各斷點只需設定 .bk-list，不必重複設定 front/back/cover
@@ -2356,6 +2332,10 @@ A child div (.catalog[data-desktop]) isn't scrollable wrapped in an absolute pos
 	background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 	overflow-x: hidden;
 	overflow-y: scroll;
+	/*
+	A child div (.catalog[data-desktop]) isn't scrollable wrapped in an absolute positioned element (.bk-cover-back) on Firefox and Safari macOS. Thus, the scrollbar is shown to scroll manually by user (scrollbar-width).
+	*/
+	scrollbar-width: thin;
 }
 .catalog[data-desktop] .tabs{
 	position: sticky;
@@ -2546,6 +2526,7 @@ diary.pagination.min.css
 	overflow: hidden;
 }
 .catalog[data-mobile] .diaries li{
+	border-bottom: 1px dotted #8c8b8b;
 	cursor: pointer;
 }
 .catalog[data-mobile] .diaries[title]:empty::before{
@@ -2556,9 +2537,6 @@ diary.pagination.min.css
 .catalog[data-mobile] .diaries li[data-active]{
 	font-weight: bolder;
 	color: #bb785e;
-}
-.catalog[data-mobile] .diaries li{
-	border-bottom: 1px dotted #8c8b8b;
 }
 .catalog[data-mobile] .tabs_bottom{
 	display: flex;
@@ -2653,10 +2631,6 @@ diary.pagination.min.css
 		margin-left: .4em;
 	}
 
-.bk-list .bk-left{
-	position: absolute;
-	transform: rotate3d(0,1,0,-90deg);
-}
 /* Transform Classes */
 .bk-list .bk-viewinside .bk-front{
 	transform: translate3d(0,0,20px) rotate3d(0,1,0,-160deg);
@@ -2704,9 +2678,6 @@ diary.pagination.min.css
 	transform: rotate(90deg) translateY(-40px);
 }
 
-.bk-list .bk-cover{ /* 原選擇器含 .bk_back（錯字，不存在）；.bk-back 的 overflow 已在上方設定 */
-	overflow: hidden;
-}
 .bk-page .diary{
 	display: flex;
 	flex-flow: row wrap;
@@ -2793,7 +2764,6 @@ diary.pagination.min.css
 	bottom: -1px;
 	transform: translateX(-50%);
 	padding: 0 1em;
-	background: rgba(255,255,255,.85);
 	background: linear-gradient(to bottom, rgba(255,255,255,.6), rgba(255,255,255,.9));
 	box-shadow: 1px 1px 6px 2px rgba(204,204,204,.8);
 	border-radius: .6em .6em 0 0;
@@ -2837,7 +2807,6 @@ diary.pagination.min.css
 	width: 100%;
 	height: 100%;
 	border-radius: 50%;
-	box-sizing: inherit;
 	outline: none;
 }
 .editor_toolbelt .kit.save::before{
@@ -2862,7 +2831,6 @@ diary.pagination.min.css
 		transition: transform .4s linear 0s, border-left-width 0s linear .35s;
 	}
 	.editor_toolbelt .kit.save[data-unsaved]::before{
-		background: rgba(250,128,114,.4);
 		background: radial-gradient(ellipse at center, rgba(250,128,114,.5) 30%, rgba(250,128,114,.25) 70%);
 	}
 
@@ -3022,16 +2990,15 @@ diary.pagination.min.css
 
 .bk-page .frame #youtube{
 	position: absolute;
+	display: none;
 	top: 0;
 	left: 0;
 	width: 100%;
 	height: 100%;
 	background-position: center;
 	background-repeat: no-repeat;
-	transition: all .5s ease-in-out;
-}
-.bk-page .frame #youtube{
 	background-size: cover !important;
+	transition: all .5s ease-in-out;
 }
 
 .bk-page .frame .far{
@@ -3063,9 +3030,6 @@ diary.pagination.min.css
 		display: none !important;
 	}
 
-.bk-page .frame #youtube{
-	display: none;
-}
 	.bk-page .frame #youtube::before{
 		position: absolute;
 		display: flex;
@@ -3124,21 +3088,6 @@ diary.pagination.min.css
 }
 
 
-@supports (-webkit-touch-callout: none){
-	@media screen and (orientation: portrait){
-		.mh-head .fa-bell{
-			order: 1;
-		}
-		.mh-head .btn_stickerbook{
-			order: 2;
-		}
-		.notifications .arr{
-			right: 3.8em;
-		}
-	}
-}
-
-
 /* 電腦 */
 @media screen and (min-width: 1025px){
 	.bk-list{
@@ -3156,63 +3105,6 @@ diary.pagination.min.css
 		color: #000;
 		transform: scale(1.3);
 	}
-	.popup.upgrade > div, 
-	.popup.purchase > div{
-		display: flex;
-		align-items: center;
-	}
-}
-
-/* 手機 */
-@media screen and (max-width: 767px){
-	.alertify-logs{
-		bottom: 90px; /* 上移 */
-	}
-	.editor_toolbelt{
-		left: 50%;
-		width: 100%;
-	}
-		.editor_toolbelt .kit{
-			padding: .6em .25em;
-			/* 舊：padding: .8em .45em; */
-		}
-		.editor_toolbelt .kit.save .fal{
-			min-width: 1.85em;
-		}
-
-	.upgrade .features li:empty{
-		display: none;
-	}
-	.popup.upgrade .row, 
-	.popup.purchase .row{
-		flex-flow: column wrap;
-	}
-	.popup .column{
-		margin: 1em auto;
-	}
-	.column[data-col="subscription"]{
-		order: 1;
-	}
-	.column[data-col="deposit"]{
-		order: 2;
-	}
-	.column[data-col="features"]{
-		order: 3;
-	}
-	.popup .btn_close{
-		top: 0;
-
-		/*
-		position: fixed;
-		right: 0;
-		*/
-	}
-	.hj_stars [data-rating]{
-		font-size: medium;
-	}
-	.image-zoom .img_btns{
-		flex-flow: column wrap;
-	}
 }
 
 @media screen and (max-width: 1024px){
@@ -3227,6 +3119,17 @@ diary.pagination.min.css
 
 /* iOS only */
 @supports (-webkit-touch-callout: none){
+	@media screen and (orientation: portrait){
+		.mh-head .fa-bell{
+			order: 1;
+		}
+		.mh-head .btn_stickerbook{
+			order: 2;
+		}
+		.notifications .arr{
+			right: 3.8em;
+		}
+	}
 
 	/* Fix: able to paste stickers on the bottom of the post */
 	#editor{
@@ -3336,7 +3239,6 @@ diary.pagination.min.css
 	font-size: smaller;
 	white-space: pre-line;
 	overflow-wrap: break-word;
-		word-wrap: break-word;
 	line-height: 2;
 	letter-spacing: 1px;
 	text-indent: 1em;
@@ -3441,7 +3343,6 @@ diary.pagination.min.css
 	background: transparent;
 	outline: none;
 	-webkit-text-security: disc;
-	text-security: disc;
 }
 .screenlock input ~ input{
 	margin-left: 8vw;
@@ -3534,9 +3435,9 @@ nav.stickerbook .mm-panel::before{
 	/* premium stickers */
 	.stickerbook .item[data-premium="1"]::after{
 		position: absolute;
-	    display: flex;
-	    align-items: center;
-	    justify-content: center;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		font-family: "Font Awesome 5 Pro";
 		font-weight: 900;
 		content: "\f30d";
@@ -3582,7 +3483,6 @@ nav.stickerbook .mm-panel::before{
 		letter-spacing: 1px;
 		margin: 0 auto .2em auto;
 		overflow-wrap: break-word;
-			word-wrap: break-word;
 	}
 		.stickerbook .item h5[data-new="1"]::after{
 			content: "new";
@@ -3748,6 +3648,54 @@ nav.stickerbook .mm-panel::before{
 
 /* 手機 */
 @media screen and (max-width: 767px){
+	.alertify-logs{
+		bottom: 90px; /* 上移 */
+	}
+	.editor_toolbelt{
+		left: 50%;
+		width: 100%;
+	}
+		.editor_toolbelt .kit{
+			padding: .6em .25em;
+			/* 舊：padding: .8em .45em; */
+		}
+		.editor_toolbelt .kit.save .fal{
+			min-width: 1.85em;
+		}
+
+	.upgrade .features li:empty{
+		display: none;
+	}
+	.popup.upgrade .row, 
+	.popup.purchase .row{
+		flex-flow: column wrap;
+	}
+	.popup .column{
+		margin: 1em auto;
+	}
+	.column[data-col="subscription"]{
+		order: 1;
+	}
+	.column[data-col="deposit"]{
+		order: 2;
+	}
+	.column[data-col="features"]{
+		order: 3;
+	}
+	.popup .btn_close{
+		top: 0;
+
+		/*
+		position: fixed;
+		right: 0;
+		*/
+	}
+	.hj_stars [data-rating]{
+		font-size: medium;
+	}
+	.image-zoom .img_btns{
+		flex-flow: column wrap;
+	}
 	.screenlock input{
 		font-size: 2em;
 	}

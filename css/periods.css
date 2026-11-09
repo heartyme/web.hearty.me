@@ -13,7 +13,9 @@
 .periods h2{
 	letter-spacing: 1px;
 }
-.periods input::-webkit-inner-spin-button, 
+
+/* 輸入欄 */
+.periods input::-webkit-inner-spin-button,
 .periods input::-webkit-outer-spin-button{
 	appearance: none;
 	margin: 0;
@@ -21,26 +23,23 @@
 .periods input::placeholder{
 	font-style: italic;
 }
-.periods input[type="text"], 
+.periods input[type="text"],
 .periods input[type="date"]{
 	width: auto;
 	max-width: 100%;
-	color: #555;
-	border: 1px dashed #555;
-	background: transparent;
-	border-radius: 2em;
 	margin: .6em auto;
 	padding: .2em;
+	color: #555;
+	border: 1px dashed #555;
+	border-radius: 2em;
+	background: transparent;
 	letter-spacing: .5px;
-	outline: none;
 	text-align: center;
+	outline: none;
 }
-.periods input[type="text"]:hover, 
+.periods input[type="text"]:hover,
 .periods input[type="date"]:hover{
-	border: 1px solid #555;
-}
-.periods input[type="text"][readonly]{
-	cursor: pointer;
+	border-style: solid;
 }
 .periods input:focus{
 	box-shadow: 1px 1px 6px 2px rgba(187,120,94,.5);
@@ -51,78 +50,22 @@
 .periods input[disabled]{
 	color: #888;
 	background-color: #ddd;
-	background-image: linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,.3));
+	background-image: linear-gradient(rgba(255,255,255,0),rgba(255,255,255,.3));
 	cursor: not-allowed;
 }
-/*
-.periods .records:empty::before{
-	display: block;
-	width: 100%;
-	height: 2.2em;
-	margin: 1em auto;
-	background: rgba(255,255,255,.8);
-}
-*/
-.periods .records .tr:nth-child(odd){
-	background: rgba(255,255,255,.6);
-}
-.periods .records .tr:nth-child(even){
-	background: rgba(255,255,255,.1);
-}
-.periods .prediction, 
-.periods .period_removal, 
-.periods .day_trash{
-	display: none;
-}
-.periods .day_trash{
-	border-top: 1px solid #fff;
-	text-align: right;
-}
-.periods .day_trash > div{
-	padding: .6em .8em;
-	color: #fff;
-	background-color: #f16d6e;
-	background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
-	border-radius: .6em;
-	margin: .8em;
-}
-.periods .day_trash > div:hover{
-	filter: brightness(1.2);
-}
-.periods .day_add, 
-.periods .period_remove, 
-.periods .display, 
-.periods .ok, 
-.periods .day_trash > div{
-	cursor: pointer;
-}
-.periods .day_add{
-	font-weight: bold;
-}
-.periods .day_add::before{
-	content: "\f271\00a0";
-}
-.periods .period_remove{
-	padding: .8em;
-}
-.periods .period_remove, 
-.periods .period_interval.ng{
-	color: red;
-}
-.periods .period_remove::before{
-	content: "\f056";
+
+/* 表格 */
+.periods .tr{
+	display: flex;
+	flex-flow: row wrap;
+	align-items: center;
+	justify-content: center;
 }
 .periods .th{
 	position: sticky;
 	top: 0;
 	border-radius: .5em .5em 0 0;
 	background: rgba(229,186,186,.8);
-}
-.periods .tr{
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-flow: row wrap;
 }
 .periods .td{
 	padding: 0 .5em;
@@ -134,49 +77,98 @@
 .periods .td.td2{
 	flex: 2;
 }
-.periods .td.td3{
-	flex: 3;
+.periods .records .tr:nth-child(odd){
+	background: rgba(255,255,255,.6);
 }
-	.periods .display::before{
-		content: attr(data-day);
-	}
-	.periods .display[data-day='']::before{
-		content: "\f055";
-	}
+.periods .records .tr:nth-child(even){
+	background: rgba(255,255,255,.1);
+}
+
+/* 預設隱藏，由 JS 切換 */
+.periods .prediction,
+.periods .period_removal,
+.periods .day_trash,
 .periods .display > div{
 	display: none;
 }
-	.periods .ok::before{
-		content: "\f00c";
-		color: #555;
-	}
-	.periods [data-far]::before, 
-	.periods .period_interval.ng::after, 
-	.periods .display[data-day='']::before{
-		font-family: "Font Awesome 5 Pro";
-		font-weight: 300;
-	}
-	.periods .period_remove::before, 
-	.periods .ok::before{
-		font-family: "Font Awesome 5 Pro";
-		font-weight: 900;
-	}
-	.periods [data-far]::before{
-		content: attr(data-far);
-		padding-right: .4em;
-	}
-	.periods [data-far][data-unit]::after{
-		content: attr(data-unit);
-	}
-	.periods .period_interval.ng::after{
-		content: " \f12a";
-	}
-	[data-pd]::after{
-		content: attr(data-pd);
-	}
+
+.periods .day_add,
+.periods .display,
+.periods .ok,
+.periods .period_remove,
+.periods .day_trash > div,
+.periods input[type="text"][readonly]{
+	cursor: pointer;
+}
+.periods .day_add{
+	font-weight: bold;
+}
+.periods .period_remove{
+	padding: .8em;
+}
+.periods .period_remove,
+.periods .period_interval.ng{
+	color: red;
+}
+
+/* 垃圾桶 */
+.periods .day_trash{
+	border-top: 1px solid #fff;
+	text-align: right;
+}
+.periods .day_trash > div{
+	margin: .8em;
+	padding: .6em .8em;
+	color: #fff;
+	background-color: #f16d6e;
+	background-image: linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,0));
+	border-radius: .6em;
+}
+.periods .day_trash > div:hover{
+	filter: brightness(1.2);
+}
+
+/* 圖示與 data 屬性內容 */
+.periods [data-far]::before,
+.periods .display[data-day='']::before,
+.periods .period_interval.ng::after{
+	font-family: "Font Awesome 5 Pro";
+	font-weight: 300;
+}
+.periods .period_remove::before,
+.periods .ok::before{
+	font-family: "Font Awesome 5 Pro";
+	font-weight: 900;
+}
+.periods [data-far]::before{
+	content: attr(data-far);
+	padding-right: .4em;
+}
+.periods [data-far][data-unit]::after{
+	content: attr(data-unit);
+}
+.periods .display::before{
+	content: attr(data-day);
+}
+.periods .display[data-day='']::before{
+	content: "\f055";
+}
+.periods .ok::before{
+	content: "\f00c";
+	color: #555;
+}
+.periods .period_remove::before{
+	content: "\f056";
+}
+.periods .period_interval.ng::after{
+	content: " \f12a";
+}
+[data-pd]::after{
+	content: attr(data-pd);
+}
 
 /* 手機 */
-@media screen and (max-device-width: 767px){
+@media screen and (max-width: 767px){
 	.periods input[type="text"]{
 		width: 125px;
 	}

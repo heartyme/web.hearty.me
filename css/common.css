@@ -4,7 +4,7 @@
 @import url(//cdn.jsdelivr.net/gh/hung1001/font-awesome-pro@v5.15.4/css/all.min.css);
 
 /* Comfortaa */
-@import url(//fonts.googleapis.com/css?family=Comfortaa);
+@import url(//fonts.googleapis.com/css?family=Comfortaa&display=swap);
 
 /* 台北黑體：git.io/JmrjB */
 @import url(//cdn.jsdelivr.net/gh/vdustr/taipei-sans-tc@v0.1.1/packages/core/dist/Regular/TaipeiSansTCBeta-Regular.min.css);
@@ -29,7 +29,6 @@
 }
 html{
 	box-sizing: border-box;
-	appearance: none;
 }
 html, 
 body{
@@ -247,12 +246,7 @@ git.io/JJKKc
 	src: url(//cdn.jsdelivr.net/gh/max32002/bakudaifont@1.49/webfont/Bakudai-Medium.woff2) format("woff2");
 	font-display: swap;
 }
-@font-face{
-	font-family: wind;
-	/* v2.001 */
-	src: url(//s.hearty.app/fonts/wind/wind-regular.woff2) format("woff2");
-	font-display: swap;
-}
+/* wind 已於上方宣告 */
 @font-face{
 	font-family: fist;
 	src: url(//s.hearty.app/fonts/fist/fist.woff2) format("woff2");
@@ -445,11 +439,9 @@ git.io/JJKKc
 }
 [data-fal]::before{
 	content: attr(data-fal);
-	font-weight: 300;
 }
 [data-falr]::after{
 	content: attr(data-falr);
-	font-weight: 300;
 }
 [data-far]::before{
 	content: attr(data-far);
@@ -459,12 +451,18 @@ git.io/JJKKc
 }
 [data-fas]::before{
 	content: attr(data-fas);
-	font-weight: 900;
 }
 [data-fasr]::after{
 	content: attr(data-fasr);
-	font-weight: 900;
 }
+	[data-fal]::before,
+	[data-falr]::after{
+		font-weight: 300;
+	}
+	[data-fas]::before,
+	[data-fasr]::after{
+		font-weight: 900;
+	}
 
 /* 額外引入 FA7 Brands */
 @font-face{
@@ -514,12 +512,13 @@ input[type="checkbox"]{
 		[landscape_disabled]{
 			display: none;
 		}
-		@media screen and (min-aspect-ratio: 13/9){
-			[landscape_disabled]{
-				display: initial;
-			}
-		}
 }
+	/* 手機橫向 */
+	@media screen and (max-width: 767px) and (min-aspect-ratio: 13/9){
+		[landscape_disabled]{
+			display: initial;
+		}
+	}
 /* 平板專用 */
 @media only screen and (min-width: 768px) and (max-width: 1024px){
 	.desktop:not(.tablet), 

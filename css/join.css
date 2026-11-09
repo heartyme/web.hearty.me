@@ -7,7 +7,6 @@
 }
 html{
 	box-sizing: border-box;
-	appearance: none;
 }
 a:link, 
 a:visited, 
@@ -18,10 +17,8 @@ a:active{
 	color: inherit;
 }
 body.join{
-	background: url(//i.hearty.app/fHsfWPa.jpg) repeat center, #fff;
-	background-attachment: fixed;
+	background: url(//i.hearty.app/fHsfWPa.jpg) repeat center fixed, #fff;
 	overflow-x: hidden;
-	overflow-x: clip;
 	scroll-behavior: smooth;
 	scrollbar-width: none;
 }
@@ -113,7 +110,6 @@ section.join{
 	display: table;
 	width: 100%;
 	min-height: 60vh;
-	height: auto;
 	background: url(//i.hearty.app/XCR4X1w.png) repeat center, #fff;
 	user-select: none;
 }
@@ -137,7 +133,6 @@ section.join{
 	-webkit-background-clip: text;
 	background-clip: text;
 	-webkit-text-fill-color: transparent;
-	text-fill-color: transparent;
 }
 .sub{
 	width: 100%;
@@ -161,13 +156,10 @@ section.join{
 .join_cover .ukulele{
 	width: 60%;
 	height: 100%;
-    background-image: url(//i.hearty.app/i/illustrations/play_ukulele.jpg);
-    background-size: cover;
-    background-position: top center;
-    background-repeat: no-repeat;
-    border-radius: 0 0 0 .5em;
-    box-shadow: inset 0 0 20px 10px #fff;
-    cursor: pointer;
+	background: url(//i.hearty.app/i/illustrations/play_ukulele.jpg) no-repeat top center / cover;
+	border-radius: 0 0 0 .5em;
+	box-shadow: inset 0 0 20px 10px #fff;
+	cursor: pointer;
 }
 .join_cover .tr{
 	display: table-row;
@@ -206,28 +198,26 @@ section.join{
 	letter-spacing: 1px;
 	text-align: center;
 }
-.join_apply .pageside0{
-	float: left;
-    width: 40%;
-	background-image: url(//i.hearty.app/i/illustrations/tree_at_window.jpg);
+.join_apply .pageside0, 
+.join_intro .pageside1, 
+.join_intro .pageside2{
 	background-size: cover;
 	background-repeat: no-repeat;
-	background-position: bottom right;
+	background-position: center left;
 	border-radius: 0 .5em .5em;
+}
+.join_apply .pageside0{
+	float: left;
+	width: 40%;
 	min-height: 100vh;
+	background-image: url(//i.hearty.app/i/illustrations/tree_at_window.jpg);
+	background-position: bottom right;
 }
 .join_intro .pageside1{
 	background-image: url(//i.hearty.app/i/illustrations/picnic.jpg);
-	background-size: cover;
-	background-repeat: no-repeat;
-	background-position: center left;
-	border-radius: 0 .5em .5em;
 }
 .join_intro .pageside2{
 	background-image: url(//i.hearty.app/i/illustrations/cafe_shop.jpg);
-	background-size: cover;
-	background-repeat: no-repeat;
-	background-position: center left;
 	border-radius: .5em 0 .5em;
 }
 .join_intro div{
@@ -275,7 +265,6 @@ section.join{
 	position: relative;
 	padding-bottom: 56.25%;
 	overflow: hidden;
-	overflow: clip;
 }
 .join_documentary .video_yt iframe{
 	position: absolute;
@@ -291,10 +280,6 @@ section.join{
 	padding: 2em 0;
 	background: url(//i.hearty.app/fHsfWPa.jpg) repeat center, #fff;
 	text-align: center;
-}
-.join_enroll img{
-	width: auto;
-	max-width: 100%;
 }
 .join_intro .job_descriptions{
 	list-style: none;
@@ -321,6 +306,7 @@ section.join{
 .join_press div{
 	padding: 1em 0;
 }
+.join_enroll img, 
 .join_press img, 
 .join_hr img{
 	width: auto;
@@ -381,17 +367,17 @@ section.join{
 	margin-right: .5em;
 }
 .gotop{
-    position: fixed;
-    display: none;
-    right: 2vw;
-    bottom: 2em;
-    font-size: 40px;
-    background: rgba(0,0,0,.6);
-    color: #fff;
-    padding: 0 .3em;
-    border-radius: 50%;
-    text-align: center;
-    cursor: pointer;
+	position: fixed;
+	display: none;
+	right: 2vw;
+	bottom: 2em;
+	font-size: 40px;
+	background: rgba(0,0,0,.6);
+	color: #fff;
+	padding: 0 .3em;
+	border-radius: 50%;
+	text-align: center;
+	cursor: pointer;
 }
 .join_apply{
 	position: fixed;
@@ -415,7 +401,6 @@ section.join{
 	min-height: 100vh;
 	line-height: 1.6;
 	overflow-x: hidden;
-	overflow-x: clip;
 	overflow-y: scroll;
 	scroll-behavior: smooth;
 }
@@ -428,7 +413,7 @@ section.join{
 }
 .join_apply .notice{
 	text-align: center;
-	margin: 0 2vw .5em 2vw;
+	margin: 0 2vw .5em;
 	padding: .8em .4em;
 	letter-spacing: 1px;
 	color: #222;
@@ -463,22 +448,6 @@ section.join{
 	color: #222;
 }
 
-/*
-.join_apply .tb_tfoot > :first-child{
-	padding: 1em .4em 1em 1.6em;
-}
-.join_apply .tb_tfoot > :first-child p{
-	text-align: left;
-	text-indent: -1.4em;
-}
-.join_apply .tb_tfoot > :first-child a{
-	color: inherit;
-}
-.join_apply .tb_tfoot > :last-child{
-	padding: 1.6em 1.2em;
-}
-*/
-
 .join_apply .hr{
 	border-top: 1px dotted #999;
 }
@@ -495,7 +464,6 @@ section.join{
 	align-items: center;
 }
 .join_apply .person > div:first-child{
-	float: left;
 	width: 3em;
 	height: 3em;
 	border-radius: 50%;
@@ -521,8 +489,8 @@ section.join{
 }
 .join_apply .submit{
 	display: flex;
-    align-items: center;
-    justify-content: center;
+	align-items: center;
+	justify-content: center;
 }
 .join_apply input, 
 .join_apply textarea{
@@ -542,11 +510,9 @@ section.join{
 	width: 120px;
 }
 .join_apply input[type='url']{
-	width: 90%;
 	width: calc(96% - 2em);
 }
-.join_apply input[name='email'], 
-.join_apply textarea{
+.join_apply input[name='email']{
 	width: 90%;
 }
 .join_apply textarea{
@@ -629,7 +595,7 @@ section.join{
 		min-height: 35vh;
 	}
 	.join_cover .ukulele{
-    	width: 50%;
+		width: 50%;
 	}
 	.join_intro div{
 		padding: .8em 1.2em;
@@ -655,7 +621,6 @@ section.join{
 	}
 	.join_footer .flex_container > div{
 		margin: 0;
-		padding: 2em;
 	}
 	.join_footer .flex_container > div:not(:first-child){
 		padding-top: 0;

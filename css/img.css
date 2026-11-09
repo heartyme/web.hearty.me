@@ -8,10 +8,8 @@ body{
 	background-position: center;
 }
 
-a:link,
-a:visited,
-a:hover,
-a:active{
+/* :is() 與原本四個選擇器的權重相同（0,1,1） */
+a:is(:link, :visited, :hover, :active){
 	text-decoration: none;
 	cursor: pointer;
 	color: inherit;
@@ -255,7 +253,7 @@ a:active{
 	border: 1px solid #555;
 	border-radius: 50%;
 	cursor: pointer;
-	transition: all .2s ease-in;
+	transition: color .2s ease-in, background-color .2s ease-in;
 }
 	.img .nav_btn::before{
 		font-family: "Font Awesome 5 Pro";

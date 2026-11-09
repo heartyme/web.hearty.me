@@ -10,58 +10,66 @@
 .ytbox .yt_playlist{
 	width: 100%;
 }
+
+/* 播放器 */
 .ytbox .yt_player{
 	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: .2em 0;
 	flex-flow: column wrap;
+	justify-content: center;
+	align-items: center;
+	padding: .2em 0;
 }
-	.yt_player > div:first-child{
+	.ytbox .yt_player > div:first-child{
 		position: relative;
 		width: 96%;
-		padding-bottom: 56.25%;
-		border: 3px solid #F16D6E;
+		padding-bottom: 56.25%; /* 16:9 */
+		border: 3px solid #f16d6e;
 		border-radius: .5em;
-		background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@41214/img/kitten.png) no-repeat center, linear-gradient(rgba(253,245,230,.3), rgba(253,245,230,1));
+		background: url(//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@41214/img/kitten.png) no-repeat center, linear-gradient(rgba(253,245,230,.3), #fdf5e6);
 		background-size: 50%;
 		overflow: hidden;
 	}
 		.ytbox iframe#yt_player{
 			position: absolute;
-			width: 100%;
-			height: 100%;
 			top: 0;
 			left: 0;
+			width: 100%;
+			height: 100%;
 			border: 0;
 		}
+	.ytbox .yt_player [data-reminder]{
+		position: absolute;
+		top: .2em;
+		right: 0;
+		cursor: pointer;
+	}
 
+	/* 標題與按鈕列 */
 	.ytbox .ytbox_tabs{
 		position: sticky;
-		display: flex;
-		align-items: center;
-		justify-content: center;
 		top: 0;
+		display: flex;
+		justify-content: center;
+		align-items: center;
 		width: 100%;
 		text-align: center;
 	}
 	.ytbox .ytbox_tabs h2{
-		display: inline-block;
+		margin-right: 1em;
 		color: #222;
 		letter-spacing: 1px;
-		margin-right: 1em;
 	}
 	.ytbox .ytbox_tabs [data-btn]{
-		display: inline-flex;
-		align-items: center;
+		display: flex;
 		justify-content: center;
-		margin: .4em;
+		align-items: center;
 		width: 2.4em;
-			min-width: 2.4em;
+		min-width: 2.4em;
 		height: 2.4em;
+		margin: .4em;
 		color: #fff;
 		background-color: #f16d6e;
-		background-image: linear-gradient(to bottom,rgba(255,255,255,.3),rgba(255,255,255,0));
+		background-image: linear-gradient(rgba(255,255,255,.3), rgba(255,255,255,0));
 		border-radius: 50%;
 		cursor: pointer;
 	}
@@ -72,16 +80,15 @@
 		filter: brightness(1.2);
 	}
 
+/* 播放清單 */
 .ytbox .yt_list{
 	position: relative;
-	overflow-x: hidden;
-	overflow-y: scroll;
 	width: 100%;
-	height: auto;
+	overflow: hidden scroll;
 	scroll-snap-type: y mandatory;
-	touch-action: pan-y;
 	scroll-behavior: smooth;
 	scrollbar-width: none;
+	touch-action: pan-y;
 }
 	.ytbox .yt_list ol{
 		position: absolute;
@@ -90,58 +97,68 @@
 		align-items: center;
 		width: 100%;
 		height: 100%;
-		margin: auto;
-		padding: 0 0 3em 0;
+		margin: 0;
+		padding: 0 0 3em;
 		list-style: none;
 	}
-	.ytbox .yt_list ol:not(:empty)::before, 
+
+	/* 上下漸層遮罩 */
+	.ytbox .yt_list ol:not(:empty)::before,
 	.ytbox .yt_list ol:not(:empty)::after{
+		content: "";
 		position: sticky;
 		display: block;
-		content: "";
 		width: 100%;
 		height: 2em;
 		pointer-events: none;
 	}
 		.ytbox .yt_list ol:not(:empty)::before{
 			top: 0;
-			background: linear-gradient(to top,rgba(255,255,255,0) 0,rgba(255,255,255,1) 100%);
+			background: linear-gradient(#fff, rgba(255,255,255,0));
 			scroll-snap-align: start;
 		}
 		.ytbox .yt_list ol:not(:empty)::after{
 			bottom: 0;
-			background: linear-gradient(to bottom,rgba(255,255,255,0) 0,rgba(255,255,255,1) 100%);
+			background: linear-gradient(rgba(255,255,255,0), #fff);
 		}
-	.ytbox .yt_list ol:empty::before, 
+
+	/* 空清單提示 */
+	.ytbox .yt_list ol:empty::before,
 	.ytbox .yt_list ol:empty::after{
 		display: block;
-		text-align: center;
 		margin: 0 auto;
+		text-align: center;
 	}
 		.ytbox .yt_list ol[data-icon]:empty::before{
-			font-family: "Font Awesome 5 Pro";
-			font-weight: 300;
 			content: attr(data-icon);
 			font-size: 4em;
+			font-weight: 300;
 		}
 		.ytbox .yt_list ol[data-empty]:empty::after{
 			content: attr(data-empty);
 		}
 
+	/* Font Awesome 圖示 */
+	.ytbox .yt_list ol[data-icon]:empty::before,
+	.ytbox .yt_list li[data-playing]::after,
+	.ytbox .yt_list li .arr::before,
+	.ytbox .yt_list li [data-delete]::before{
+		font-family: "Font Awesome 5 Pro";
+	}
+
+	/* 曲目 */
 	.ytbox .yt_list li{
 		width: 100%;
 		margin: .4em 1.2em .4em .5em;
 		padding: .5em 1em;
-		letter-spacing: 1px;
-		line-height: 2;
 		color: #222;
 		background: #eee;
 		border: 1px solid transparent;
 		border-radius: .6em;
-		white-space: nowrap;
-		overflow-wrap: break-word;
-			word-wrap: break-word;
+		line-height: 2;
+		letter-spacing: 1px;
 		text-transform: capitalize;
+		white-space: nowrap;
 		text-overflow: ellipsis;
 		overflow: hidden;
 		cursor: pointer;
@@ -163,51 +180,46 @@
 		content: attr(title);
 		font-size: small;
 		vertical-align: middle;
-		height: 100%;
-		cursor: pointer;
 	}
 	.ytbox .yt_list li[data-playing]{
+		font-weight: bold;
 		background: #f9edbe;
 		border: 1px solid #f0c36d;
 		box-shadow: 1px 1px 6px 2px rgba(187,120,94,.5);
-		font-weight: bold;
 	}
 	.ytbox .yt_list li[data-playing]::after{
-		font-family: "Font Awesome 5 Pro";
-		font-weight: 900;
 		content: "\f04b";
+		margin-left: 1em;
+		font-weight: 900;
 		color: saddlebrown;
 		vertical-align: middle;
-		margin-left: 1em;
-		cursor: pointer;
 	}
 	.ytbox .yt_list li:not(.ui-sortable-helper)[data-opacity]{
 		opacity: .6;
 	}
-	.ytbox .yt_list li .arr::before, 
+
+	/* 拖曳把手、刪除鈕 */
+	.ytbox .yt_list li .arr::before,
 	.ytbox .yt_list li [data-delete]::before{
-		font-family: "Font Awesome 5 Pro";
 		float: right;
 		padding: .2em 1em;
 	}
 	.ytbox .yt_list li .arr::before{
-		font-weight: 300;
 		content: "\f871";
+		font-weight: 300;
 		color: #999;
 		cursor: row-resize;
 	}
 		.ytbox .yt_list li .arr:hover::before{
 			color: #000;
 		}
-
 	.ytbox .yt_list li [data-delete]{
 		display: none;
 	}
 	.ytbox .yt_list li [data-delete]::before{
-		font-weight: 900;
 		content: "\f056";
-		color: #ff0000;
-		cursor: pointer;
+		font-weight: 900;
+		color: #f00;
 	}
 
 /* iPad Portrait + 手機 */
@@ -223,7 +235,6 @@
 		border-bottom: 1px dashed #eaeaea;
 	}
 	.ytbox .yt_playlist{
-		flex-flow: column wrap;
 		height: 90vh;
 	}
 	.ytbox .yt_list{
@@ -234,21 +245,19 @@
 		height: 7.5em;
 	}
 }
+
 /* iPad Landscape + 電腦 */
 @media only screen and (min-width: 481px) and (orientation: landscape){
-	.ytbox .ytbox_tabs{
-		order: 0;
-	}
-	.ytbox .yt_player > div:first-child{
-		order: 1;
-	}
 	.ytbox .yt_playlist{
 		display: flex;
-		align-items: stretch;
-		justify-content: center;
 		flex-flow: row wrap;
+		justify-content: center;
+		align-items: stretch;
 	}
-	.ytbox .yt_player, 
+	.ytbox .yt_player > div:first-child{
+		order: 1; /* 按鈕列移到播放器上方 */
+	}
+	.ytbox .yt_player,
 	.ytbox .yt_list{
 		flex: 1;
 	}
@@ -265,11 +274,4 @@
 	.ytbox .ytbox_tabs [data-btn="lightoff"]{
 		display: none;
 	}
-}
-
-.ytbox .yt_player [data-reminder]{
-	position: absolute;
-	top: .2em;
-	right: 0;
-	cursor: pointer;
 }
