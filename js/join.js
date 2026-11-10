@@ -19,9 +19,13 @@ $(function(){
 });
 leave_InAppBrowser();
 
+// 只在跨越門檻時切換，避免每次 scroll 事件都排入動畫
+let gotop_on;
 $(window).on("scroll", function(){
-	if($(this).scrollTop()>200) $(".gotop").fadeIn();
-	else $(".gotop").fadeOut();
+	const on = $(this).scrollTop()>200;
+	if(on===gotop_on) return;
+	gotop_on = on;
+	$(".gotop")[on ? "fadeIn" : "fadeOut"]();
 });
 
 // 中國版本
@@ -35,8 +39,7 @@ function apply_signin_redirect(){
 }
 
 function application_toggle(on){
-	let $a = $(".join_apply"), 
-		$b = $("body");
+	const $a = $(".join_apply"), $b = $("body");
 	if(on){
 		$a.fadeIn(); $b.addClass("unscrollable");
 		$(".application_wrapper").scrollTop(0);
@@ -46,97 +49,80 @@ function application_toggle(on){
 	}
 }
 
+// 顯示錯誤、聚焦並晃動欄位
+function invalid($el, text){
+	notice(true, text);
+	$el[0]?.focus(); shake($el);
+	return false;
+}
+
 function apply(){
-	if(examine()){
-		let $a = $(".join_apply"), 
-			$e = $a.find("input[name='email']"), 
-			$p = $a.find("input[name='phone']"), 
-			$i = $a.find("textarea[name='idea']"), 
-			$b = $a.find(".submit .join_btn"), 
-			data = encodeURIComponent($("form").serialize().replace(/'/g, ""));
+	if(!examine()) return;
 
-		if($e.val().length<6 || !/@/.test($e.val())){
-			notice(true, "Email 格式不正確");
-			$e[0]?.focus(); shake($e);
-			return false;
-		}
-		else if($p.val().length<10 || $p.val().substr(0,2)!=="09"){
-			notice(true, "手機格式不符合");
-			$p[0]?.focus(); shake($p);
-			return false;
-		}
-		else if($i.val().length<20){
-			notice(true, "報名原因多填一些，讓我們進一步了解你");
-			$i[0]?.focus(); shake($i);
-			return false;
-		}
+	const $a = $(".join_apply"),
+		$e = $a.find("input[name='email']"),
+		$p = $a.find("input[name='phone']"),
+		$i = $a.find("textarea[name='idea']"),
+		$b = $a.find(".submit .join_btn"),
+		email = $e.val();
 
-		alertify.set({labels: {ok: "<i class='fas fa-inbox-out'></i> 確認送出", cancel: "取消"}, buttonReverse: false});
-		alertify.confirm("<i class='far fa-mailbox'></i> 確定送出報名表嗎？", function(e){
-			if(e){
-				$("body").addClass("page-loading");
-				$b.addClass("disabled").attr("onclick", "");
+	if(email.length<6 || !email.includes("@")) return invalid($e, "Email 格式不正確");
+	const phone = $p.val();
+	if(phone.length<10 || !phone.startsWith("09")) return invalid($p, "手機格式不符合");
+	if($i.val().length<20) return invalid($i, "報名原因多填一些，讓我們進一步了解你");
 
-				$.ajax({
-					url: location.href, 
-					type: "POST", 
-					crossDomain: true, 
-					dataType: "json", 
-					data: {
-						action: "join", 
-						data: data
-					}, 
-					async: true, 
-					xhrFields: {withCredentials: true}
-				}).then(function(r){
-					$("body").removeClass("page-loading");
-					switch(r){
-						case 1:
-							$a.find(".tb, .remark").fadeOut(); notice(false);
-							$a.find(".submitted").slideDown();
-						break;
+	const data = encodeURIComponent($("form").serialize().replace(/'/g, "")),
+		fail = function(r){
+			$("body").removeClass("page-loading");
+			notice(true, "發生異常，請稍候重試");
+			$b.attr({onclick: "apply()"}).removeClass("disabled");
+			shake($a.find(".tb"));
+			msg("糟了，請稍候重試\n"+r);
+		};
 
-						default:
-							notice(true, "發生異常，請稍候重試");
-							$b.attr({onclick: "apply()"}).removeClass("disabled");
-							shake($a.find(".tb"));
-							msg("糟了，請稍候重試\n"+r);
-						break;
-					}
-					fb_evt_push("Lead");
-				}).fail(function(e){
-					notice(true, "發生異常，請稍候重試");
-					$b.attr({onclick: "apply()"}).removeClass("disabled");
-					shake($a.find(".tb"));
-					msg("糟了，請稍候重試\n"+e);
-				});
+	alertify.set({labels: {ok: "<i class='fas fa-inbox-out'></i> 確認送出", cancel: "取消"}, buttonReverse: false});
+	alertify.confirm("<i class='far fa-mailbox'></i> 確定送出報名表嗎？", function(ok){
+		if(!ok) return;
+		$("body").addClass("page-loading");
+		$b.addClass("disabled").attr("onclick", "");
+
+		$.ajax({
+			url: location.href,
+			type: "POST",
+			crossDomain: true,
+			dataType: "json",
+			data: {action: "join", data: data},
+			xhrFields: {withCredentials: true}
+		}).then(function(r){
+			if(r===1){
+				$("body").removeClass("page-loading");
+				$a.find(".tb, .remark").fadeOut(); notice(false);
+				$a.find(".submitted").slideDown();
 			}
-		});
-	}
+			else fail(r);
+			fb_evt_push("Lead");
+		}).fail(fail);
+	});
 }
 
+// 必填欄位檢查：text 至少 1 字、url 至少 10 字
 function examine(){
-	let $a = $(".join_apply"), e = !0;
-	$a.find("input[type='text'][required]").each(function(){
-		if($(this).val().length<1){
-			notice(true, "「"+$(this).attr("title")+"」尚未填寫");
-			this.focus(); shake($(this));
-			e = !1; return e;
+	const $a = $(".join_apply");
+	for(const [type, min] of [["text", 1], ["url", 10]]){
+		const el = $a.find("input[type='"+type+"'][required]").get().find(el => $(el).val().length<min);
+		if(el){
+			notice(true, "「"+$(el).attr("title")+"」尚未填寫");
+			if(type==="url") $(el).trigger("select");
+			else el.focus();
+			shake($(el));
+			return;
 		}
-	}); if(!e){return;}
-
-	$a.find("input[type='url'][required]").each(function(){ 
-		if($(this).val().length<10){
-			notice(true, "「"+$(this).attr("title")+"」尚未填寫");
-			$(this).trigger("select"); shake($(this));
-			e = !1; return e;
-		}
-	}); if(!e){return;}
-	return e;
+	}
+	return true;
 }
 
-function notice(on, msg){
-	let $n = $(".notice");
-	if(on) $n.text(msg).fadeIn("fast");
+function notice(on, text){
+	const $n = $(".notice");
+	if(on) $n.text(text).fadeIn("fast");
 	else $n.fadeOut();
 }
