@@ -76,15 +76,20 @@ $(function(){
 });
 
 // 月份標題：data-month="2026-10" → 依語系顯示（如：2026年10月）
+// 格式器於首次使用時建立並重用，免得每個標題重新解析語系
+var img_month_fmt;
 function img_month_label(el){
+	img_month_fmt = img_month_fmt || new Intl.DateTimeFormat(hj_lang(), {
+		year: "numeric",
+		month: "short"
+	});
 	$(el).filter(".img_month").each(function(){
 		let m = (this.dataset.month||"").split("-");
-		this.textContent = new Date(m[0], m[1]-1, 1).toLocaleDateString(hj_lang(), {
-			year: "numeric",
-			month: "short"
-		});
+		this.textContent = img_month_fmt.format(new Date(m[0], m[1]-1, 1));
 	});
 }
+
+const img_wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // 版型：grid（預設）/ masonry
 function img_layout(){
@@ -112,7 +117,6 @@ function img_layout_set(layout){
 	}
 
 	// 轉場動畫：masonry 排版較耗時，以免畫面停住
-	const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 	$body.addClass("loading");
 
 	// 待轉場動畫繪出後再排版
@@ -123,8 +127,8 @@ function img_layout_set(layout){
 
 		// 排版完成即結束（未載入的圖片多時最多等 1.5 秒），且至少顯示 300ms 避免一閃而過
 		Promise.all([
-			Promise.race([img_masonry_layout($wall[0]), wait(1500)]),
-			wait(300)
+			Promise.race([img_masonry_layout($wall[0]), img_wait(1500)]),
+			img_wait(300)
 		]).finally(() => $body.removeClass("loading"));
 	}));
 }
@@ -154,6 +158,7 @@ function img_masonry_layout(el){
 		});
 
 		// 依 DOM 順序放出已載入的連續段；只 appended 不 layout，舊圖不會移動
+		// 已放入的略過：切換版型與載入下一頁同時發生時，同一張圖會由兩次排版各處理一次
 		let pending = $(el).find("figure").addBack("figure").get(), raf = 0;
 		const flush = () => {
 			raf = 0;
@@ -161,7 +166,7 @@ function img_masonry_layout(el){
 			let ready = [];
 			while(pending.length && pending[0].dataset.loaded){
 				let f = pending.shift();
-				if(f.isConnected) ready.push(f);
+				if(f.isConnected && !f.classList.contains("msnry-item")) ready.push(f);
 			}
 			if(ready.length==0) return;
 			ready.forEach(f => f.classList.add("msnry-item"));

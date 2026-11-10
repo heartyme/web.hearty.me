@@ -360,15 +360,15 @@ function battery_watch(){
 function hj_idle(){
 	var $t = $(".editor_toolbelt"), 
 		$sl = $(".screenlock"), 
-		toolbar_enabled = !is_touch_device() && current_post()["editable"];
+		toolbar_enabled = !is_touch_device() && current_post()["editable"], 
+		idle = 0; // 閒置秒數（僅本頁使用，不需寫入 webStorage）
 
 	$(document).on("mousemove keypress", hj_motion);
 	$("#editor_editable").on("keydown", hj_motion);
 	hj_motion();
 
 	setInterval(function(){
-		var t = Number(hj__cache({bucket: "hearty_idle"}));
-		t++; hj__cache({set: true, bucket: "hearty_idle", data: t});
+		var t = ++idle;
 
 		switch(true){
 			case (t==4 && autosave_the_change()): // 4s
@@ -394,7 +394,7 @@ function hj_idle(){
 	}, 1000);
 
 	function hj_motion(){
-		hj__cache({set: true, bucket: "hearty_idle", data: 0});
+		idle = 0;
 		if(toolbar_enabled) $t.slideDown("normal");
 	}
 }
@@ -942,7 +942,7 @@ function style_change(evt){ // ?style=1 網址會觸發
 	}
 
 	function style_color(color){
-		let s = $(":root").get(0)?.style, 
+		let s = document.documentElement.style, 
 			$c = $(".colors");
 
 		if(!color){ // 書本初始化
@@ -969,7 +969,7 @@ function style_change(evt){ // ?style=1 網址會觸發
 			category: category
 		}).then(function(r){
 			if(r["Status"]==1){
-				let s = $(":root").get(0)?.style;
+				let s = document.documentElement.style;
 
 				// 封面 (2)
 				if(category==2){
@@ -990,6 +990,32 @@ function style_change(evt){ // ?style=1 網址會觸發
 		});
 	}
 
+	// 上傳封面 (2)、背景 (3) 圖片；成功時以檔名呼叫 done
+	function style_img_upload(file, filename, category, done, complete){
+		let d = new FormData();
+		if(filename) d.append("myfile", file, filename);
+		else d.append("myfile", file);
+		d.append("category", category);
+		d.append("privacy", 9);
+
+		return $.ajax({
+			url: "/update", 
+			type: "POST", 
+			data: d, 
+			dataType: "json", 
+			contentType: false, // 需為 false
+			processData: false, // 需為 false
+			complete: complete, 
+			success: function(r){
+				if(r["status"]==1) done(r["basenames"]);
+				else msg("Error: "+JSON.stringify(r));
+			}, 
+			error: function(xhr, status, err){
+				msg("Error: "+err);
+			}
+		});
+	}
+
 function bg_uploader_init(){
 	let $bg = $("#bg_upload");
 	$bg.on("input", function(evt){
@@ -1000,39 +1026,15 @@ function bg_uploader_init(){
 		if(file){
 			let ext = (file.name||"").split('.').pop().toLowerCase();
 			if(/jpg|jpeg|png|gif|bmp|webp|avif|heic|heif/i.test(ext)){
-				let d = new FormData();
-				d.append("myfile", file);
-				d.append("category", 3);
-				d.append("privacy", 9);
-
-				$.ajax({
-					url: "/update", 
-					type: "POST",
-					data: d, 
-					dataType: "json", 
-					contentType: false, // 需為 false
-					processData: false, // 需為 false
-					complete: function(){
-						hj_loading(false);
-						$bg.val("");
-					}, 
-					success: function(r){
-						if(r["status"]==1){
-							let s = $(":root").get(0)?.style, 
-								img = "//i.hearty.app/bg/"+r["basenames"];
-
-							s.setProperty("--book-bg", "url('"+img+"')");
-							s.setProperty("--book-bg-size", "cover");
-							s.setProperty("--book-bg-repeat", "no-repeat");
-							alertify.success('<i class="fas fa-book-spells"></i> '+_h("e-bg-3"));
-						}
-						else{
-							msg("Error: "+JSON.stringify(r));
-						}
-					}, 
-					error: function (xhr, status, err){
-						msg("Error: "+err);
-					}
+				style_img_upload(file, null, 3, function(basenames){
+					let s = document.documentElement.style;
+					s.setProperty("--book-bg", "url('//i.hearty.app/bg/"+basenames+"')");
+					s.setProperty("--book-bg-size", "cover");
+					s.setProperty("--book-bg-repeat", "no-repeat");
+					alertify.success('<i class="fas fa-book-spells"></i> '+_h("e-bg-3"));
+				}, function(){
+					hj_loading(false);
+					$bg.val("");
 				});
 			}
 			else{
@@ -1136,7 +1138,7 @@ function cover_uploader_init(){
 			style_img_reset(2, true); // 先刪舊圖
 
 			let scale = cropper.getCropperImage().$getTransform()[0], // 顯示尺寸 / 原圖尺寸
-				s = $(":root").get(0)?.style;
+				s = document.documentElement.style;
 
 			// 以原圖解析度匯出 canvas
 			selection.$toCanvas({width: selection.width/scale}).then(cropped => {
@@ -1144,34 +1146,11 @@ function cover_uploader_init(){
 
 				// 將 canvas轉為 Blob，然後上傳
 				cropped.toBlob(blob => {
-					let d = new FormData();
-					d.append("myfile", blob, "cover.png");
-					d.append("category", 2);
-					d.append("privacy", 9);
-
-					$.ajax({
-						url: "/update", 
-						type: "POST", 
-						data: d, 
-						dataType: "json", 
-						contentType: false, // 需為 false
-						processData: false, // 需為 false
-						complete: function(){
-							hj_loading(false);
-						}, 
-						success: function(r){
-							if(r["status"]==1){
-								let img = "//i.hearty.app/c/"+r["basenames"];
-								s.setProperty("--book-cover", "url('"+img+"')");
-								alertify.success('<i class="fas fa-book-spells"></i> '+_h("e-cover-6"));
-							}
-							else{
-								msg("Error: "+JSON.stringify(r));
-							}
-						}, 
-						error: function(xhr, status, err){
-							msg("Error: "+err);
-						}
+					style_img_upload(blob, "cover.png", 2, function(basenames){
+						s.setProperty("--book-cover", "url('//i.hearty.app/c/"+basenames+"')");
+						alertify.success('<i class="fas fa-book-spells"></i> '+_h("e-cover-6"));
+					}, function(){
+						hj_loading(false);
 					});
 				}, "image/jpeg");
 			}).catch(err => {
@@ -1448,19 +1427,7 @@ function bookmark_query(pg, $btn){
 	}).then(function(r){
 		switch(r["Status"]){
 			case 1:
-				var catalog = r["Values"]["catalog"].map(function(p, n){
-					p["title"] = p["title"] || _h("e-bookmark-3");
-					p["title_decoded"] = htmlDecode(p["title"]);
-					return {
-						post_id: p["post_id"], 
-						title: p["title_decoded"], 
-						privacy: p["privacy"], 
-						editable: p["editable"], 
-						outbound_count: p["outbound_count"], 
-						page: Math.ceil((n+1)/10)
-					};
-				});
-				catalog_listing(catalog);
+				catalog_listing(catalog_map(r["Values"]["catalog"], "e-bookmark-3"));
 				catalog_toggle("bookmarks");
 
 				// 分頁
@@ -1485,59 +1452,42 @@ function catalog_query(keyword, pg){
 
 	keyword = keyword || "";
 	var bucket = "hearty_diaries_"+hj_writer+"__"+bucket_suffix(), 
-		catalog = []; // 不使用快取 (catalog = catalog_cached() || {} 使用快取)
-	var post;
+		catalog = []; // 不使用快取，一律向後端查詢
 
-	if(!catalog.length){
-		hj_update({
-			action: "catalog_query", 
-			writer: hj_writer, 
-			page: 0, // 0=all
-			keyword: keyword
-		}).then(function(r){
-			switch(r["Status"]){
-				case 1:
-					catalog = r["Values"]["catalog"].map(function(p, n){
-						p["title"] = p["title"] || _h("e-catalog-2");
-						p["title_decoded"] = htmlDecode(p["title"]);
-						return {
-							post_id: p["post_id"], 
-							title: p["title_decoded"], 
-							privacy: p["privacy"], 
-							editable: p["editable"], 
-							outbound_count: p["outbound_count"], 
-							page: Math.ceil((n+1)/10)
-						};
-					});
+	hj_update({
+		action: "catalog_query", 
+		writer: hj_writer, 
+		page: 0, // 0=all
+		keyword: keyword
+	}).then(function(r){
+		switch(r["Status"]){
+			case 1:
+				catalog = catalog_map(r["Values"]["catalog"], "e-catalog-2");
 
-					hj__cache({set: true, bucket: bucket, data: JSON.stringify(catalog)});
-					window.$d2.resolve();
+				hj__cache({set: true, bucket: bucket, data: JSON.stringify(catalog)});
+				window.$d2.resolve();
 
-					// 分頁
-					var post_num = r["Values"]["catalog"].length;
-					$(".catalog .pagination").attr("data-stats", 
-						_h("e-catalog-"+(post_num>1?1:0), {$no: post_num})
-					);
-					catalog_pagination(
-						!keyword ? 
-						post_num : // 列表 (分頁)
-						0 // 搜尋 (不分頁)
-					);
-				break;
+				// 分頁
+				var post_num = r["Values"]["catalog"].length;
+				$(".catalog .pagination").attr("data-stats", 
+					_h("e-catalog-"+(post_num>1?1:0), {$no: post_num})
+				);
+				catalog_pagination(
+					!keyword ? 
+					post_num : // 列表 (分頁)
+					0 // 搜尋 (不分頁)
+				);
+			break;
 
-				default:
-					update_failed();
-					window.$d2.reject();
-				break;
-			}
-		}).fail(function(j){
-			hj_update_failed({fn: "catalog_query", flag: 1, err: j});
-			window.$d2.reject();
-		});
-	}
-	else{
-		window.$d2.resolve();
-	}
+			default:
+				update_failed();
+				window.$d2.reject();
+			break;
+		}
+	}).fail(function(j){
+		hj_update_failed({fn: "catalog_query", flag: 1, err: j});
+		window.$d2.reject();
+	});
 
 	$.when(window.$d2).done(function(){
 		catalog_listing(catalog, pg);
@@ -1545,18 +1495,18 @@ function catalog_query(keyword, pg){
 		// 類別 filter
 		if(keyword.length>0) catalog_toggle("search");
 
-		// toTop
+		// toTop（每次查詢都會重新綁定，先移除舊的避免重複累積）
 		var $u = [
 			$(".bk-cover-back .fa-chevron-square-up"), 
 			$(".catalog[data-mobile] .fa-chevron-square-up")
 		];
 		if($(".catalog[data-desktop]").get(0)?.scrollHeight>$(".bk-cover-back>div").height()){
-			$(".catalog[data-desktop]").on("scroll", function(){
+			$(".catalog[data-desktop]").off("scroll.totop").on("scroll.totop", function(){
 				if($(this).scrollTop()>10) $u[0].fadeIn();
 				else $u[0].fadeOut();
 			});
 		}
-		$(".catalog[data-mobile]>div>div").on("scroll", function(){
+		$(".catalog[data-mobile]>div>div").off("scroll.totop").on("scroll.totop", function(){
 			if($(this).scrollTop()>10) $u[1].fadeIn();
 			else $u[1].fadeOut();
 		});
@@ -1568,6 +1518,21 @@ function catalog_query(keyword, pg){
 		window.$d2 = $.Deferred();
 	});
 }
+	// 將後端回傳的目錄轉為列表格式（每 10 篇一頁）
+	function catalog_map(list, default_title){
+		return list.map(function(p, n){
+			p["title"] = p["title"] || _h(default_title);
+			p["title_decoded"] = htmlDecode(p["title"]);
+			return {
+				post_id: p["post_id"], 
+				title: p["title_decoded"], 
+				privacy: p["privacy"], 
+				editable: p["editable"], 
+				outbound_count: p["outbound_count"], 
+				page: Math.ceil((n+1)/10)
+			};
+		});
+	}
 	function catalog_listing(catalog, pg){
 		$(".catalog .diaries").html(
 			catalog.map(function(p){
@@ -1601,19 +1566,14 @@ function catalog_query(keyword, pg){
 
 // 目錄查詢
 function catalog_lookup(post_id){
-	var catalog = catalog_cached(), 
-		post_index = [];
+	var catalog = catalog_cached();
 	if(!catalog){
 		catalog_query(null, {page: 1});
 		return false;
 	}
 	else if(catalog.length>0){
-		catalog.forEach(function(p, i){
-			post_index[p["post_id"]] = i;
-		});
-
 		// 某一篇
-		if(post_id>0) return post_id in post_index ? catalog[post_index[post_id]] : null;
+		if(post_id>0) return catalog.find(function(p){return p["post_id"]==post_id;}) || null;
 		// 第一篇
 		else if(post_id===0) return catalog[0];
 		// 最後一篇
@@ -1700,66 +1660,29 @@ function catalog_toggle(t){
 			bookmarks: $c.find(".btn_bookmarks"), 
 			arr: $pg.find(".fa-caret-circle-left,.fa-caret-circle-right")
 		}, 
-		n = 0; // 計數用途
+		// 篇數統計（桌機、手機兩份目錄，故除以 2）
+		stats = function(editable, empty_key){
+			var n = $d.find("[data-editable='"+editable+"']").length/2;
+			$pg.attr("data-stats", 
+				n===0 ? _h(empty_key) :
+				n===1 ? _h("e-catalog-0") :
+				_h("e-catalog-1", {$no: n})
+			);
+			$d.attr("data-pg", t);
+		};
 
 	switch(t){
 		case "my":
 			catalog_page({page: 1});
-
-			n = $d.find("[data-editable='1']").length/2;
-			switch(n){
-				case 0:
-					n = _h("e-catalog-3");
-				break;
-
-				case 1:
-					n = _h("e-catalog-0");
-				break;
-
-				default:
-					n = _h("e-catalog-1", {$no: n});
-				break;
-			}
-			$pg.attr("data-stats", n);
-			$d.attr("data-pg", t);
+			stats(1, "e-catalog-3");
 		break;
 
 		case "shared":
-			n = $d.find("[data-editable='0']").length/2;
-			switch(n){
-				case 0:
-					n = _h("e-catalog-4");
-				break;
-
-				case 1:
-					n = _h("e-catalog-0");
-				break;
-
-				default:
-					n = _h("e-catalog-1", {$no: n});
-				break;
-			}
-			$pg.attr("data-stats", n);
-			$d.attr("data-pg", t);
+			stats(0, "e-catalog-4");
 		break;
 
 		case "search":
-			n = $d.find("[data-editable='1']").length/2;
-			switch(n){
-				case 0:
-					n = _h("e-search-3");
-				break;
-
-				case 1:
-					n = _h("e-catalog-0");
-				break;
-
-				default:
-					n = _h("e-catalog-1", {$no: n});
-				break;
-			}
-			$pg.attr("data-stats", n);
-			$d.attr("data-pg", t);
+			stats(1, "e-search-3");
 		break;
 
 		case "bookmarks":
@@ -2567,9 +2490,7 @@ function sticker__remove(d){
 
 // 貼紙儲存
 function sticker__save_remote(){
-	var r = sticker__lookup("bundles"), 
-		bundles = "bundles" in r[1] ? r[1]["bundles"] : [];
-
+	var bundles = sticker__bundles();
 	if(!bundles.length) return false;
 	hj_update({
 		action: "sticker_save", 
@@ -2638,8 +2559,7 @@ function post_privacy(privacy, published){
 	autosave_the_change();
 	privacy = Number(privacy);
 	var post_id = current_post()["post_id"], 
-		$e = $(".bk-page #editor_editable"), 
-		$u = $(".share .sharable_url");
+		$e = $(".bk-page #editor_editable");
 
 	if(verify_required("email", _h("e-verify_required-3")) || verify_required("phone", _h("e-verify_required-3"))
 		){
@@ -3120,20 +3040,20 @@ function post_penpal_share(){
 		$s = $(".share .penpals select"), 
 		$o = $s.children("option"), 
 		penpals = $s.val() || [], 
-		penpals_prev = JSON.parse($s.data("penpals") || null) || [];
-		$s.data({penpals: JSON.stringify(penpals)});
+		penpals_prev = JSON.parse($s.data("penpals") || null) || [], 
+		penpal_info = function(penpal_id){
+			var $p = $o.filter("[value='"+penpal_id+"']");
+			return {
+				penpal_id: penpal_id, 
+				user_id: $p.attr("data-user_id"), 
+				nickname: $p.text()
+			};
+		};
+	$s.data({penpals: JSON.stringify(penpals)});
 
 	penpals = {
-		added: $(penpals).not(penpals_prev).get().map(penpal_id=>({
-			penpal_id: penpal_id, 
-			user_id: $o.filter("[value='"+penpal_id+"']").attr("data-user_id"), 
-			nickname: $o.filter("[value='"+penpal_id+"']").text()
-		})), 
-		removed: $(penpals_prev).not(penpals).get().map(penpal_id=>({
-			penpal_id: penpal_id, 
-			user_id: $o.filter("[value='"+penpal_id+"']").attr("data-user_id"), 
-			nickname: $o.filter("[value='"+penpal_id+"']").text()
-		}))
+		added: $(penpals).not(penpals_prev).get().map(penpal_info), 
+		removed: $(penpals_prev).not(penpals).get().map(penpal_info)
 	};
 
 	hj_update({
@@ -3310,8 +3230,7 @@ function hj_feedback(){
 
 // 貼紙簿
 function sticker__list(set_num, set_alias){
-	var wpCDN = "i0.wp.com", 
-		isVIP = hj_membership()[0], 
+	var isVIP = hj_membership()[0], 
 		$book = $(".stickerbook"), 
 		$tabs = $book.find(".stickertabs"), 
 		$dir = $book.find(".stickerlist .stickerdir"), 
@@ -3341,47 +3260,36 @@ function sticker__list(set_num, set_alias){
 	// 目錄載入
 	if(set_num==null){
 		$.when($list_deferred).done(function(){
-			sets.forEach(function(set){
-				let set_num = parseInt(set["num"]);
-				set["name"] = set["name"+(is_zh?"":"_en")];
-				if([
-					29, // 裝飾
-					44, // 呷菜
-					68, // 泥尼
-					69 // 溫度日記團隊
-				].indexOf(set_num)<0){
-					dir.push(
-						$("<div>", {
-							class: "item", 
-							onclick: "sticker__list(\'"+set_num+"\',\'"+set["alias"]+"\')", 
-							title: set["name"], 
-							html: $("<div>", {
-									"data-src": set["alias"]+"/"+set["cover"]+".png"
-								}).add($("<h5>", {
-									text: set["name"], 
-									"data-new": +(set_num>122||[27,104,105,115].indexOf(set_num)>=0)
-								})), 
-							"data-sticker": 0
-						})
-					);
-				}
-			});
+			// 目錄已建立過則不重複加入（每次啟用編輯器都會呼叫 sticker__list()）
+			if(!$dir.find(".item[data-sticker='0']").length){
+				sets.forEach(function(set){
+					let set_num = parseInt(set["num"]);
+					set["name"] = set["name"+(is_zh?"":"_en")];
+					if([
+						29, // 裝飾
+						44, // 呷菜
+						68, // 泥尼
+						69 // 溫度日記團隊
+					].indexOf(set_num)<0){
+						dir.push(
+							$("<div>", {
+								class: "item", 
+								onclick: "sticker__list(\'"+set_num+"\',\'"+set["alias"]+"\')", 
+								title: set["name"], 
+								html: $("<div>", {
+										"data-src": set["alias"]+"/"+set["cover"]+".png"
+									}).add($("<h5>", {
+										text: set["name"], 
+										"data-new": +(set_num>122||[27,104,105,115].indexOf(set_num)>=0)
+									})), 
+								"data-sticker": 0
+							})
+						);
+					}
+				});
 
-			$dir.append(dir).find(".item div").lazy({
-				threshold: 100, 
-				effect: "fadeIn", 
-				effectTime: 200, 
-				imageBase: "//i.hearty.app/b/images/stickers/thumbnails/", 
-				appendScroll: $dir, 
-				onError: function($e){
-					var src = "//"+wpCDN+"/s.hearty.app/images/stickers/thumbnails/"+$e.attr("data-src");
-					$e.attr({
-						"data-src-backup": src
-					}).css({
-						"background-image": "url('"+src+"')"
-					});
-				}
-			});
+				sticker__list_lazy($dir.append(dir).find(".item div"), $dir);
+			}
 
 			$book.find(".tab_main").fadeIn();
 		});
@@ -3411,10 +3319,7 @@ function sticker__list(set_num, set_alias){
 		else{
 			$dir.scrollTop(0);
 
-			// 將陣列改為以組號為索引之物件
-			var sets_asso = [];
-				sets.forEach(function(set){sets_asso[set["num"]] = set;});
-			var set = sets_asso[set_num], 
+			var set = sets.find(function(s){return s["num"]==set_num;}), 
 				$item = $book.find(".item[data-sticker='"+set_num+"']");
 			if(!$item.length){
 				// 取得組內資訊
@@ -3441,21 +3346,7 @@ function sticker__list(set_num, set_alias){
 				});
 				$dir.append(dir);
 				$item = $book.find(".item[data-sticker='"+set_num+"']");
-				$item.find("div").lazy({
-					threshold: 100, 
-					effect: "fadeIn", 
-					effectTime: 200, 
-					imageBase: "//i.hearty.app/b/images/stickers/thumbnails/", 
-					appendScroll: $dir, 
-					onError: function($e){
-						var src = "//"+wpCDN+"/s.hearty.app/images/stickers/thumbnails/"+$e.attr("data-src");
-						$e.attr({
-							"data-src-backup": src
-						}).css({
-							"background-image": "url('"+src+"')"
-						});
-					}
-				});
+				sticker__list_lazy($item.find("div"), $dir);
 			}
 
 			$item.removeClass("hidden");
@@ -3467,13 +3358,32 @@ function sticker__list(set_num, set_alias){
 	}
 	$(".mh-head .btn_stickerbook").show();
 }
+	// 貼紙縮圖延遲載入；失敗時改走 WordPress CDN
+	function sticker__list_lazy($e, $dir){
+		return $e.lazy({
+			threshold: 100, 
+			effect: "fadeIn", 
+			effectTime: 200, 
+			imageBase: "//i.hearty.app/b/images/stickers/thumbnails/", 
+			appendScroll: $dir, 
+			onError: function($e){
+				var src = "//i0.wp.com/s.hearty.app/images/stickers/thumbnails/"+$e.attr("data-src");
+				$e.attr({
+					"data-src-backup": src
+				}).css({
+					"background-image": "url('"+src+"')"
+				});
+			}
+		});
+	}
 
 // 編輯區放大
 function editor_focus_zoomin(){
 	var is_mobile = is_touch_device() || $(window).width()<=767, 
 		is_iOS = check_OS("iOS"), 
 		editor_topmargin = $("#editor").get(0)?.offsetTop;
-	$("#editor_editable").on("focus", function(){
+	// 每次載入可編輯的日記都會呼叫，先移除舊的避免重複累積
+	$("#editor_editable").off(".zoomin").on("focus.zoomin", function(){
 		$(".mh-head .left,.mh-head .right:first>div,.bk-underlayer").hide();
 
 		$(".bk-page").find("header,.frame").slideUp(80);
@@ -3501,7 +3411,7 @@ function editor_focus_zoomin(){
 			// Add: Back to Blur
 			hj_editor_history("add", "[editable_blur]");
 		}
-	}).on("blur", function(){
+	}).on("blur.zoomin", function(){
 		$(".mh-head .left,.bk-underlayer,.bk-page header,.bk-page .frame,.mh-head .right:first > div").show();
 		$(".bk-page").find("header,.frame").slideDown(80);
 
@@ -4048,17 +3958,15 @@ function post_create(pos, $btn, gps_prompted){
 		}
 	}
 
-	var title = _h("e-subject-0", {$date: date_format()});
+	var title = _h("e-subject-0", {$date: date_format()}), 
+		d = {action: "post_create", title: title};
 
-	return hj_update(!gps ? {
-		action: "post_create", 
-		title: title
-	} : {
-		action: "post_create", 
-		title: title, 
-		location_lat: gps["latitude"]||"", 
-		location_lon: gps["longitude"]||""
-	}).then(function(r){
+	if(gps){
+		d.location_lat = gps["latitude"]||"";
+		d.location_lon = gps["longitude"]||"";
+	}
+
+	return hj_update(d).then(function(r){
 		switch(r["Status"]){
 			case 1:
 				$mask.hide();
@@ -4571,7 +4479,7 @@ function open_external(l){
 		if($a.length>0 && "sendBeacon" in navigator){
 			$a.each(function(){
 				var l = $(this).attr("data-link") || location.origin;
-				navigator.sendBeacon("//s0.wp.com/mshots/v1/"+encodeURIComponent(l)+(l.indexOf("?")>0? "&":"?")+"?w=320");
+				navigator.sendBeacon("//s0.wp.com/mshots/v1/"+encodeURIComponent(l)+(l.indexOf("?")>0 ? "&":"?")+"w=320");
 			});
 		}
 	}
@@ -5180,31 +5088,7 @@ function hj_purchase(d){
 			hj_href("shop/np.buy?"+$.param(d));
 		}
 
-		let pkg_id = d["pkg"], 
-			pkg = pkg_info(pkg_id);
-
-		ga_evt_push("add_to_cart", {
-			items: [{
-				item_id: pkg_id, 
-				item_name: "VIP Premium", 
-				item_list_name: "pricing", 
-				item_variant: (d["recurring"]==0 ? "Prepaid" : "Monthly")+" Plan", 
-				quantity: pkg["quantity"], 
-				price: pkg["unit"]
-			}]
-		});
-		fb_evt_push("AddToCart", {
-			content_type: "product", 
-			content_name: "VIP Premium", 
-			contents: [{
-				id: pkg_id, 
-				quantity: pkg["quantity"]
-			}], 
-			value: pkg["subtotal"], 
-			num_items: 1, 
-			currency: "TWD"
-		});
-		oa_evt_push("items_added", "contents");
+		purchase_evt_push(d);
 	}
 	// TP 為主
 	// 僅台灣儲值用藍新，其他用 TP
@@ -5222,31 +5106,7 @@ function hj_purchase(d){
 			hj_href("shop/tp.buy?"+$.param(d));
 		}
 
-		let pkg_id = d["pkg"], 
-			pkg = pkg_info(pkg_id);
-
-		ga_evt_push("add_to_cart", {
-			items: [{
-				item_id: pkg_id, 
-				item_name: "VIP Premium", 
-				item_list_name: "pricing", 
-				item_variant: (d["recurring"]==0 ? "Prepaid" : "Monthly")+" Plan", 
-				quantity: pkg["quantity"], 
-				price: pkg["unit"]
-			}]
-		});
-		fb_evt_push("AddToCart", {
-			content_type: "product", 
-			content_name: "VIP Premium", 
-			contents: [{
-				id: pkg_id, 
-				quantity: pkg["quantity"]
-			}], 
-			value: pkg["subtotal"], 
-			num_items: 1, 
-			currency: "TWD"
-		});
-		oa_evt_push("items_added", "contents");
+		purchase_evt_push(d);
 	}
 
 	// 藍新 (已停用)
@@ -5254,8 +5114,14 @@ function hj_purchase(d){
 		if(d==null) return false;
 		hj_href("shop/np.buy?"+$.param(d));
 
+		purchase_evt_push(d);
+	}
+
+	// 加入購物車追蹤 (GA、FB、OA)
+	function purchase_evt_push(d){
 		let pkg_id = d["pkg"], 
 			pkg = pkg_info(pkg_id);
+
 		ga_evt_push("add_to_cart", {
 			items: [{
 				item_id: pkg_id, 

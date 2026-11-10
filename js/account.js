@@ -47,9 +47,9 @@ function account_init(){
 	});
 
 	// 移除已停用的字體
-	[2,16,23,24,25,26,27,28,29,30,31].forEach(function(i){
-		$("#post_font option[value='"+i+"']").remove();
-	});
+	$("#post_font option").filter(function(){
+		return [2,16,23,24,25,26,27,28,29,30,31].includes(+this.value);
+	}).remove();
 
 	document.title = _h("a-title")+" | 💝 Hearty Journal 溫度日記";
 }
@@ -85,14 +85,25 @@ function profile_update(field, data, ok){
 		});
 	}
 
+// 設定 alertify 確認／取消按鈕文字
+function alertify_labels(ok, cancel, reverse){
+	alertify.set({labels: {ok: ok, cancel: cancel}, buttonReverse: !!reverse});
+}
+
+// 密碼長度限制（設定密碼、匯出備份共用）
+const PWD_MIN = 6, PWD_MAX = 20;
+function password_valid(pwd){
+	return pwd.length>=PWD_MIN && pwd.length<=PWD_MAX;
+}
+
 // 密碼輸入框（設定密碼、匯出備份共用）
 function alertify_input_password(placeholder){
 	return alertify_input_custom({
 		type: "password",
 		placeholder: placeholder,
 		autocomplete: "new-password",
-		minlength: 6,
-		maxlength: 20
+		minlength: PWD_MIN,
+		maxlength: PWD_MAX
 	}, {
 		"letter-spacing": "2px"
 	});
@@ -100,12 +111,12 @@ function alertify_input_password(placeholder){
 
 function signin_ask(f){
 	let a = getcookie("hearty_account") || "",
-		u = "?r="+location.href.split("#")[0].split("?")[0].replace(location.origin, "")+(a ? "&account="+a : "")+"#signin";
+		u = "?r="+location.pathname+(a ? "&account="+a : "")+"#signin";
 	if(f){
 		hj_href(u);
 	}
 	else{
-		alertify.set({labels: {ok: _h("a-no"), cancel: '<i class="fas fa-door-open"></i> '+_h("a-signin-0")}, buttonReverse: false});
+		alertify_labels(_h("a-no"), '<i class="fas fa-door-open"></i> '+_h("a-signin-0"));
 		alertify.confirm('<i class="fal fa-user-lock"></i> '+_h("a-signin-1"), function(e){
 			if(!e) hj_href(u);
 		});
@@ -195,7 +206,7 @@ function birthday_init(){
 	function birthday_edit(bday){
 		if(bday==null) return;
 
-		alertify.set({labels: {ok: '<i class="fas fa-check-circle"></i> '+_h("a-ok-3"), cancel: _h("a-no")}, buttonReverse: false});
+		alertify_labels('<i class="fas fa-check-circle"></i> '+_h("a-ok-3"), _h("a-no"));
 		alertify.confirm('<i class="fal fa-birthday-cake"></i> '+_h("a-bday_ask-0", {$bday: bday.replace(/-/g,"/")}), function(e){
 			if(e){
 				profile_update("birthday", bday, function(){
@@ -221,17 +232,17 @@ function birthday_init(){
 function password_edit(txt){
 	if(!email_verified_required(_h("a-pwd_edit"))) return false;
 
-	alertify.set({labels: {ok: '<i class="fas fa-lock"></i> '+_h("a-pwd_apply-0"), cancel: _h("a-no")}, buttonReverse: false});
+	alertify_labels('<i class="fas fa-lock"></i> '+_h("a-pwd_apply-0"), _h("a-no"));
 	alertify.prompt('<i class="far fa-key"></i> '+(txt || _h("a-pwd_enter")), function(e, pwd){
 		if(!e) return;
 
-		if(pwd.length<6 || pwd.length>20){
+		if(!password_valid(pwd)){
 			password_edit(_h("a-pwd_invalid"));
 			alertify_input_shake();
 			return;
 		}
 
-		alertify.set({labels: {ok: '<i class="fas fa-lock"></i> '+_h("a-pwd_apply-1"), cancel: _h("a-no")}, buttonReverse: false});
+		alertify_labels('<i class="fas fa-lock"></i> '+_h("a-pwd_apply-1"), _h("a-no"));
 		alertify.prompt('<i class="far fa-key"></i> '+_h("a-pwd_confirm"), function(e, pwd2){
 			if(!e) return;
 
@@ -299,7 +310,7 @@ function uploader_init(){
 
 function hj_picture(ask){
 	if(ask){
-		alertify.set({labels: {ok: _h("a-no"), cancel: '<i class="fas fa-arrow-circle-up"></i> '+_h("a-upload")}, buttonReverse: true});
+		alertify_labels(_h("a-no"), '<i class="fas fa-arrow-circle-up"></i> '+_h("a-upload"), true);
 		alertify.confirm('<i class="fal fa-image"></i> '+_h("a-avatar-0"), function(e){
 			if(!e) hj_picture();
 		});
@@ -312,7 +323,7 @@ function hj_picture(ask){
 function picture_rotate(){
 	let $i = $("#profile_image img");
 
-	alertify.set({labels: {ok: '<i class="fas fa-check-circle"></i> '+_h("a-ok-1"), cancel: '<i class="fas fa-undo fa-flip-horizontal"></i> '+_h("a-rotate")}, buttonReverse: false});
+	alertify_labels('<i class="fas fa-check-circle"></i> '+_h("a-ok-1"), '<i class="fas fa-undo fa-flip-horizontal"></i> '+_h("a-rotate"));
 	alertify.confirm($i.prop("outerHTML"), function(e){
 		if(e) return;
 
@@ -353,7 +364,7 @@ function nickname_edit(changed){
 
 function email_edit(email){
 	email = (email || $("[data-email]").attr("data-email") || "").toLowerCase();
-	alertify.set({labels: {ok: '<i class="fas fa-chevron-right"></i> '+_h("a-next"), cancel: _h("a-no")}, buttonReverse: false});
+	alertify_labels('<i class="fas fa-chevron-right"></i> '+_h("a-next"), _h("a-no"));
 	alertify.prompt('<i class="far fa-envelope"></i> '+_h("a-email_new"), function(e, email_new){
 		if(!e) return;
 
@@ -364,7 +375,7 @@ function email_edit(email){
 		else if(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,12}$/.test(email_new) &&
 			!/@(hearty(\.(me|app|gift)|mail\.com)|miss\.com\.tw|hj\.rs|ht\.mk|(|chen)nien\.(co(m|)|org))/.test(email_new)
 		){
-			alertify.set({labels: {ok: _h("a-ok-1"), cancel: _h("a-no")}, buttonReverse: false});
+			alertify_labels(_h("a-ok-1"), _h("a-no"));
 			alertify.confirm(_h("a-email_confirm", {$email: email_new}), function(e){
 				if(!e) return;
 
@@ -416,7 +427,7 @@ function email_edit(email){
 
 	function email_verification(ask){
 		if(ask){
-			alertify.set({labels: {ok: _h("a-ok-2"), cancel: _h("a-no")}, buttonReverse: false});
+			alertify_labels(_h("a-ok-2"), _h("a-no"));
 			alertify.confirm('<i class="far fa-envelope"></i> '+_h("a-email_send"), function(e){
 				if(e) email_verification(false);
 			});
@@ -425,14 +436,14 @@ function email_edit(email){
 
 		let $v = $("[data-email-verify]");
 		hj_update({action: "email_verification"}).then(function(r){
-			switch(r["Status"]){
-				case 1:
+			switch(+r["Status"]){
+				case 1: {
 					hj_timer($v.find("#email_resend"), true);
 					$v.attr("data-email-verify", 0);
 
 					let u = r["Values"]["email_login_url"];
 					if(u.length>0){
-						alertify.set({labels: {ok: _h("a-ok-0"), cancel: _h("a-no")}, buttonReverse: false});
+						alertify_labels(_h("a-ok-0"), _h("a-no"));
 						alertify.confirm(_h("a-email_sent-0", {$isp: u[0]}), function(e){
 							if(!e) return;
 							if(/iOS|Android/i.test(check_hjapp())) hj_href("wv?o="+u[1]);
@@ -445,6 +456,7 @@ function email_edit(email){
 
 					ga_profile("Email Sent");
 				break;
+				}
 
 				case 2:
 					signin_ask();
@@ -507,7 +519,7 @@ function support_pincode(reissue){
 		if(r["Status"]!=1) return;
 
 		let pin = r["Values"]["pincode"];
-		alertify.set({labels: {ok: '<i class="fas fa-arrow-alt-to-bottom"></i> '+_h("a-pin-1"), cancel: '<i class="fas fa-reply"></i> '+_h("a-back")}, buttonReverse: false});
+		alertify_labels('<i class="fas fa-arrow-alt-to-bottom"></i> '+_h("a-pin-1"), '<i class="fas fa-reply"></i> '+_h("a-back"));
 		alertify.confirm('<i class="far fa-comment-dots"></i> '+_h("a-pin-0", {$pin: pin}), function(e){
 			if(e){
 				$("<a>", {
@@ -528,7 +540,7 @@ function font_info(x){
 		msg('<i class="fal fa-file-certificate"></i> '+_h("a-font-2"));
 		return;
 	}
-	alertify.set({labels: {ok: '<i class="fas fa-copyright"></i> '+_h("a-font-3"), cancel: _h("a-ok-0")}, buttonReverse: true});
+	alertify_labels('<i class="fas fa-copyright"></i> '+_h("a-font-3"), _h("a-ok-0"), true);
 	alertify.confirm('<img src="//i.hearty.app/'+_h("a-font-1")+'" title="'+_h("a-font-0")+'" alt="'+_h("a-font-0")+'">', function(e){
 		if(e) font_info(false);
 	});
@@ -563,7 +575,7 @@ function timezone_edit(tz){
 
 function username_details(){
 	let username = $(".hj_username").attr("title") || "";
-	alertify.set({labels: {ok: '<i class="fas fa-sync"></i> '+_h("a-id_edit"), cancel: '<i class="fas fa-hand-peace"></i> '+_h("a-back")}, buttonReverse: true});
+	alertify_labels('<i class="fas fa-sync"></i> '+_h("a-id_edit"), '<i class="fas fa-hand-peace"></i> '+_h("a-back"), true);
 	alertify.confirm('<i class="fal fa-user"></i> '+_h("a-id")+"<u>"+username+'</u> <i class="far fa-globe-asia"></i><br>('+_h("a-id_public")+")", function(e){
 		if(e) username_edit(username);
 	});
@@ -574,7 +586,7 @@ function username_details(){
 	function username_edit(username, dialog){
 		if(!email_verified_required(_h("a-id_edit"))) return false;
 
-		alertify.set({labels: {ok: '<i class="fas fa-check-circle"></i> '+_h("a-id_edit"), cancel: _h("a-no")}, buttonReverse: true});
+		alertify_labels('<i class="fas fa-check-circle"></i> '+_h("a-id_edit"), _h("a-no"), true);
 		alertify.prompt('<i class="fal fa-user"></i> '+_h("a-id_new")+'<br><i class="fal fa-info-circle"></i> '+(dialog || _h("a-id_format")), function(e, new_username){
 			if(!e) return;
 
@@ -637,8 +649,9 @@ function username_details(){
 
 function nav_account(p, no_animation){
 	p = p||0;
-	$(".account").get(0)?.scroll({
-		left: $(".account").children().eq(p).get(0)?.offsetLeft,
+	let $a = $(".account");
+	$a.get(0)?.scroll({
+		left: $a.children().get(p)?.offsetLeft,
 		behavior: no_animation ? "instant" : "smooth" // CSS scroll-behavior
 	});
 	$(".nav_account li").removeAttr("data-active").eq(p).attr("data-active", "");
@@ -660,7 +673,7 @@ function export_journal(){
 		}
 
 		let fmt = "txt";
-		alertify.set({labels: {ok: _h("a-dl_fmt-3"), cancel: _h("a-no")}, buttonReverse: false});
+		alertify_labels(_h("a-dl_fmt-3"), _h("a-no"));
 		alertify.confirm('<i class="far fa-briefcase"></i> '+_h("a-dl_fmt-0")+
 			'<label style="display:block;margin-top:.8em;cursor:pointer"><input type="radio" name="export_fmt" value="txt" checked> <i class="far fa-file-alt"></i> '+_h("a-dl_fmt-1")+"</label>"+
 			'<label style="display:block;margin-top:.4em;cursor:pointer"><input type="radio" name="export_fmt" value="docx"> <i class="far fa-file-word"></i> '+_h("a-dl_fmt-2")+"</label>", function(e){
@@ -688,11 +701,11 @@ function export_journal(){
 }
 	// 輸入溫度密碼：格式不符時以 retry 重新詢問
 	function export_password(txt, retry, callback, ok){
-		alertify.set({labels: {ok: '<i class="fas fa-lock"></i> '+(ok || _h("a-dl_pwd-2")), cancel: _h("a-no")}, buttonReverse: false});
+		alertify_labels('<i class="fas fa-lock"></i> '+(ok || _h("a-dl_pwd-2")), _h("a-no"));
 		alertify.prompt((txt || '<i class="far fa-briefcase"></i> '+_h("a-dl_pwd-0")), function(e, pwd){
 			if(!e) return;
 
-			if(pwd.length<6 || pwd.length>20){
+			if(!password_valid(pwd)){
 				retry('<i class="far fa-info-circle"></i> '+_h("a-dl_pwd-1"));
 				alertify_input_shake();
 				export_stats("password_malformatted");
@@ -707,7 +720,7 @@ function export_journal(){
 		export_password(txt, export_txt, function(pwd){
 			hj_loading();
 
-			$("<form>", {
+			let $f = $("<form>", {
 				method: "POST",
 				target: "_self",
 				action: "/update",
@@ -720,6 +733,7 @@ function export_journal(){
 			alertify.success('<i class="far fa-arrow-to-bottom"></i> '+_h("a-dl_pwd-3"));
 
 			$.wait(1000).then(function(){
+				$f.remove(); // 送出後移除，避免密碼留在 DOM、重複匯出時累積表單
 				hj_loading(false);
 			});
 			$.wait(2000).then(function(){
@@ -775,7 +789,7 @@ function export_journal(){
 			return n+p["images"].length;
 		}, 0);
 
-		alertify.set({labels: {ok: '<i class="fas fa-file-word"></i> '+_h("a-dl_doc-1"), cancel: _h("a-no")}, buttonReverse: false});
+		alertify_labels('<i class="fas fa-file-word"></i> '+_h("a-dl_doc-1"), _h("a-no"));
 		alertify.confirm('<i class="far fa-file-word"></i> '+_h("a-dl_doc-0", {"$posts": d["posts"].length.toLocaleString(), "$images": images.toLocaleString()}), function(e){
 			if(!e) return;
 
@@ -867,14 +881,14 @@ function export_journal(){
 	}
 
 function vip_only(fn){
-	alertify.set({labels: {ok: _h("a-vip_only-3"), cancel: '<i class="fas fa-star"></i> '+_h("a-vip_only-2")}, buttonReverse: true});
+	alertify_labels(_h("a-vip_only-3"), '<i class="fas fa-star"></i> '+_h("a-vip_only-2"), true);
 	alertify.confirm('<i class="fal fa-box-full"></i> '+(!fn ? _h("a-vip_only-0") : "「"+fn+"」")+_h("a-vip_only-1"), function(e){
 		if(!e) hj_href("d?plans=1");
 	});
 }
 
 function account_suspend(){
-	alertify.set({labels: {ok: '<i class="fas fa-check-circle"></i> '+_h("a-suspend-3"), cancel: _h("a-suspend-2")}, buttonReverse: false});
+	alertify_labels('<i class="fas fa-check-circle"></i> '+_h("a-suspend-3"), _h("a-suspend-2"));
 	alertify.confirm(_h("a-suspend-0")+'<br>(<a onclick="$(\'#alertify-ok\').trigger(\'click\');username_details()" href="javascript:void(0)">'+_h("a-suspend-1")+"</a>)", function(e){
 		if(!e) account_suspend2(false);
 	});
@@ -895,7 +909,12 @@ function account_suspend(){
 
 		// forms.gle/pG9hstUbCSYF64kP9
 		// open_url will be blocked by Safari here (due to no user interaction detected)
-		hj_href("//docs.google.com/forms/d/e/1FAIpQLSfVJkAOUtBdmwXo6Hc7GBoCRnXBk41PRdcutHnHfgkrBBL3oA/viewform?embedded=true&emailAddress="+$("[data-email]").attr("data-email")+"&entry.537131775="+$(".hj_username").attr("title")+"&entry.1511837812="+check_browser()+", "+check_OS());
+		hj_href("//docs.google.com/forms/d/e/1FAIpQLSfVJkAOUtBdmwXo6Hc7GBoCRnXBk41PRdcutHnHfgkrBBL3oA/viewform?"+$.param({
+			embedded: true,
+			emailAddress: $("[data-email]").attr("data-email") || "",
+			"entry.537131775": $(".hj_username").attr("title") || "",
+			"entry.1511837812": check_browser()+", "+check_OS()
+		}));
 		$("#alertify-ok").trigger("click");
 	}
 
@@ -920,7 +939,7 @@ function signin_history(){
 			).prop("outerHTML");
 		});
 
-		alertify.set({labels: {ok: '<i class="fas fa-reply"></i> '+_h("a-back"), cancel: '<i class="fas fa-shield-check"></i> '+_h("a-auth_log-2")}, buttonReverse: true});
+		alertify_labels('<i class="fas fa-reply"></i> '+_h("a-back"), '<i class="fas fa-shield-check"></i> '+_h("a-auth_log-2"), true);
 		alertify.confirm("<h3>"+_h("a-auth_log-0")+"</h3>"+$("<table>", {class: "signin_history", html: rows.join("")}).prop("outerHTML"), function(e){
 			if(!e) open_url(_h("a-auth_log-3"));
 		});
@@ -930,7 +949,7 @@ function signin_history(){
 function voucher_redeem(voucher){
 	voucher = voucher || getcookie("hearty_voucher") || "";
 
-	alertify.set({labels: {ok: '<i class="fas fa-check-circle"></i> '+_h("a-redeem-1"), cancel: _h("a-no")}, buttonReverse: false});
+	alertify_labels('<i class="fas fa-check-circle"></i> '+_h("a-redeem-1"), _h("a-no"));
 	alertify.prompt('<i class="far fa-gift-card"></i> '+_h("a-redeem-0"), function(e, voucher){
 		if(!e) return;
 
@@ -943,7 +962,7 @@ function voucher_redeem(voucher){
 		}
 		// 1. 老用戶限定優惠：序號同為用戶 ID
 		else if(v==$(".hj_username").attr("title")){
-			alertify.set({labels: {ok: _h("a-no"), cancel: '<i class="fas fa-arrow-alt-circle-right"></i> '+_h("a-voucher_vvip-2")}, buttonReverse: true});
+			alertify_labels(_h("a-no"), '<i class="fas fa-arrow-alt-circle-right"></i> '+_h("a-voucher_vvip-2"), true);
 			alertify.confirm('<img src="//i.hearty.app/i/vvip.png"><br><br><b>'+_h("a-voucher_vvip-0")+" ヽ(✿´･ヮ･)ﾉ♡</b><br>"+_h("a-voucher_vvip-1"), function(e){
 				if(e) return;
 
@@ -982,7 +1001,7 @@ function voucher_redeem(voucher){
 		}
 		// 2. EC 開頭，為療癒商城購物金序號
 		else if(v.startsWith("ec-")){
-			alertify.set({labels: {ok: '<i class="fas fa-shopping-cart"></i> '+_h("a-voucher_ec-1"), cancel: _h("a-back")}, buttonReverse: false});
+			alertify_labels('<i class="fas fa-shopping-cart"></i> '+_h("a-voucher_ec-1"), _h("a-back"));
 			alertify.confirm('<i class="fal fa-info-circle"></i> '+_h("a-voucher_ec-0"), function(e){
 				if(e) location.href = "/life";
 			});
@@ -1015,7 +1034,7 @@ function voucher_redeem(voucher){
 				dataType: "json",
 				data: {voucher: voucher}
 			}).then(function(r){
-				switch(r["Status"]){
+				switch(+r["Status"]){
 					case 0:
 						msg('<i class="far fa-times-circle"></i> '+_h("a-voucher_invalid"), _h("a-retry"), function(){
 							voucher_redeem();

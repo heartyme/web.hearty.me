@@ -2,6 +2,17 @@
 
 var btn_alias = "feed";
 
+// 疫情相關關鍵字：符合時顯示健康提醒
+const FEED_COVID_RE = /co(vid|ronavirus)|vaccin(e|ation)|(epi|pan)demic|delta|omicron|新冠|冠(狀|状)|病毒|肺炎|疫(情|苗)|(防|抗)疫|武(漢|汉)/i,
+	FEED_HTML_ESC = {"<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;"};
+
+// 最近一次 read_post 的序號，用以忽略過期的回應
+let feed_read_seq = 0;
+
+function feed_avatar_bg(profile_image){
+	return "url(//i.hearty.app/u/"+profile_image+")";
+}
+
 hj_getScript("//cdn.jsdelivr.net/combine/npm/@webcreate/infinite-ajax-scroll@3.1.0/dist/infinite-ajax-scroll.min.js,npm/pulltorefreshjs@0.1.22/dist/index.umd.min.js").then(function(){
 	$(function(){
 		post_font();
@@ -45,8 +56,13 @@ hj_getScript("//cdn.jsdelivr.net/combine/npm/@webcreate/infinite-ajax-scroll@3.1
 		const $story = $(".page .story"),
 			$gotop = $(".nav_btn.fa-chevron-up");
 
+		// 僅在顯示狀態改變時才觸發動畫，避免每個 scroll 事件都重啟淡入淡出
+		let gotop_shown = false;
 		$story.on("scroll", function(){
-			$gotop.stop()[$(this).scrollTop()>200 ? "fadeIn" : "fadeOut"]("slow");
+			const show = this.scrollTop>200;
+			if(show===gotop_shown) return;
+			gotop_shown = show;
+			$gotop.stop()[show ? "fadeIn" : "fadeOut"]("slow");
 		}).hide();
 		$gotop.on("click", function(){
 			$story.stop().scrollTop(0);
@@ -89,16 +105,17 @@ leave_InAppBrowser();
 function feed_hotkey_init(){
 	if(is_touch_device()) return;
 
+	const $f = $(".feed_wall");
 	$(document).on("keydown", function(e){
-		if(e.keyCode!=38 && e.keyCode!=40) return;
+		if(e.key!=="ArrowUp" && e.key!=="ArrowDown") return;
 		e.preventDefault();
 
-		const $f = $(".feed_wall"),
-			$a = $f.find("article");
+		// 文章會由 infinite scroll 動態加入，每次重新查詢
+		const $a = $f.find("article");
 		if(!$a.length) return;
 
 		const $active = $a.filter("[data-active]"),
-			a = (e.keyCode==38 ? $active.prev() : $active.next()).get(0) || $a.get(0);
+			a = (e.key==="ArrowUp" ? $active.prev() : $active.next()).get(0) || $a.get(0);
 		a.click();
 		$f.scrollTop(a.offsetTop || $f.get(0).scrollHeight);
 	});
@@ -106,7 +123,7 @@ function feed_hotkey_init(){
 
 // 手機版：返回鍵依序關閉個人檔案、單篇日記，最後回到日記本
 function hj_feed_history_init(){
-	if($("body").width()>=1025 || typeof history.pushState!=="function") return;
+	if($("body").width()>=1025) return;
 
 	const push = function(){
 		history.pushState(null, document.title, location.href);
@@ -156,7 +173,8 @@ function read_post(d){
 	const post_id = Number(d.post_id) || 0,
 		$s = $(".page .story"),
 		$p = $s.find("article"),
-		on_mobile = is_touch_device();
+		on_mobile = is_touch_device(),
+		seq = ++feed_read_seq;
 
 	if(!on_mobile) $s.fadeOut("fast");
 
@@ -169,6 +187,9 @@ function read_post(d){
 		},
 		dataType: "json"
 	}).then(function(r){
+		// 快速連點多篇時，只採用最後一次的回應，避免內容與選取狀態不一致
+		if(seq!==feed_read_seq) return;
+
 		if(r.Status!=1){
 			nav_feed(0);
 			return;
@@ -181,7 +202,7 @@ function read_post(d){
 		$p.find("p").html(linkify(post));
 
 		// 疫情相關日記，顯示健康提醒
-		$s.find(".reminder").toggle(/co(vid|ronavirus)|vaccin(e|ation)|(epi|pan)demic|delta|omicron|新冠|冠(狀|状)|病毒|肺炎|疫(情|苗)|(防|抗)疫|武(漢|汉)/i.test(r.title+post));
+		$s.find(".reminder").toggle(FEED_COVID_RE.test(r.title+post));
 
 		$p.find(".published").attr({title: r.published});
 		$p.attr({
@@ -192,7 +213,7 @@ function read_post(d){
 			"data-profile_image": d.profile_image,
 			"data-gender": d.gender
 		}).find("div").css({
-			"background-image": "url(//i.hearty.app/u/"+d.profile_image+")"
+			"background-image": feed_avatar_bg(d.profile_image)
 		});
 		$(".page .illustration").hide();
 
@@ -205,7 +226,7 @@ function read_post(d){
 		$(".feed_wall article").removeAttr("data-active")
 			.filter("[data-post_id='"+post_id+"']").attr("data-active", "");
 	}).fail(function(){
-		msg();
+		if(seq===feed_read_seq) msg();
 	});
 
 	nav_feed(1);
@@ -213,7 +234,7 @@ function read_post(d){
 	function linkify(s){
 		return (s || "")
 		// escape <>"' (&apos; 不含 #，避免被 Hashtags 誤判)
-		.replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;")
+		.replace(/[<>"']/g, function(c){ return FEED_HTML_ESC[c]; })
 
 		// https://+ Owned Domains
 		.replace(/\bhttps:\/\/(|(\w+)\.)(hearty\.(me|app|gift|tw|page\.link|eu\.org)|hj\.rs|ht\.mk|nien\.(co(m|)|org)|youtu(be\.com|\.be))(\/(\S+)?|)/gim, '<a target="_blank" href="$&" rel="ugc" title="$&">$&</a>')
@@ -270,7 +291,7 @@ function profile_popup(username, nickname, profile_image, gender, post_id){
 		return;
 	}
 	$p.find("[data-a]").css({
-		"background-image": "url(//i.hearty.app/u/"+profile_image+")"
+		"background-image": feed_avatar_bg(profile_image)
 	});
 	$p.find("[data-n]").attr({title: nickname, "data-gender": gender});
 	$p.find("[data-link]").attr({

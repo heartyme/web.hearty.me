@@ -7,11 +7,13 @@ dataLayer.push({event: "custom", event_name: "hearty_test"});
 $.ajaxSetup({scriptCharset: "utf-8", cache: true});
 $.wait = function(ms){
 	var d = $.Deferred();
-	setTimeout(function(){
-		d.resolve();
-	}, ms);
+	setTimeout(() => d.resolve(), ms);
 	return d;
 };
+
+// GitHub 靜態檔（jsDelivr）版本
+var HJ_GH_REPO = "heartyme/web.hearty.me",
+	HJ_GH_COMMIT = "939abcb2eb00e66a121d6d0eb3f0ea029fcc239a"; // "main"
 
 $(function(){
 	_h_init(); // 語系檔
@@ -35,11 +37,8 @@ function hj_update(d){
 			url: "/update", 
 			type: "POST", 
 			dataType: "json", 
-			data: d, 
-			async: false, 
-			success: function(v){
-				return $(v)["selector"];
-			}
+			data: d,
+			async: false
 		});
 		return r.status>=200 && r.status<300 || r.status==304 ? 
 			JSON.parse(r.responseText) : false;
@@ -53,7 +52,7 @@ function check_OS(os){
 	let u = navigator.userAgent || "", 
 		d = /iP(ad|hone|od)|watchOS/i.test(u) ? ["iOS"] : 
 			u.match(/Windows|Macintosh|Android|Linux/gi) || [];
-	d = d.length>0 ? d.slice(-1)[0] : "";
+	d = d.length>0 ? d[d.length-1] : "";
 
 	// iPadOS
 	if(d=="Macintosh" && is_touch_device()) d = "iOS";
@@ -68,8 +67,8 @@ function check_browser(browser){
 	return browser==null ? b : browser==b;
 }
 function check_hjapp(app){
-	let a = (navigator.userAgent || "").match(/Hearty_(iOS|Android|macOS)/) || [];
-	a = a.length>0 ? a[0].replace(/Hearty_/i, "") : false;
+	let a = (navigator.userAgent || "").match(/Hearty_(iOS|Android|macOS)/);
+	a = a ? a[1] : false;
 	return app==null ? a : app==a;
 }
 
@@ -79,38 +78,37 @@ function check_hjpwa(){
 }
 
 function hj_getScript(url, onsuccess, onerror, attrs){
-	return $.ajax({
-		type: "GET", 
-		dataType: "script", 
-		url: url, 
-		success: onsuccess || {}, 
-		error: onerror || {}, 
-		cache: true, 
-		scriptCharset: "utf-8", 
-		attrs: attrs || {}
-	});
+	let opt = {
+		type: "GET",
+		dataType: "script",
+		url: url,
+		success: onsuccess || $.noop,
+		error: onerror || $.noop,
+		cache: true,
+		scriptCharset: "utf-8"
+	};
+	// jQuery 3.4+ 的選項名稱為 scriptAttrs（指定時改以 <script> 標籤載入）；未指定時維持原載入方式
+	if(attrs) opt.scriptAttrs = attrs;
+	return $.ajax(opt);
 }
+	// 主 CDN 失敗時改用備援 CDN；回傳的 promise 反映最終結果（備援成功即 resolve），onerror 只在兩者皆失敗時呼叫
+	function hj_getScript_fallback(primary, backup, onsuccess, onerror){
+		return hj_getScript(primary, onsuccess).then(null, function(){
+			return hj_getScript(backup, onsuccess, onerror);
+		});
+	}
 	function hj_getScript_npm(path, onsuccess, onerror){
 		path = path || "jquery@4.0.0/dist/jquery.min.js";
-		onsuccess = onsuccess || {};
-		onerror = onerror || {};
-
-		return hj_getScript("//cdn.jsdelivr.net/npm/"+path, onsuccess, function(){
-			return hj_getScript("//unpkg.com/"+path, onsuccess, onerror);
-		});
+		return hj_getScript_fallback("//cdn.jsdelivr.net/npm/"+path, "//unpkg.com/"+path, onsuccess, onerror);
 	}
 	function hj_getScript_gh(p, onsuccess, onerror){
 		p = p || {};
-			p["repo"] = "repo" in p ? p["repo"] : "heartyme/web.hearty.me";
-			p["path"] = "path" in p ? p["path"] : "";
-			p["commit"] = "commit" in p ? p["commit"] : "a670dd4641dc28e833c426832f181a966b82183f"; // "main"
+			if(!("repo" in p)) p["repo"] = HJ_GH_REPO;
+			if(!("path" in p)) p["path"] = "";
+			if(!("commit" in p)) p["commit"] = HJ_GH_COMMIT;
 
-		onsuccess = onsuccess || {};
-		onerror = onerror || {};
-
-		return hj_getScript("//cdn.jsdelivr.net/gh/"+p["repo"]+"@"+p["commit"]+"/"+p["path"], onsuccess, function(){
-			return hj_getScript("//fastly.jsdelivr.net/gh/"+p["repo"]+"/"+p["commit"]+"/"+p["path"], onsuccess, onerror);
-		});
+		let file = "/gh/"+p["repo"]+"@"+p["commit"]+"/"+p["path"];
+		return hj_getScript_fallback("//cdn.jsdelivr.net"+file, "//fastly.jsdelivr.net"+file, onsuccess, onerror);
 	}
 	function hcaptcha_init(f){
 		if("hcaptcha" in window){
@@ -138,12 +136,12 @@ function hj_getFile(url, filename, callback){
 			if(!r.ok) throw new Error();
 			return r.blob();
 		}).then(function(b){
-			let u = (window.URL||window.webkitURL).createObjectURL(b);
+			let u = URL.createObjectURL(b);
 			$("<a>", {
-				href: u, 
-				download: decodeURIComponent(filename || url.split("/").slice(-1)[0] || "")
-			}).get(0)?.click();
-			(window.URL||window.webkitURL).revokeObjectURL(u);
+				href: u,
+				download: decodeURIComponent(filename || url.split("/").pop() || "")
+			}).get(0).click();
+			URL.revokeObjectURL(u);
 
 			if(typeof callback=="function") callback();
 		}).catch(function(){
@@ -158,30 +156,31 @@ function hj_getFile(url, filename, callback){
 }
 
 function hj_jsdelivr(){
-	return "//cdn.jsdelivr.net/gh/heartyme/web.hearty.me@a670dd4641dc28e833c426832f181a966b82183f/";
+	return "//cdn.jsdelivr.net/gh/"+HJ_GH_REPO+"@"+HJ_GH_COMMIT+"/";
 }
 
 // 語系檔
 function _h_init(){
 	if(typeof _h$=="object" && $("[data-h]").length>0){
 		$("body *,title").each(function(){
-			let o = Object.assign({}, $(this).get(0)?.dataset);
+			let o = Object.assign({}, this.dataset), // 複製一份，迴圈中移除屬性不影響走訪
+				$t = $(this);
 
 			for(let k in o){
 				// 文字
 				if(k=="h"){
-					let v = _h(o[k]).replace(/\n/g, "");
+					let s = _h(o[k]),
+						v = s.replace(/\n/g, "");
 
-					if($(this).is("title")) $(this).text(v); // document.title
-					else $(this).prepend(_h(o[k]).replace(/\n/g, "<br>")).attr({title: v});
-					$(this).removeAttr("data-h");
+					if($t.is("title")) $t.text(v); // document.title
+					else $t.prepend(s.replace(/\n/g, "<br>")).attr({title: v});
+					$t.removeAttr("data-h");
 				}
 				// 日期
 				else if(k=="h_date"){
-					let d = o[k];
-					d = !d ? "" : date_format(o[k], true);
-					$(this).attr({
-						"data-date": d, 
+					let d = o[k] ? date_format(o[k], true) : "";
+					$t.attr({
+						"data-date": d,
 						title: d
 					}).removeAttr("data-"+k);
 				}
@@ -190,16 +189,16 @@ function _h_init(){
 					let v = _h(o[k]), // 索引查詢
 						attr = {}; // 待寫入值
 
-					k = k.substr(2); // 去掉 _h
+					k = k.slice(2); // 去掉 h_
 
 					if(k=="title"){
-						if($(this).is("input,textarea,[contenteditable]")) attr["placeholder"] = v;
-						else if($(this).is("img")) attr["alt"] = v;
+						if($t.is("input,textarea,[contenteditable]")) attr["placeholder"] = v;
+						else if($t.is("img")) attr["alt"] = v;
 					}
 
 					// 除 title/href/src/download，其他皆為 data-{k}
-					attr[ ["title","href","src","download"].indexOf(k)<0 ? "data-"+k : k ] = v;
-					$(this).attr(attr).removeAttr("data-h_"+k);
+					attr[ ["title","href","src","download"].includes(k) ? k : "data-"+k ] = v;
+					$t.attr(attr).removeAttr("data-h_"+k);
 				}
 			}
 		});
@@ -227,9 +226,21 @@ function _h(k, x){
 }
 
 function check_hostname(){
-	// 禁用外部 iframe
-	if(top.location.hostname.split(".").splice(-2).join(".")!=self.location.hostname.split(".").splice(-2).join(".")){
-		top.location.href = self.location.href;
+	// 禁用外部 iframe（跨網域時讀取 top.location 會丟出 SecurityError，同樣視為外部）
+	let site = h => h.split(".").slice(-2).join("."),
+		framed;
+	try{
+		framed = site(top.location.hostname)!=site(self.location.hostname);
+	}
+	catch(e){
+		framed = true;
+	}
+
+	if(framed){
+		try{
+			top.location.href = self.location.href;
+		}
+		catch(e){}
 	}
 	else if(location.hostname!="hearty.me"){
 		let u = location.href.replace(location.hostname, "hearty.me");
@@ -250,28 +261,21 @@ function cssFeatureSupported(prop, value){
 	else{
 		let d = document.createElement("div");
 		d.style[prop] = value;
-	 	return d.style[prop]==value;
+		return d.style[prop]==value;
 	}
 }
 
 // 網址參數
 function getUrlPara(para){
-	return new URLSearchParams(window.location.search).get(para);
+	return new URLSearchParams(location.search).get(para);
 }
-	/*
-	function getUrlPara(para){
-		let reg = new RegExp("(^|&)"+para+"=([^&]*)(&|$)"), 
-			r = location.search.substr(1).match(reg);
-		if(r!=null) return decodeURIComponent(r[2]); return null;
-	}
-	*/
 
 // 取得 Cookie
 function getcookie(cname){
-	let name = cname+"=", ca = document.cookie.split(";");
-	for(let i=0; i<ca.length; i++){
-		let c = ca[i].trim();
-		if(c.indexOf(name)==0) return c.substring(name.length, c.length);
+	let name = cname+"=";
+	for(let c of document.cookie.split(";")){
+		c = c.trim();
+		if(c.startsWith(name)) return c.slice(name.length);
 	}
 	return "";
 }
@@ -282,7 +286,7 @@ function setcookie(cname, val, days_added){
 
 	let d = new Date();
 	d.setDate(d.getDate()+(days_added||1));
-	document.cookie = (cname||"")+"="+val+";expires="+d.toGMTString()+";domain=."+document.domain+";path=/;samesite=lax;secure";
+	document.cookie = (cname||"")+"="+val+";expires="+d.toUTCString()+";domain=."+document.domain+";path=/;samesite=lax;secure";
 }
 
 // 預設訊息
@@ -329,14 +333,14 @@ function msg(txt, btn, callback){
 
 function alertify_input_custom(a, c){
 	let $a = $("#alertify .alertify-text");
-	if(!(a==null) && typeof a=="object"){
+	if(a && typeof a=="object"){
 		if(a.type=="password") $a.wrap("<form></form>"); // Password field should be contained in a form: https://www.chromium.org/developers/design-documents/create-amazing-password-forms/
 		if(!("autocomplete" in a)) a["autocomplete"] = "off";
 		if(!("autocapitalize" in a)) a["autocapitalize"] = "off";
 		a["required"] = "";
 		$a.attr(a);
 	}
-	if(!(c==null) && typeof c=="object"){
+	if(c && typeof c=="object"){
 		$a.css(c);
 	}
 	return $a;
@@ -347,7 +351,7 @@ function alertify_input_custom(a, c){
 
 // Enter 鍵
 function press_enter(e, action){
-	if((e.keyCode ? e.keyCode : e.which)==13){
+	if((e.keyCode || e.which)==13){
 		let fn = window[action];
 		if(typeof fn=="function") fn();
 	}
@@ -356,7 +360,7 @@ function press_enter(e, action){
 // Google 表單
 function gform_post(uri, data){
 	if("fetch" in window && "URLSearchParams" in window){
-		data = data || [];
+		data = data || {}; // 須為物件：URLSearchParams 會忽略陣列上的具名屬性
 		if(!data["emailAddress"]) data["emailAddress"] = getcookie("hearty_em")||"guest@hearty.me";
 
 		return fetch("//docs.google.com/forms/d/e/"+uri+"/formResponse", {
@@ -430,7 +434,7 @@ function today(tz_diff){
 	if(isNaN(tz_diff))
 		return new Date().toLocaleDateString("sv");
 	else
-		return new Date((new Date).getTime()+tz_diff*3600000).toISOString().split("T")[0]; // GMT+8
+		return new Date(Date.now()+tz_diff*36e5).toISOString().split("T")[0]; // GMT+8
 }
 
 // 當地日期
@@ -454,8 +458,9 @@ function date_format(d, inclue_year){
 }
 
 // 動態式呼叫 JS 函數
-function dynamic_function(fn){
-	this[fn].apply(null, Array.prototype.slice.call(arguments, 1));
+function dynamic_function(fn, ...args){
+	// strict mode 下 this 為 undefined，須明確指定 window
+	window[fn].apply(null, args);
 }
 
 // 特殊字元消毒
@@ -642,11 +647,7 @@ function ln_evt_push(evt){
 function scroll2focused($e){
 	$e = $e || $("body");
 
-	$e.find("input").filter("[type='text'],[type='email'],[type='number'],[type='date'],[type='tel'],[type='url']").add($e.find("textarea")).on("focus", function(){
-		/*
-		if("scrollIntoViewIfNeeded" in document.activeElement)
-			document.activeElement.scrollIntoViewIfNeeded();
-		*/
+	$e.find("input[type='text'],input[type='email'],input[type='number'],input[type='date'],input[type='tel'],input[type='url'],textarea").on("focus", function(){
 		$("html,body").animate({
 			scrollTop: $(this).offset().top-($(window).innerHeight()/4)+"px"
 		}, "fast");
@@ -710,16 +711,15 @@ function hj_ip(alt){
 		crossDomain: true, 
 		dataType: "text"
 	}).then(function(d){
-		try{
-			d = (d||"").replace(/[\r\n]+/g, '","').replace(/\=+/g, '":"');
-			d = JSON.parse('{"'+d.slice(0, d.lastIndexOf('","'))+'"}');
-			return d;
+		// 每行 key=value
+		let o = {};
+		for(let l of (d||"").split(/[\r\n]+/)){
+			let i = l.indexOf("=");
+			if(i>0) o[l.slice(0, i)] = l.slice(i+1);
 		}
-		catch(e){
-			return hj_ip_alt();
-		}
-	}).fail(function(){
-		return hj_ip_alt();
+		return o.ip ? o : hj_ip_alt();
+	}, function(){
+		return hj_ip_alt(); // 用 then 的失敗回呼（而非 .fail）才能把備援結果傳回呼叫端
 	});
 }
 	function hj_ip_alt(alt){
@@ -851,12 +851,10 @@ function get_app(os, cp){
 					open_url(dl["Android"][e ? "apk" : "play"]);
 				});
 			}
-			else if(!is_Android){
-				open_url(dl["Android"]["play"]);
-				get_app_events(os, cp); return;
+			else{
+				open_url(dl["Android"][is_Android ? "market" : "play"]);
 			}
-				open_url(dl["Android"]["market"]);
-				get_app_events(os, cp);
+			get_app_events(os, cp);
 		break;
 
 		case "iOS":
@@ -1044,14 +1042,20 @@ function hj_fcm_init(onfinish){
 		}).then(onfinish).fail(onfinish);
 	}
 
+// 載入中狀態，最長 8 秒自動解除
+// 用獨立計時器，不佔用 body 的動畫佇列（避免延後 $("html,body").animate 捲動）
+var hj_loading_timer;
 function hj_loading(on){
-	let $b = $("body");
-	if(on===false)
-		$b.removeClass("loading");
-	else
-		$b.addClass("loading").delay(8000).queue(function(){
-			$(this).removeClass("loading").dequeue();
-		});
+	clearTimeout(hj_loading_timer);
+	if(on===false){
+		$("body").removeClass("loading");
+	}
+	else{
+		$("body").addClass("loading");
+		hj_loading_timer = setTimeout(function(){
+			$("body").removeClass("loading");
+		}, 8000);
+	}
 }
 
 function hj_href(url){

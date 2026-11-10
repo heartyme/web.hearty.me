@@ -119,6 +119,10 @@ var _h$ = {tp: [
 			"为遵守台湾金管会的防诈新制，请您提供您在发卡银行留存的手机号码，以便进行交易简讯认证。", 
 			"您提供的手机号 $no 与银行留存的不符。请提供正确的号码并再试一次。"
 		], 
+		done: [
+			"付款完成，谢谢您购买温度日记 VIP", 
+			"订单编号：$no"
+		], 
 		fail: [
 			"交易失败，请确认输入数据无误，或更换银行卡，或另选支付方式，如问题持续请联繫客服", // 储值
 			"刷卡失败，请确认输入数据无误，或更换银行卡，如问题持续请联繫客服", // 订阅
@@ -130,6 +134,8 @@ var _h$ = {tp: [
 		]
 	}
 	][tp_lang()]};
+
+const TP_HOME = "//bitly.com/3fmoEYD";
 
 
 // onload
@@ -144,7 +150,7 @@ $(function(){
 		tp_init_apay(); // AP
 		np_init_ezpay(); // ezPay
 
-		$(".mobile").add($("#agree").parent()).remove(); // 移除手機號碼+續扣同意
+		$(".mobile, .agree").remove(); // 移除手機號碼+續扣同意
 	}
 	// 訂閱
 	else{
@@ -154,9 +160,9 @@ $(function(){
 
 	// 顯示當地幣值
 	let cur = getUrlPara("cur");
-	if(!!cur)
+	if(cur)
 		TWD2local(cur).then(function(rate){
-			let t = cur+" "+Math.ceil( (parseInt($("#amt").text())||0) *rate*10)/10;
+			let t = cur+" "+Math.ceil(tp_amt()*rate*10)/10;
 			$("[data-cur]").text(t).attr({title: t});
 		});
 
@@ -164,7 +170,7 @@ $(function(){
 	_h_init();
 
 	// 隱藏網址參數
-	tp_params(false);
+	tp_params_hide();
 
 	// TapPay Logo
 	$(".tp_logo").on("click", function(){
@@ -172,35 +178,35 @@ $(function(){
 	});
 });
 
-function tp_params(get){
-	let $b = $("body");
-
-	// onload
-	if(!get){
-		// 網址參數為空時
-		if(!(location.search||"").length){
-			top.location.href = "//bitly.com/3fmoEYD"; return;
-		}
-
-		let _3ds = getUrlPara("3ds");
-		// if(getcookie("hearty_3ds")=="0") _3ds = 0; // 關 3D
-
-		// 將網址參數寫入 DOM以隱藏
-		$b.attr({
-			"data-pkg": getUrlPara("pkg"), 
-			"data-3ds": _3ds, 
-			"data-recurring": getUrlPara("recurring"), 
-			"data-ip": getUrlPara("ip"), 
-			"data-cc": getUrlPara("cc")
-		});
-
-		// 非手機 APP，才藏網址
-		if(!tp_isapp() && typeof history.replaceState=="function") history.replaceState(null, "", location.pathname);
+// 將網址參數寫入 DOM以隱藏 (onload)
+function tp_params_hide(){
+	// 網址參數為空時
+	if(!location.search){
+		top.location.href = TP_HOME; return;
 	}
-	// get
-	else{
-		return $.param($b.get(0)?.dataset);
+
+	let _3ds = getUrlPara("3ds");
+	// if(getcookie("hearty_3ds")=="0") _3ds = 0; // 關 3D
+
+	$("body").attr({
+		"data-pkg": getUrlPara("pkg"), 
+		"data-3ds": _3ds, 
+		"data-recurring": getUrlPara("recurring"), 
+		"data-ip": getUrlPara("ip"), 
+		"data-cc": getUrlPara("cc")
+	});
+
+	// 非手機 APP，才藏網址
+	if(!tp_isapp()) history.replaceState(null, "", location.pathname);
+}
+	// 讀回網址參數 (query string)
+	function tp_params(){
+		return $.param(document.body.dataset);
 	}
+
+// 金額 (NT$)
+function tp_amt(){
+	return parseInt($("#amt").text())||0;
 }
 
 function tp_init(){
@@ -234,11 +240,11 @@ function tp_dpay_btn(on){
 function tp_init_dpay(){
 	try{
 		TPDirect.card.setup("#dpay", {
-			color: 'rgb(0,0,0)', 
-			fontSize: '15px', 
-			lineHeight: '24px', 
-			fontWeight: '300', 
-			errorColor: 'red', 
+			color: "rgb(0,0,0)", 
+			fontSize: "15px", 
+			lineHeight: "24px", 
+			fontWeight: "300", 
+			errorColor: "red", 
 			placeholderColor: ""
 		}, {
 			isUsedCcv: false, 
@@ -253,8 +259,8 @@ function tp_init_dpay(){
 		// 預填電話國碼 (如尚未驗證)
 		let $cc = $("#phone_cc");
 		if($cc.length>0 && !$cc.val()){
-			let cc = dial_code(getUrlPara("cc")||"");
-			$cc.val(cc).find("[value="+cc+"]").attr({selected: "selected"});
+			let cc = dial_code(getUrlPara("cc"));
+			$cc.val(cc).find('[value="'+cc+'"]').attr({selected: "selected"});
 		}
 
 		// 付款鈕
@@ -262,14 +268,16 @@ function tp_init_dpay(){
 			e.preventDefault();
 			tp_dpay_btn(false);
 			TPDirect.card.getPrime(function(r){
-				let c = r.card;
-				tp_pay(1, c.prime||"", c.countrycode||"");
+				let c = r.card||{};
+				// 取 Prime失敗時，恢復付款鈕
+				if(!c.prime) tp_dpay_btn(true);
+				else tp_pay(1, c.prime, c.countrycode);
 			});
 		});
 
-			TPDirect.card.onUpdate(function(r){
-				$btn.prop({disabled: !r.canGetPrime});
-			});
+		TPDirect.card.onUpdate(function(r){
+			$btn.prop({disabled: !r.canGetPrime});
+		});
 
 		// 授權同意
 		$("#agree").on("click", function(e){
@@ -281,16 +289,16 @@ function tp_init_dpay(){
 		console.error("Dpay Error");
 	}
 }
+	// 國碼 (預設 886)
+	const DIAL_CODES = {AD:376,AE:971,AF:93,AG:1,AI:1,AL:355,AM:374,AO:244,AQ:672,AR:54,AS:1,AT:43,AU:61,AW:297,AX:358,AZ:994,BA:387,BB:1,BD:880,BE:32,BF:226,BG:359,BH:973,BI:257,BJ:229,BL:590,BM:1,BN:673,BO:591,BQ:599,BR:55,BS:1,BT:975,BV:47,BW:267,BY:375,BZ:501,CA:1,CC:61,CD:243,CF:236,CG:242,CH:41,CI:225,CK:682,CL:56,CM:237,CN:86,CO:57,CR:506,CU:53,CV:238,CW:599,CX:61,CY:357,CZ:420,DE:49,DJ:253,DK:45,DM:1,DO:1,DZ:213,EC:593,EE:372,EG:20,EH:212,ER:291,ES:34,ET:251,FI:358,FJ:679,FK:500,FM:691,FO:298,FR:33,GA:241,GB:44,GD:1,GE:995,GF:594,GG:44,GH:233,GI:350,GL:299,GM:220,GN:224,GP:590,GQ:240,GR:30,GS:500,GT:502,GU:1,GW:245,GY:592,HK:852,HM:672,HN:504,HR:385,HT:509,HU:36,ID:62,IE:353,IL:972,IM:44,IN:91,IO:246,IQ:964,IR:98,IS:354,IT:39,JE:44,JM:1,JO:962,JP:81,KE:254,KG:996,KH:855,KI:686,KM:269,KN:1,KP:850,KR:82,KW:965,KY:1,KZ:7,LA:856,LB:961,LC:1,LI:423,LK:94,LR:231,LS:266,LT:370,LU:352,LV:371,LY:218,MA:212,MC:377,MD:373,ME:382,MF:590,MG:261,MH:692,MK:389,ML:223,MM:95,MN:976,MO:853,MP:1,MQ:596,MR:222,MS:1,MT:356,MU:230,MV:960,MW:265,MX:52,MY:60,MZ:258,NA:264,NC:687,NE:227,NF:672,NG:234,NI:505,NL:31,NO:47,NP:977,NR:674,NU:683,NZ:64,OM:968,PA:507,PE:51,PF:689,PG:675,PH:63,PK:92,PL:48,PM:508,PN:870,PR:1,PS:970,PT:351,PW:680,PY:595,QA:974,RE:262,RO:40,RS:381,RU:7,RW:250,SA:966,SB:677,SC:248,SD:249,SE:46,SG:65,SH:290,SI:386,SJ:47,SK:421,SL:232,SM:378,SN:221,SO:252,SR:597,SS:211,ST:239,SV:503,SX:1,SY:963,SZ:268,TC:1,TD:235,TF:262,TG:228,TH:66,TJ:992,TK:690,TL:670,TM:993,TN:216,TO:676,TR:90,TT:1,TV:688,TW:886,TZ:255,UA:380,UG:256,UM:246,US:1,UY:598,UZ:998,VA:379,VC:1,VE:58,VG:1,VI:1,VN:84,VU:678,WF:681,WS:685,YE:967,YT:262,ZA:27,ZM:260,ZW:263};
 	function dial_code(cc){
-		cc = (cc||"").toUpperCase();
-		let c = {AD:376,AE:971,AF:93,AG:1,AI:1,AL:355,AM:374,AO:244,AQ:672,AR:54,AS:1,AT:43,AU:61,AW:297,AX:358,AZ:994,BA:387,BB:1,BD:880,BE:32,BF:226,BG:359,BH:973,BI:257,BJ:229,BL:590,BM:1,BN:673,BO:591,BQ:599,BR:55,BS:1,BT:975,BV:47,BW:267,BY:375,BZ:501,CA:1,CC:61,CD:243,CF:236,CG:242,CH:41,CI:225,CK:682,CL:56,CM:237,CN:86,CO:57,CR:506,CU:53,CV:238,CW:599,CX:61,CY:357,CZ:420,DE:49,DJ:253,DK:45,DM:1,DO:1,DZ:213,EC:593,EE:372,EG:20,EH:212,ER:291,ES:34,ET:251,FI:358,FJ:679,FK:500,FM:691,FO:298,FR:33,GA:241,GB:44,GD:1,GE:995,GF:594,GG:44,GH:233,GI:350,GL:299,GM:220,GN:224,GP:590,GQ:240,GR:30,GS:500,GT:502,GU:1,GW:245,GY:592,HK:852,HM:672,HN:504,HR:385,HT:509,HU:36,ID:62,IE:353,IL:972,IM:44,IN:91,IO:246,IQ:964,IR:98,IS:354,IT:39,JE:44,JM:1,JO:962,JP:81,KE:254,KG:996,KH:855,KI:686,KM:269,KN:1,KP:850,KR:82,KW:965,KY:1,KZ:7,LA:856,LB:961,LC:1,LI:423,LK:94,LR:231,LS:266,LT:370,LU:352,LV:371,LY:218,MA:212,MC:377,MD:373,ME:382,MF:590,MG:261,MH:692,MK:389,ML:223,MM:95,MN:976,MO:853,MP:1,MQ:596,MR:222,MS:1,MT:356,MU:230,MV:960,MW:265,MX:52,MY:60,MZ:258,NA:264,NC:687,NE:227,NF:672,NG:234,NI:505,NL:31,NO:47,NP:977,NR:674,NU:683,NZ:64,OM:968,PA:507,PE:51,PF:689,PG:675,PH:63,PK:92,PL:48,PM:508,PN:870,PR:1,PS:970,PT:351,PW:680,PY:595,QA:974,RE:262,RO:40,RS:381,RU:7,RW:250,SA:966,SB:677,SC:248,SD:249,SE:46,SG:65,SH:290,SI:386,SJ:47,SK:421,SL:232,SM:378,SN:221,SO:252,SR:597,SS:211,ST:239,SV:503,SX:1,SY:963,SZ:268,TC:1,TD:235,TF:262,TG:228,TH:66,TJ:992,TK:690,TL:670,TM:993,TN:216,TO:676,TR:90,TT:1,TV:688,TW:886,TZ:255,UA:380,UG:256,UM:246,US:1,UY:598,UZ:998,VA:379,VC:1,VE:58,VG:1,VI:1,VN:84,VU:678,WF:681,WS:685,YE:967,YT:262,ZA:27,ZM:260,ZW:263};
-		return cc in c ? c[cc] : 886;
+		return DIAL_CODES[(cc||"").toUpperCase()]||886;
 	}
 
 function tp_init_apay(){
-	try{
-		let $ap = $("#apay");
+	let $ap = $("#apay");
 
+	try{
 		// 支援 PaymentRequest / Apple Pay
 		if(TPDirect.paymentRequestApi.checkAvailability()){
 			TPDirect.paymentRequestApi.setupApplePay({
@@ -312,7 +320,7 @@ function tp_init_apay(){
 					label: _h("tp-prd"), 
 					amount: {
 						currency: "TWD", 
-						value: parseInt($("#amt").text())
+						value: tp_amt()
 					}
 				}
 				/* optional
@@ -331,7 +339,7 @@ function tp_init_apay(){
 
 					$ap.on("click", function(){
 						TPDirect.paymentRequestApi.getPrime(function(r){
-							tp_pay(8, r.prime||"");
+							tp_pay(8, r.prime);
 						});
 					}).show();
 				}
@@ -369,18 +377,18 @@ function tp_init_gpay(){
 
 		TPDirect.googlePay.setupPaymentRequest({
 			allowedNetworks: ["VISA", "MASTERCARD", "JCB"], 
-			price: parseInt($("#amt").text()).toString(), // must be a string
+			price: String(tp_amt()), // must be a string
 			currency: "TWD", // optional
 		}, function(err, r){
-			if(r.canUseGooglePay){
+			if(r && r.canUseGooglePay){
 				TPDirect.googlePay.setupGooglePayButton({
 					el: "#gpay", 
 					color: "white", 
 					type: "short", // long, short
 					getPrimeCallback: function(err, prime){
-						tp_pay(9, prime||"");
+						tp_pay(9, prime);
 					}
-				})
+				});
 			}
 			else{
 				$gp.remove();
@@ -396,132 +404,121 @@ function tp_init_gpay(){
 // Pay-by-Prime
 function tp_pay(payvia, prime, card_country){ // eg. card_country = TW
 	// payvia: 1 信用卡; 8 AP; 9 GP
-	if(prime.length>0){
-		let data = {
-			payvia: payvia, 
-			prime: prime
-		};
+	if(!prime) return;
 
-		// cardholder_verify (僅 Direct Pay)
-		if(payvia==1){
-			data["card_country"] = card_country||"";
+	let data = {
+		payvia: payvia, 
+		prime: prime
+	};
 
-			let $phone_no = $("#phone_no");
-			if($phone_no.length>0){
-				let phone_cc = $("#phone_cc").val()||"", 
-					phone_no = $phone_no.val()||"";
+	// cardholder_verify (僅 Direct Pay)
+	if(payvia==1){
+		data.card_country = card_country||"";
 
-				if(!!phone_cc && phone_no.length>3){
-					// 去掉前導 0
-					// 台灣手機 09
-					if(phone_cc==886) phone_no = phone_no.replace(/^0(?=9)/, "");
+		let $phone_no = $("#phone_no");
+		if($phone_no.length>0){
+			let phone_cc = $("#phone_cc").val()||"", 
+				phone_no = $phone_no.val()||"";
 
-					// 加國碼
-					data["phone"] = "+"+phone_cc+phone_no;
-				}
-				// 要求補填手機
-				else{
-					tp_kyc();
-					tp_dpay_btn(true);
-					return;
-				}
+			// 要求補填手機
+			if(!phone_cc || phone_no.length<=3){
+				tp_kyc();
+				tp_dpay_btn(true);
+				return;
 			}
+
+			// 去掉前導 0
+			// 台灣手機 09
+			if(phone_cc==886) phone_no = phone_no.replace(/^0(?=9)/, "");
+
+			// 加國碼
+			data.phone = "+"+phone_cc+phone_no;
 		}
-
-		// ### debug
-		console.log("* fn tp_pay: "+JSON.stringify(data));
-
-		$.ajax({
-			type: "POST", 
-			url: "/shop/tp.prime?"+tp_params(true), 
-			async: true, 
-			crossDomain: true, 
-			dataType: "json", 
-			data: data, 
-			timeout: 15000
-		}).then(function(r){
-			let v = r["Values"]||"";
-			switch(r["Status"]||""){
-				// 0 訂單寫入失敗
-				case 0:
-					tp_pay_err("0", "#"+(v["orderno"]||"*"));
-				break;
-
-				// 1 交易完成
-				case 1:
-					let orderno = v["orderno"]||"";
-
-					// 新訂單通知
-					// forms.gle/WpRKa7RDbs5auFf88
-					// docs.google.com/forms/d/1FlZikf_rvjfznzynLookHlOZlUxnYJaPz7v6e-tDOqY/edit#responses
-					fetch("//docs.google.com/forms/d/e/1FAIpQLSeooQCNhp2ubbIvshtucFLF5PVOE_ZRaHFAgBPvrVT_MDl_bg/formResponse", {
-						method: "POST", 
-						mode: "no-cors", 
-						body: new URLSearchParams({
-							"entry.553484449": $("[data-hid]").text()||"", // Hearty ID
-							"entry.729548178": orderno, 
-							"entry.147291994": [,"dp",,,,,,,"ap","gp"][payvia]||"", 
-							"entry.20989936": "url_3ds" in v ? "Y" : "N", // 3Ds
-							"entry.792614445": navigator.userAgent||"", 
-							"entry.2000689905": new Date((new Date).getTime()+288e5).toISOString().split("T")[0]
-						})
-					});
-
-					// 簡訊驗證 (信用卡 3DS)
-					if("url_3ds" in v){
-						top.location.href = v["url_3ds"];
-					}
-					// 交易完成 (信用卡非 3DS / AP / GP)
-					else{
-						tp_msg('<i class="fal fa-check-circle"></i> '+_h("tp-done-0")+'<br><i class="fal fa-file"></i> '+_h("tp-done-1", {$no: orderno||"*"}));
-						top.location.href = location.origin+"/shop/tp.thankyou?o="+orderno;
-					}
-				break;
-
-				// 2 交易失敗
-				case 2:
-					tp_pay_report(2, JSON.stringify(v||""));
-
-					let $b = $("body"), 
-						recurring = $b.attr("data-recurring")==1;
-
-					alertify.set({labels: {ok: '<i class="fas fa-question-circle"></i> '+_h("tp-fail-3"), cancel: _h("tp-no")}, buttonReverse: true});
-					alertify.confirm('<i class="fal fa-comment-alt-times"></i> '+_h("tp-fail-"+
-						(recurring?1:0)
-						)+' (❁´ㅁ`)ﾉ<br><i class="fal fa-file"></i> '+_h("tp-fail-2", {$no: v["orderno"]||"*"}), function(e){
-						if(e) tp_support();
-					});
-
-					// 若購買儲值方式首次失敗時，則下次主動幫它關 3D
-					if(!recurring) $b.attr("data-3ds", 0);
-
-					tp_dpay_btn(true);
-				break;
-
-				// 4 KYC 手機驗證失敗
-				case 4:
-					tp_pay_report(4, JSON.stringify(v||""));
-
-					tp_kyc( "+"+($("#phone_cc").val()||"")+($("#phone_no").val()||"") );
-
-					tp_dpay_btn(true);
-				break;
-
-				// 3 訂單格式不符
-				case 3:
-					tp_pay_err(3, v["err"]||"");
-				break;
-
-				// D 其他錯誤
-				default:
-					tp_pay_err("D", JSON.stringify(r||""));
-				break;
-			}
-			}).fail(function(e){
-				// F 未知故障
-				tp_pay_err("F", JSON.stringify(e||""));
-			});
 	}
+
+	// ### debug
+	console.log("* fn tp_pay: "+JSON.stringify(data));
+
+	$.ajax({
+		type: "POST", 
+		url: "/shop/tp.prime?"+tp_params(), 
+		crossDomain: true, 
+		dataType: "json", 
+		data: data, 
+		timeout: 15000
+	}).then(function(r){
+		let v = r.Values||{};
+		switch(r.Status){
+			// 0 訂單寫入失敗
+			case 0:
+				tp_pay_err("0", "#"+(v.orderno||"*"));
+			break;
+
+			// 1 交易完成
+			case 1:{
+				let orderno = v.orderno||"";
+
+				// 新訂單通知
+				// forms.gle/WpRKa7RDbs5auFf88
+				// docs.google.com/forms/d/1FlZikf_rvjfznzynLookHlOZlUxnYJaPz7v6e-tDOqY/edit#responses
+				tp_gform("1FAIpQLSeooQCNhp2ubbIvshtucFLF5PVOE_ZRaHFAgBPvrVT_MDl_bg", {
+					"entry.729548178": orderno, 
+					"entry.147291994": {1: "dp", 8: "ap", 9: "gp"}[payvia]||"", 
+					"entry.20989936": v.url_3ds ? "Y" : "N" // 3Ds
+				});
+
+				// 簡訊驗證 (信用卡 3DS)
+				if(v.url_3ds){
+					top.location.href = v.url_3ds;
+				}
+				// 交易完成 (信用卡非 3DS / AP / GP)
+				else{
+					tp_msg('<i class="fal fa-check-circle"></i> '+_h("tp-done-0")+'<br><i class="fal fa-file"></i> '+_h("tp-done-1", {$no: orderno||"*"}));
+					top.location.href = location.origin+"/shop/tp.thankyou?o="+orderno;
+				}
+			}
+			break;
+
+			// 2 交易失敗
+			case 2:{
+				tp_pay_report(2, JSON.stringify(v));
+
+				let $b = $("body"), 
+					recurring = $b.attr("data-recurring")==1;
+
+				alertify.set({labels: {ok: '<i class="fas fa-question-circle"></i> '+_h("tp-fail-3"), cancel: _h("tp-no")}, buttonReverse: true});
+				alertify.confirm('<i class="fal fa-comment-alt-times"></i> '+_h("tp-fail-"+(recurring?1:0))+' (❁´ㅁ`)ﾉ<br><i class="fal fa-file"></i> '+_h("tp-fail-2", {$no: v.orderno||"*"}), function(e){
+					if(e) tp_support();
+				});
+
+				// 若購買儲值方式首次失敗時，則下次主動幫它關 3D
+				if(!recurring) $b.attr("data-3ds", 0);
+
+				tp_dpay_btn(true);
+			}
+			break;
+
+			// 3 訂單格式不符
+			case 3:
+				tp_pay_err(3, v.err);
+			break;
+
+			// 4 KYC 手機驗證失敗
+			case 4:
+				tp_pay_report(4, JSON.stringify(v));
+				tp_kyc("+"+($("#phone_cc").val()||"")+($("#phone_no").val()||""));
+				tp_dpay_btn(true);
+			break;
+
+			// D 其他錯誤
+			default:
+				tp_pay_err("D", JSON.stringify(r||""));
+			break;
+		}
+	}).fail(function(e){
+		// F 未知故障
+		tp_pay_err("F", JSON.stringify(e||""));
+	});
 }
 	// 錯誤顯示
 	function tp_pay_err(no, txt){
@@ -536,72 +533,61 @@ function tp_pay(payvia, prime, card_country){ // eg. card_country = TW
 		function tp_pay_report(no, txt){
 			// forms.gle/AgcyYpiwkvhqj9WR9
 			// docs.google.com/forms/d/1C6ex-5D2znrAEF4PSTBKv1oSp8MvuB5LZf_jAVFkuuU/edit#responses
-			fetch("//docs.google.com/forms/d/e/1FAIpQLSe15z1D2VmTe7W_F4uRjth7xSRT8rNUxyKG9qrcVRVRXM9nMA/formResponse", {
-				method: "POST", 
-				mode: "no-cors", 
-				body: new URLSearchParams({
-					"entry.553484449": $("[data-hid]").text()||"", // Hearty ID
-					"entry.729548178": no, 
-					"entry.20989936": txt, 
-					"entry.792614445": navigator.userAgent||"", 
-					"entry.2000689905": new Date((new Date).getTime()+288e5).toISOString().split("T")[0]
-				})
+			tp_gform("1FAIpQLSe15z1D2VmTe7W_F4uRjth7xSRT8rNUxyKG9qrcVRVRXM9nMA", {
+				"entry.729548178": no, 
+				"entry.20989936": txt
 			});
 		}
+
+	// 送出 Google表單 (共用欄位：Hearty ID、UA、台灣日期)
+	function tp_gform(form_id, entries){
+		fetch("//docs.google.com/forms/d/e/"+form_id+"/formResponse", {
+			method: "POST", 
+			mode: "no-cors", 
+			body: new URLSearchParams(Object.assign({
+				"entry.553484449": $("[data-hid]").text()||"", // Hearty ID
+				"entry.792614445": navigator.userAgent||"", 
+				"entry.2000689905": new Date(Date.now()+288e5).toISOString().split("T")[0] // UTC+8
+			}, entries))
+		});
+	}
 
 // ezPay 直連閘道 (支付寶&微信)
 function np_init_ezpay(){
 	$(".ezpay").on("click", function(){
 		tp_loading(true);
-		top.location.href = location.origin+"/shop/np.buy?ezpay=1&"+tp_params(true);
+		top.location.href = location.origin+"/shop/np.buy?ezpay=1&"+tp_params();
 	}).show();
 }
 
 // 當地匯率
 function TWD2local(currency){
-	/*
-	// ### debug
-	return $.ajax({
-		url: "//api.hearty.app/robots.txt", 
-		type: "GET", 
-		crossDomain: true, 
-		async: true
-	}).then(function(r){
-		return 4.95;
-	});
-	*/
-
 	return $.ajax({
 		url: "//api.hearty.app/currency/TWD", 
 		type: "GET", 
 		crossDomain: true, 
 		dataType: "json", 
-		async: true, 
 		timeout: 5000
 	}).then(function(r){
-		return parseFloat(r["conversion_rates"][currency]||r["conversion_rates"]["USD"])||0;
+		let rates = r.conversion_rates;
+		return parseFloat(rates[currency]||rates.USD)||0;
 	});
 }
 
 // 網址參數
 function getUrlPara(para){
-	let reg = new RegExp("(^|&)"+para+"=([^&]*)(&|$)"), 
-		r = location.search.substr(1).match(reg);
-	if(r!=null) return decodeURIComponent(r[2]); return null;
+	return new URLSearchParams(location.search).get(para);
 }
 
 // 取得 Cookie
 function getcookie(cname){
-	let name = cname+"=", ca = document.cookie.split(";");
-	for(let i=0; i<ca.length; i++){
-		let c = ca[i].trim();
-		if(c.indexOf(name)==0) return c.substring(name.length, c.length);
-	}
-	return "";
+	let name = cname+"=", 
+		c = document.cookie.split(";").map(s => s.trim()).find(s => s.startsWith(name));
+	return c ? c.substring(name.length) : "";
 }
 
 function tp_msg(txt, callback){
-	alertify.set({labels:{ok: '<i class="fas fa-check"></i> '+_h("tp-ok")}});
+	alertify.set({labels: {ok: '<i class="fas fa-check"></i> '+_h("tp-ok")}});
 	alertify.alert(txt||"", callback||function(){});
 }
 
@@ -617,7 +603,7 @@ function tp_loading(on){
 
 function tp_back(){
 	tp_loading(true);
-	top.location.href = "//bitly.com/3fmoEYD";
+	top.location.href = TP_HOME;
 	// a[href] 有 bug 無法轉頁，原因不明
 	// iOS App 2.5.4 後修復
 }
@@ -627,13 +613,6 @@ function tp_support(){
 	window.open("//hearty.me/d?f=2", "_blank");
 	// a[href] 有 bug 無法轉頁，原因不明
 	// iOS App 2.5.4 後修復
-
-	/*
-	$("<a>", {
-		target: "_blank", 
-		href: "//hearty.me/d?f=2"
-	}).get(0)?.click();
-	*/
 }
 
 function tp_kyc(phone){
@@ -641,87 +620,71 @@ function tp_kyc(phone){
 	// 驗證前提醒
 	if(!phone){
 		tp_msg('<i class="far fa-mobile"></i> '+_h("tp-kyc-0"), function(){
-			$phone_no[0]?.focus();
+			$phone_no.focus();
 		});
 	}
 	// 驗證失敗後訊息
 	else{
-		tp_msg('<i class="far fa-info-circle"></i> '+_h("tp-kyc-1", {$no: phone||""}), 
-			function(){
-			$phone_no.val("").trigger("focus");
+		tp_msg('<i class="far fa-info-circle"></i> '+_h("tp-kyc-1", {$no: phone}), function(){
+			$phone_no.val("").focus();
 		});
 	}
 }
 
+// 0 en; 1 zh-tw; 2 zh-cn
 function tp_lang(){
-	let lang = [
-		0, 
-		navigator.language||""
-	];
-
-	if(/zh-cn/i.test(lang[1])) lang[0] = 2;
-	else if(/zh/i.test(lang[1])) lang[0] = 1;
-
-	return lang[0];	
+	let l = navigator.language||"";
+	return /zh-cn/i.test(l) ? 2 : /zh/i.test(l) ? 1 : 0;
 }
 
 // 語系檔 (from common.head.js)
 function _h_init(){
-	if(typeof _h$=="object" && $("[data-h]").length>0){
-		$("body *,title").each(function(){
-			let o = Object.assign({}, $(this).get(0)?.dataset);
+	$("body *,title").each(function(){
+		let $t = $(this);
 
-			for(let k in o){
-				// 文字
-				if(k=="h"){
-					let v = _h(o[k]).replace(/\n/g, "");
+		for(let [k, key] of Object.entries(this.dataset)){
+			// 文字
+			if(k=="h"){
+				let v = _h(key);
 
-					if($(this).is("title")) $(this).text(v); // document.title
-					else $(this).prepend(_h(o[k]).replace(/\n/g, "<br>")).attr({title: v});
-					$(this).removeAttr("data-h");
-				}
-				// 日期
-				else if(k=="h_date"){
-					let d = o[k];
-					d = !d ? "" : date_format(o[k], true);
-					$(this).attr({
-						"data-date": d, 
-						title: d
-					}).removeAttr("data-"+k);
-				}
-				// 屬性
-				else if(k.startsWith("h_")){
-					let v = _h(o[k]), // 索引查詢
-						attr = {}; // 待寫入值
-
-					k = k.substr(2); // 去掉 _h
-
-					if(k=="title"){
-						if($(this).is("input,textarea,[contenteditable]")) attr["placeholder"] = v;
-						else if($(this).is("img")) attr["alt"] = v;
-					}
-
-					// 除 title/href/src/download，其他皆為 data-{k}
-					attr[ ["title","href","src","download"].indexOf(k)<0 ? "data-"+k : k ] = v;
-					$(this).attr(attr).removeAttr("data-h_"+k);
-				}
+				if($t.is("title")) $t.text(v.replace(/\n/g, "")); // document.title
+				else $t.prepend(v.replace(/\n/g, "<br>")).attr({title: v.replace(/\n/g, "")});
+				$t.removeAttr("data-h");
 			}
-		});
-	}
+			// 屬性
+			else if(k.startsWith("h_")){
+				let v = _h(key), // 索引查詢
+					attr = {}; // 待寫入值
+
+				k = k.substring(2); // 去掉 h_
+
+				if(k=="title"){
+					if($t.is("input,textarea,[contenteditable]")) attr.placeholder = v;
+					else if($t.is("img")) attr.alt = v;
+				}
+
+				// 除 title/href/src/download，其他皆為 data-{k}
+				attr[ ["title","href","src","download"].includes(k) ? k : "data-"+k ] = v;
+				$t.attr(attr).removeAttr("data-h_"+k);
+			}
+		}
+	});
 }
 	function _h(k, x){
 		k = (k||"").toString().split("-");
-		if(!!window._h$ && k.length>1 && k[0] in _h$ && k[1] in _h$[k[0]]){
-			let v = _h$[k[0]][k[1]][k[2]];
-			if(v==null) v = _h$[k[0]][k[1]] || "";
+		let o = _h$[k[0]];
+		if(k.length>1 && o && k[1] in o){
+			let v = o[k[1]][k[2]];
+			if(v==null) v = o[k[1]]||"";
 
+			// 取代變數 (以函式帶入，避免值中的 $ 被當成特殊符號)
 			if(typeof x=="object"){
-				for(let i in x) v = v.replace(i, x[i]);
+				for(let i in x) v = v.replace(i, () => x[i]);
 			}
 			return v;
 		}
 		else{
-			if(!!k[0]){
+			if(k[0]){
 				k = "("+k.join("-")+")";
 				console.warn("_h$"+k+" is missing");
 			}
@@ -731,8 +694,8 @@ function _h_init(){
 
 // 手機 APP
 function tp_isapp(app){
-	let a = (navigator.userAgent||"").match(/Hearty_(iOS|Android|macOS)/)||[];
-	a = a.length>0 ? a[0].replace(/Hearty_/i, "") : false;
+	let m = (navigator.userAgent||"").match(/Hearty_(iOS|Android|macOS)/), 
+		a = m ? m[1] : false;
 	return app==null ? a : app==a;
 }
 

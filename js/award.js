@@ -2,6 +2,23 @@
 
 var btn_alias = "award";
 
+// 投稿截止日（含當日，UTC+8）
+const AWARD_DEADLINE = 20250131;
+
+// 歷屆活動（索引即 evt_no）
+const AWARD_EVENTS = [
+	{alias: "happiness", name: "小確幸"}, // 0
+	{alias: "dearmyself", name: "致親愛的我自己"}, // 1
+	{alias: "mylesson", name: "後來，時光告訴我"}, // 2
+	{alias: "treasure", name: "寶箱"}, // 3
+	{alias: "decisions", name: "對的決定"}, // 4
+	{alias: "feared", name: "沒有想像的那麼糟"} // 5
+];
+
+function award_utm(medium){
+	return "?utm_source=web&utm_medium="+medium+"&utm_campaign=award"+new Date().getFullYear()%100;
+}
+
 $(function(){
 	post_font();
 	new SlideNav({changeHash: true});
@@ -10,8 +27,8 @@ $(function(){
 		nav_toggle($(".menu"), true);
 	});
 	$(".award_nav select").on("input", function(){
-		let fn = $(this).val() || "";
-		hj_href("award/"+(!fn?"":fn+".php")+"?utm_source=web&utm_medium=award_nav&utm_campaign=award"+new Date().getFullYear()%100);
+		let fn = $(this).val();
+		hj_href("award/"+(fn ? fn+".php" : "")+award_utm("award_nav"));
 	});
 
 	$(".apply_btn[data-publish]").on("click", function(){
@@ -21,28 +38,31 @@ $(function(){
 		open_url("//go.hearty.me/uyqjs");
 	});
 
-
 	$(".cert_request").on("click", cert_request);
 	$(".mask").on("click", function(){
 		$(this).fadeOut();
 	});
 
 	$(".nav_btn.fa-share-alt").on("click", hj_share_page);
-	let $u = $(".nav_btn.fa-chevron-up");
+
+	// 回頂端按鈕：僅在跨越門檻時切換，避免每次 scroll 都重跑動畫
+	let $u = $(".nav_btn.fa-chevron-up").hide().on("click", function(){
+			$(document).scrollTop(0);
+		}),
+		u_shown = false;
 	$(document).on("scroll", function(){
-		if($(this).scrollTop()>200) $u.stop().fadeIn("fast");
-		else $u.stop().fadeOut("fast");
+		let show = $(this).scrollTop()>200;
+		if(show===u_shown) return;
+		u_shown = show;
+		$u.stop()[show ? "fadeIn" : "fadeOut"]("fast");
 	});
-	$u.on("click", function(){
-		$(document).scrollTop(0);
-	}).hide();
 
 	$("footer [data-rate]").on("click", hj_rating);
 
 	// 申請參賽證明
-	// go.hearty.me/hjawardcert 
+	// go.hearty.me/hjawardcert
 	let cert = getUrlPara("cert");
-	if(!!cert) cert_request(cert);
+	if(cert) cert_request(cert);
 
 	hj_localize_cn();
 	/*
@@ -77,7 +97,7 @@ function award_apply(onfinish){
 	function publish_post(){
 		$(".mask").hide();
 
-		if(parseInt(today(8).replace(/-/g,""))>20250131)
+		if(parseInt(today(8).replace(/-/g,""))>AWARD_DEADLINE)
 			msg('<i class="fal fa-door-closed"></i> 本屆活動已截稿，歡迎下一屆再來參加 ヽ(✿´･ヮ･)ﾉ♡');
 		else
 			hj_href("//supr.link/Th3tP"); // award/post.php
@@ -107,12 +127,10 @@ function cert_request(evt_no){
 
 						alertify.set({labels: {ok: "我已認證", cancel: '<i class="fas fa-arrow-circle-right"></i> 前往認證'}, buttonReverse: true});
 						alertify.confirm('<i class="fal fa-user"></i> 提醒︰記得認證 Email 及手機，確保具備參賽資格', function(e){
-							hj_href(
-								(e ? "d" : "account")+"?utm_source=web&utm_medium=award_cert&utm_campaign=award"+new Date().getFullYear()%100
-							);
+							hj_href((e ? "d" : "account")+award_utm("award_cert"));
 						});
 					});
-					cert_generate(evt_no || 5, name, subject);
+					cert_generate(evt_no, name, subject);
 
 					// forms.gle/ETUZb1D6kccB62c29
 					gform_post("1FAIpQLSdxyaMux3bC_QDoCGSOdGBfCD2bdffQRwlqOKmRRunvzs0DiQ", {
@@ -155,25 +173,7 @@ function cert_generate(evt_no, name, subject){
 	alertify.success('<i class="fal fa-arrow-alt-to-bottom"></i> 開始下載');
 
 	try{
-		let evt = [{
-				alias: "happiness", // 0
-				name: "小確幸"
-			}, {
-				alias: "dearmyself", // 1
-				name: "致親愛的我自己"
-			}, {
-				alias: "mylesson", // 2
-				name: "後來，時光告訴我"
-			}, {
-				alias: "treasure", // 3
-				name: "寶箱"
-			}, {
-				alias: "decisions", // 4
-				name: "對的決定"
-			}, {
-				alias: "feared", // 5
-				name: "沒有想像的那麼糟"
-			}][evt_no], 
+		let evt = AWARD_EVENTS[evt_no],
 			d = new jsPDF({
 				orientation: "p", 
 				unit: "mm", 
