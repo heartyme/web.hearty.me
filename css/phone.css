@@ -51,9 +51,8 @@ h1, h2, h3, h4, h5{
 }
 
 /* 表單欄位 */
-select,
-textarea,
-input:is([type="text"], [type="email"], [type="url"], [type="tel"], [type="number"]){
+#country-code,
+#phone-no{
 	width: 280px;
 	max-width: 300px;
 	border: 1px solid #ccc;
@@ -67,13 +66,10 @@ input:is([type="text"], [type="email"], [type="url"], [type="tel"], [type="numbe
 	caret-color: #bc8f8f;
 	outline: none;
 }
-textarea{
-	resize: none;
-}
-:is(select, input, textarea):invalid{
+:is(#country-code, #phone-no):invalid{
 	background: #fbf5ed;
 }
-:is(select, input, textarea):focus{
+:is(#country-code, #phone-no):focus{
 	box-shadow: 1px 1px 6px 2px rgba(187,120,94,.5);
 }
 .form_fields{
